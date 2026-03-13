@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestión de Productos - KCF CORPORACION</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2196F3; padding-bottom: 15px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin: 5px; }
+        .btn-nuevo { background: #4CAF50; color: white; }
+        .btn-volver { background: #6c757d; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #2196F3; color: white; position: sticky; top: 0; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        tr:hover { background: #f0f8ff; }
+        .acciones { display: flex; gap: 5px; }
+        .btn-editar { background: #FF9800; color: white; padding: 5px 10px; font-size: 12px; text-decoration: none; border-radius: 3px; }
+        .btn-eliminar { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; text-decoration: none; border-radius: 3px; }
+        .familia-badge { 
+            padding: 3px 8px; 
+            border-radius: 12px; 
+            font-size: 11px; 
+            font-weight: bold;
+            color: white;
+        }
+        .familia-badge.epp { background: #2196F3; }
+        .familia-badge.hma { background: #FF9800; }
+        .familia-badge.hel { background: #9C27B0; }
+        .familia-badge.mel { background: #4CAF50; }
+        .familia-badge.qui { background: #F44336; }
+        .familia-badge.seg { background: #607D8B; }
+        .familia-badge.sol { background: #795548; }
+        .familia-badge.emb { background: #009688; }
+        .familia-badge.ele { background: #673AB7; }
+        .familia-badge.ofi { background: #FF5722; }
+        .familia-badge.lim { background: #00BCD4; }
+        .familia-badge.aut { background: #8BC34A; }
+        .familia-badge.default { background: #666; }
+        .descripcion-corta { max-width: 300px; }
+        .descripcion-larga { max-width: 400px; color: #666; font-size: 12px; }
+        .filtros { background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .filtro-group { display: inline-block; margin-right: 15px; }
+        .filtro-group label { font-weight: bold; margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 Gestión de Productos</h1>
+            <p>Usuario: {{ session.nombre_completo }}</p>
+        </div>
+
+        <a href="/mantenedor/productos/nuevo" class="btn btn-nuevo">➕ Nuevo Producto</a>
+        <a href="/mantenedor" class="btn btn-volver">⬅️ Volver al Mantenedor</a>
+
+        <div class="filtros">
+            <div class="filtro-group">
+                <label>Filtrar por Familia:</label>
+                <select id="filtro-familia">
+                    <option value="">Todas las familias</option>
+                    <option value="EPP">EPP - Equipos Protección</option>
+                    <option value="HMA">HMA - Herramientas Manuales</option>
+                    <option value="HEL">HEL - Herramientas Eléctricas</option>
+                    <option value="MEL">MEL - Materiales Eléctricos</option>
+                    <option value="QUI">QUI - Productos Químicos</option>
+                    <option value="SEG">SEG - Seguridad y Señalización</option>
+                    <option value="SOL">SOL - Equipos Soldadura</option>
+                    <option value="EMB">EMB - Materiales Embalaje</option>
+                    <option value="ELE">ELE - Electrónica y Comunicación</option>
+                    <option value="OFI">OFI - Mobiliario Oficina</option>
+                    <option value="LIM">LIM - Limpieza y Mantenimiento</option>
+                    <option value="AUT">AUT - Repuestos Automotrices</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Buscar:</label>
+                <input type="text" id="filtro-busqueda" placeholder="Código, descripción, marca...">
+            </div>
+        </div>
+
+        <table id="tabla-productos">
+            <thead>
+                <tr>
+                    <th width="80">Código</th>
+                    <th width="150">Familia</th>
+                    <th width="300">Descripción Corta</th>
+                    <th width="400">Descripción Larga</th>
+                    <th width="100">Marca</th>
+                    <th width="100">Modelo</th>
+                    <th width="80">Unidad</th>
+                    <th width="100">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr data-familia="{{ producto[1] }}" data-codigo="{{ producto[2] }}" data-descripcion="{{ producto[3] }} {{ producto[4] }} {{ producto[5] }} {{ producto[6] }}">
+                    <td><strong>{{ producto[2] }}</strong></td>
+                    <td>
+                        <span class="familia-badge {% if 'EPP' in producto[2] %}epp{% elif 'HMA' in producto[2] %}hma{% elif 'HEL' in producto[2] %}hel{% elif 'MEL' in producto[2] %}mel{% elif 'QUI' in producto[2] %}qui{% elif 'SEG' in producto[2] %}seg{% elif 'SOL' in producto[2] %}sol{% elif 'EMB' in producto[2] %}emb{% elif 'ELE' in producto[2] %}ele{% elif 'OFI' in producto[2] %}ofi{% elif 'LIM' in producto[2] %}lim{% elif 'AUT' in producto[2] %}aut{% else %}default{% endif %}">
+                            {{ producto[1][:20] }}{% if producto[1]|length > 20 %}...{% endif %}
+                        </span>
+                    </td>
+                    <td class="descripcion-corta">{{ producto[3] }}</td>
+                    <td class="descripcion-larga">{{ producto[4] or 'Sin descripción adicional' }}</td>
+                    <td>{{ producto[5] or '-' }}</td>
+                    <td>{{ producto[6] or '-' }}</td>
+                    <td>{{ producto[7] }}</td>
+                    <td class="acciones">
+                        <a href="#" class="btn-editar">✏️ Editar</a>
+                        <a href="#" class="btn-eliminar">🗑️ Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Filtrado de productos
+        document.getElementById('filtro-familia').addEventListener('change', filtrarProductos);
+        document.getElementById('filtro-busqueda').addEventListener('input', filtrarProductos);
+
+        function filtrarProductos() {
+            const filtroFamilia = document.getElementById('filtro-familia').value;
+            const filtroBusqueda = document.getElementById('filtro-busqueda').value.toLowerCase();
+            const filas = document.querySelectorAll('#tabla-productos tbody tr');
+
+            filas.forEach(fila => {
+                const familia = fila.dataset.familia;
+                const textoBusqueda = fila.dataset.descripcion.toLowerCase();
+                const codigo = fila.dataset.codigo.toLowerCase();
+
+                const coincideFamilia = !filtroFamilia || familia.includes(filtroFamilia);
+                const coincideBusqueda = !filtroBusqueda || 
+                    textoBusqueda.includes(filtroBusqueda) || 
+                    codigo.includes(filtroBusqueda);
+
+                fila.style.display = (coincideFamilia && coincideBusqueda) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

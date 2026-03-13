@@ -1,0 +1,60 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Orden de Compra - KCF CORPORACION</title>
+            <style>
+                body { font-family: Arial; font-size: 12px; }
+                .header { text-align: center; margin-bottom: 20px; }
+                .empresa { font-size: 16px; font-weight: bold; color: #D32F2F; }
+                .numero { font-size: 14px; font-weight: bold; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #000; padding: 5px; }
+                th { background: #f0f0f0; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="empresa">KCF CORPORACION</div>
+                <div class="numero">Orden de Compra Nro: {{ numero_orden }}</div>
+                <div>Fecha: {{ fecha_actual }}</div>
+            </div>
+            <div><strong>Proveedor:</strong> {{ proveedor_razon_social }}</div>
+            <div><strong>RUC:</strong> {{ proveedor_ruc }}</div>
+            <div><strong>Dirección:</strong> {{ proveedor_direccion }}</div>
+            {% if nota_orden %}
+            <div><strong>Nota:</strong> {{ nota_orden }}</div>
+            {% endif %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Descripción</th>
+                        <th>Marca</th>
+                        <th>Und.</th>
+                        <th>Cant.</th>
+                        <th>Precio Unit S/.</th>
+                        <th>Subtotal S/.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr>
+                        <td>{{ producto.item }}</td>
+                        <td>{{ producto.descripcion }}</td>
+                        <td>{{ producto.marca }}</td>
+                        <td>{{ producto.unidad }}</td>
+                        <td>{{ producto.cantidad }}</td>
+                        <td>S/ {{ producto.precio_unitario }}</td>
+                        <td>S/ {{ producto.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div style="margin-top: 20px; text-align: right;">
+                <div><strong>Total: S/ {{ total_final }}</strong></div>
+            </div>
+        </body>
+        </html>
+        

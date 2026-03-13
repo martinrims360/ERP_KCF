@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mantenedor de BD - KCF CORPORACION</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2196F3;
+        }
+        .user-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        .modulos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .modulo-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+        .modulo-card.usuario {
+            border-left-color: #4CAF50;
+        }
+        .modulo-card.administrador {
+            border-left-color: #FF9800;
+        }
+        .modulo-card h3 {
+            color: #2196F3;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .btn-modulo {
+            display: inline-block;
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 3px;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-crear {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-listar {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-exportar {
+            background: #9C27B0;
+            color: white;
+        }
+        .btn-usuarios {
+            background: #FF9800;
+            color: white;
+        }
+        .btn-deshabilitado {
+            background: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+        .btn-volver {
+            display: inline-block;
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .permiso-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .badge-admin {
+            background: #FF9800;
+            color: white;
+        }
+        .badge-user {
+            background: #4CAF50;
+            color: white;
+        }
+        .badge-both {
+            background: #2196F3;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Mantenedor de Bases de Datos</h1>
+            <p>KCF CORPORACION - Gestión de datos maestros</p>
+        </div>
+
+        <div class="user-info">
+            <strong>👤 Usuario actual:</strong> {{ session.nombre_completo }} 
+            <span class="permiso-badge {{ 'badge-admin' if session.rol == 'administrador' else 'badge-user' }}">
+                {{ session.rol | upper }}
+            </span>
+        </div>
+
+        <div class="modulos-grid">
+            <!-- Productos -->
+            <div class="modulo-card">
+                <h3>
+                    📦 Gestión de Productos
+                    <span class="permiso-badge badge-both">AMBOS ROLES</span>
+                </h3>
+                <p>Administrar catálogo de productos, materiales y precios</p>
+                <div>
+                    <a href="/mantenedor/productos/nuevo" class="btn-modulo btn-crear">➕ Nuevo Producto</a>
+                    {% if session.rol == 'administrador' %}
+                    <a href="/mantenedor/productos" class="btn-modulo btn-listar">📋 Listar Productos</a>
+                    <a href="#" class="btn-modulo btn-exportar">📊 Exportar</a>
+                    {% else %}
+                    <button class="btn-modulo btn-deshabilitado" title="Solo para administradores">📋 Listar Productos</button>
+                    <button class="btn-modulo btn-deshabilitado" title="Solo para administradores">📊 Exportar</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Proveedores -->
+            <div class="modulo-card">
+                <h3>
+                    🏢 Gestión de Proveedores
+                    <span class="permiso-badge badge-both">AMBOS ROLES</span>
+                </h3>
+                <p>Administrar información de proveedores y contactos</p>
+                <div>
+                    <a href="/mantenedor/proveedores/nuevo" class="btn-modulo btn-crear">➕ Nuevo Proveedor</a>
+                    {% if session.rol == 'administrador' %}
+                    <a href="/mantenedor/proveedores" class="btn-modulo btn-listar">📋 Listar Proveedores</a>
+                    <a href="#" class="btn-modulo btn-exportar">📊 Exportar</a>
+                    {% else %}
+                    <button class="btn-modulo btn-deshabilitado" title="Solo para administradores">📋 Listar Proveedores</button>
+                    <button class="btn-modulo btn-deshabilitado" title="Solo para administradores">📊 Exportar</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Clientes -->
+            <div class="modulo-card">
+                <h3>
+                    👥 Gestión de Clientes
+                    <span class="permiso-badge badge-both">AMBOS ROLES</span>
+                </h3>
+                <p>Administrar información de clientes y contactos</p>
+                <div>
+                    <a href="/mantenedor/clientes/nuevo" class="btn-modulo btn-crear">➕ Nuevo Cliente</a>
+                    {% if session.rol == 'administrador' %}
+                    <a href="/mantenedor/clientes" class="btn-modulo btn-listar">📋 Listar Clientes</a>
+                    <a href="#" class="btn-modulo btn-exportar">📊 Exportar</a>
+                    {% else %}
+                    <button class="btn-modulo btn-deshabilitado" title="Solo para administradores">📋 Listar Clientes</button>
+                    <button class="btn-modulo btn-deshabilitado" title="Solo para administradores">📊 Exportar</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Precios Comerciales -->
+            <div class="modulo-card">
+                <h3>
+                    💰 Listas de Precios
+                    <span class="permiso-badge badge-both">AMBOS ROLES</span>
+                </h3>
+                <p>Gestionar precios comerciales y márgenes de venta</p>
+                <div>
+                    <a href="/mantenedor/precios/nuevo" class="btn-modulo btn-crear">💰 Nuevo Precio</a>
+                    {% if session.rol == 'administrador' %}
+                    <a href="/mantenedor/precios" class="btn-modulo btn-listar">📋 Lista Precios</a>
+                    <a href="#" class="btn-modulo btn-exportar">📊 Exportar</a>
+                    {% else %}
+                    <button class="btn-modulo btn-deshabilitado" title="Solo para administradores">📋 Lista Precios</button>
+                    <button class="btn-modulo btn-deshabilitado" title="Solo para administradores">📊 Exportar</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Usuarios - SOLO Administrador -->
+            {% if session.rol == 'administrador' %}
+            <div class="modulo-card administrador">
+                <h3>
+                    👤 Gestión de Usuarios
+                    <span class="permiso-badge badge-admin">SOLO ADMIN</span>
+                </h3>
+                <p>Administrar usuarios, permisos y accesos del sistema</p>
+                <div>
+                    <a href="/mantenedor/usuarios/nuevo" class="btn-modulo btn-usuarios">➕ Nuevo Usuario</a>
+                    <a href="/mantenedor/usuarios" class="btn-modulo btn-usuarios">📋 Listar Usuarios</a>
+                    <a href="#" class="btn-modulo btn-usuarios">🔐 Roles</a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Reportes - SOLO Administrador -->
+            {% if session.rol == 'administrador' %}
+            <div class="modulo-card administrador">
+                <h3>
+                    📊 Reportes Consolidados
+                    <span class="permiso-badge badge-admin">SOLO ADMIN</span>
+                </h3>
+                <p>Reportes ejecutivos y consolidados del sistema</p>
+                <div>
+                    <a href="#" class="btn-modulo btn-exportar">📈 Dashboard</a>
+                    <a href="#" class="btn-modulo btn-exportar">📋 Consolidado General</a>
+                    <a href="#" class="btn-modulo btn-exportar">💾 Backup</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <a href="/" class="btn-volver">⬅️ Volver al Menú Principal</a>
+    </div>
+
+    <script>
+        // Mostrar tooltips para botones deshabilitados
+        document.querySelectorAll('.btn-deshabilitado').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('⛔ Esta función está disponible solo para administradores');
+            });
+        });
+    </script>
+</body>
+</html>

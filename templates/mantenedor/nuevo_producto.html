@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nuevo Producto - KCF CORPORACION</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 700px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        textarea { resize: vertical; }
+        .descripcion-corta { height: 60px; }
+        .descripcion-larga { height: 100px; }
+        .btn { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin-right: 10px; }
+        .btn-guardar { background: #4CAF50; color: white; }
+        .btn-cancelar { background: #ccc; color: #333; text-decoration: none; display: inline-block; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2196F3; padding-bottom: 10px; }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+        .info-codigo { background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #2196F3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 Nuevo Producto</h1>
+            <p>Usuario: {{ session.nombre_completo }}</p>
+        </div>
+
+        <div class="info-codigo">
+            <strong>💡 Información:</strong> El código del producto se generará automáticamente al guardar, basado en la familia seleccionada.
+        </div>
+
+        <form method="POST">
+            <!-- Paso 1: Seleccionar Familia -->
+            <div class="form-group">
+                <label for="familia">1. Familia del Producto *:</label>
+                <select id="familia" name="familia" required onchange="actualizarInfoFamilia()">
+                    <option value="">Seleccione la familia</option>
+                    <option value="EQUIPOS DE PROTECCIÓN PERSONAL (EPP)">🛡️ EQUIPOS DE PROTECCIÓN PERSONAL (EPP)</option>
+                    <option value="HERRAMIENTAS MANUALES">🔧 HERRAMIENTAS MANUALES</option>
+                    <option value="HERRAMIENTAS ELÉCTRICAS">⚡ HERRAMIENTAS ELÉCTRICAS</option>
+                    <option value="MATERIALES ELÉCTRICOS">🔌 MATERIALES ELÉCTRICOS</option>
+                    <option value="PRODUCTOS QUÍMICOS Y ADHESIVOS">🧪 PRODUCTOS QUÍMICOS Y ADHESIVOS</option>
+                    <option value="MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN">🚧 MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN</option>
+                    <option value="EQUIPOS DE SOLDADURA">🔥 EQUIPOS DE SOLDADURA</option>
+                    <option value="MATERIALES DE EMBALAJE">📦 MATERIALES DE EMBALAJE</option>
+                    <option value="EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA">📱 EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA</option>
+                    <option value="MOBILIARIO Y EQUIPOS DE OFICINA">💺 MOBILIARIO Y EQUIPOS DE OFICINA</option>
+                    <option value="MATERIALES DE LIMPIEZA Y MANTENIMIENTO">🧹 MATERIALES DE LIMPIEZA Y MANTENIMIENTO</option>
+                    <option value="REPUESTOS Y ACCESORIOS AUTOMOTRICES">🚗 REPUESTOS Y ACCESORIOS AUTOMOTRICES</option>
+                </select>
+            </div>
+
+            <!-- Paso 2: Descripciones -->
+            <div class="form-group">
+                <label for="descripcion">2. Descripción Corta *:</label>
+                <textarea id="descripcion" name="descripcion" class="descripcion-corta" 
+                    placeholder="Ej: CELULAR M24 ULTRA - 256GB 12 RAM 200 MP + 50 MP + 12 MP + 10 MP 6.8&#34;"
+                    required></textarea>
+                <small>Esta descripción aparecerá en las cotizaciones y órdenes de compra</small>
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion_larga">3. Descripción Larga (Comentarios):</label>
+                <textarea id="descripcion_larga" name="descripcion_larga" class="descripcion-larga"
+                    placeholder="Ej: CELULAR M24 ULTRA - 256GB 12 RAM 200 MP + 50 MP + 12 MP + 10 MP 6.8&#34; con cámara IA y lápiz para escritura sobre pantalla, doble chip y de procedencia china"></textarea>
+                <small>Información adicional para referencia interna</small>
+            </div>
+
+            <!-- Paso 3: Marca y Modelo -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="marca">4. Marca:</label>
+                    <input type="text" id="marca" name="marca" placeholder="Marca del producto">
+                </div>
+
+                <div class="form-group">
+                    <label for="modelo">5. Modelo:</label>
+                    <input type="text" id="modelo" name="modelo" placeholder="Modelo del producto">
+                </div>
+            </div>
+
+            <!-- Paso 4: Unidad -->
+            <div class="form-group">
+                <label for="unidad">6. Unidad de Medida *:</label>
+                <select id="unidad" name="unidad" required>
+                    <option value="">Seleccione unidad</option>
+                    <option value="Unidad">Unidad</option>
+                    <option value="Rollo">Rollo</option>
+                    <option value="Kg">Kilogramo</option>
+                    <option value="Litro">Litro</option>
+                    <option value="Paquete">Paquete</option>
+                    <option value="Caja">Caja</option>
+                    <option value="Metro">Metro</option>
+                    <option value="Set">Set</option>
+                    <option value="Galón">Galón</option>
+                    <option value="ml">Mililitro (ml)</option>
+                    <option value="Par">Par</option>
+                    <option value="Blister">Blister</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-guardar">💾 Guardar Producto</button>
+            <a href="/mantenedor" class="btn btn-cancelar">❌ Cancelar</a>
+        </form>
+    </div>
+
+    <script>
+        function actualizarInfoFamilia() {
+            const familiaSelect = document.getElementById('familia');
+            const infoDiv = document.querySelector('.info-codigo');
+            
+            if (familiaSelect.value) {
+                const prefijos = {
+                    "EQUIPOS DE PROTECCIÓN PERSONAL (EPP)": "EPP",
+                    "HERRAMIENTAS MANUALES": "HMA",
+                    "HERRAMIENTAS ELÉCTRICAS": "HEL",
+                    "MATERIALES ELÉCTRICOS": "MEL",
+                    "PRODUCTOS QUÍMICOS Y ADHESIVOS": "QUI",
+                    "MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN": "SEG",
+                    "EQUIPOS DE SOLDADURA": "SOL",
+                    "MATERIALES DE EMBALAJE": "EMB",
+                    "EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA": "ELE",
+                    "MOBILIARIO Y EQUIPOS DE OFICINA": "OFI",
+                    "MATERIALES DE LIMPIEZA Y MANTENIMIENTO": "LIM",
+                    "REPUESTOS Y ACCESORIOS AUTOMOTRICES": "AUT"
+                };
+                
+                const prefijo = prefijos[familiaSelect.value] || 'GEN';
+                infoDiv.innerHTML = `<strong>📝 Código generado:</strong> Se creará automáticamente con el formato <strong>${prefijo}###</strong> (Ej: ${prefijo}001, ${prefijo}002, etc.)`;
+            } else {
+                infoDiv.innerHTML = `<strong>💡 Información:</strong> El código del producto se generará automáticamente al guardar, basado en la familia seleccionada.`;
+            }
+        }
+    </script>
+</body>
+</html>

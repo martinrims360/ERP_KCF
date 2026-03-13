@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Listado de Cotizaciones - KCF CORPORACION</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f9f9f9; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 20px; }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .header h1 { color: #2196F3; margin-bottom: 6px; }
+
+        .top-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            padding: 12px 18px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-nueva { background-color: #4CAF50; }
+        .btn-nueva:hover { background-color: #45a049; }
+        .btn-volver { background-color: #6c757d; }
+        .btn-volver:hover { background-color: #5a6268; }
+
+        .tabla-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background-color: #2196F3;
+            color: white;
+            padding: 14px 10px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+        tr:hover { background-color: #f8f9fa; }
+
+        .estado {
+            padding: 5px 10px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 100px;
+            text-align: center;
+        }
+        .estado-proceso { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .estado-generada { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .estado-aceptada { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .estado-rechazada { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .monto { text-align: right; font-weight: bold; }
+
+        .acciones { white-space: nowrap; }
+        .btn-mini {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            text-decoration: none;
+            color: white;
+        }
+        .btn-consultar { background: #007BFF; }
+        .btn-consultar:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📊 Listado de Cotizaciones</h1>
+        <div style="color:#666; font-size:13px;">Cotizaciones registradas en el sistema</div>
+    </div>
+
+    <div class="top-actions">
+        <a class="btn btn-volver" href="/index">⬅ Volver</a>
+        <a class="btn btn-nueva" href="/cotizacion/nueva">➕ Nueva Cotización</a>
+    </div>
+
+    <div class="tabla-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Cotización</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Estado</th>
+                    <th style="text-align:right;">Total (S/.)</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in cotizaciones %}
+                <tr>
+                    <td><strong>{{ c.numero_cotizacion }}</strong></td>
+                    <td>{{ c.fecha_creacion }}</td>
+                    <td>{{ c.cliente_razon_social }}</td>
+                    <td>
+                        {% set est = c.estado %}
+                        <span class="estado
+                            {% if est == 'En Proceso' %}estado-proceso
+                            {% elif est == 'Generada' %}estado-generada
+                            {% elif est == 'Aceptada por Cliente' %}estado-aceptada
+                            {% elif est == 'Rechazada' %}estado-rechazada
+                            {% else %}estado-generada{% endif %}">
+                            {{ est }}
+                        </span>
+                    </td>
+                    <td class="monto">S/ {{ c.total | formato_soles }}</td>
+                    <td class="acciones">
+                        <a class="btn-mini btn-consultar" href="/cotizacion/consultar/{{ c.id }}">🔎 Consultar</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center; padding:20px; color:#666;">
+                        No hay cotizaciones registradas.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

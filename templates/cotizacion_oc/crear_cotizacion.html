@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Crear Cotización</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f9f9f9; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 16px; background: white; }
+
+    .back-button-fixed {
+      position: fixed; top: 10px; left: 10px;
+      padding: 8px 12px; background-color: #6c757d; color: white;
+      text-decoration: none; border-radius: 6px; font-weight: bold;
+      z-index: 2500; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      font-size: 12px; display:inline-flex; align-items:center; gap:8px;
+    }
+    .back-button-fixed:hover { background-color: #5a6268; }
+
+    .estado-fixed {
+      position: fixed; top: 10px; right: 10px;
+      padding: 8px 12px; color: white; border-radius: 6px;
+      font-weight: bold; z-index: 2500; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      font-size: 12px;
+    }
+    .estado-en-proceso { background-color: #2196F3; }
+    .estado-generada { background-color: #FF9800; }
+    .estado-aceptada { background-color: #4CAF50; }
+    .estado-rechazada { background-color: #f44336; }
+
+    .topbar { display:flex; justify-content: space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top: 40px; }
+    .btn { border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; }
+    .btn-back { background:#6c757d; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
+    .btn-save { background:#f44336; }
+    .btn-save:hover { background:#da190b; }
+    .title { text-align:center; margin: 10px 0 10px 0; color:#333; }
+
+    .numero-cotizacion { text-align: center; margin: 6px 0 10px 0; font-size: 14px; font-weight: bold; color: #2196F3; }
+    .marca-edn { text-align:right; font-size: 10px; color:#999; margin: 6px 0 12px 0; }
+
+    .botones-superiores { display:flex; gap: 8px; margin: 10px 0 12px 0; justify-content:center; flex-wrap: wrap; }
+    .action-btn { padding: 8px 15px; color:white; border:none; cursor:pointer; border-radius: 6px; font-weight:bold; font-size: 12px; }
+    .save-btn { background:#f44336; } .save-btn:hover { background:#da190b; }
+    .pdf-btn { background:#007BFF; } .pdf-btn:hover { background:#0056b3; }
+    .modificar-btn { background:#9C27B0; } .modificar-btn:hover { background:#7b1fa2; }
+    .aceptada-btn { background:#4CAF50; } .aceptada-btn:hover { background:#45a049; }
+    .diag-btn { background:#607D8B; } .diag-btn:hover { background:#4f6b77; }
+
+    .secciones-superiores { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+    .seccion-info {
+      background: #f8f9fa; padding: 12px; border-radius: 8px;
+      border-left: 4px solid #2196F3; font-size: 12px;
+    }
+    .seccion-condiciones {
+      background: #e8f5e8; padding: 12px; border-radius: 8px;
+      border-left: 4px solid #4CAF50; font-size: 12px;
+    }
+    .seccion-titulo {
+      color: #333; margin-bottom: 10px; font-size: 13px;
+      border-bottom: 1px solid #ddd; padding-bottom: 6px; font-weight: bold;
+    }
+    .form-group { display:flex; gap:10px; align-items:center; margin: 8px 0; }
+    .form-group label { min-width: 140px; font-weight:bold; color:#555; font-size: 12px; }
+    .form-group input, .form-group select, .form-group textarea {
+      flex:1; padding: 8px; border:1px solid #ddd; border-radius: 6px; font-size: 12px;
+    }
+
+    .condicion-item { display:flex; gap:10px; align-items:center; margin: 8px 0; }
+    .condicion-item strong { min-width: 140px; font-size: 12px; }
+    .nota-textarea { width: 100%; min-height: 70px; padding:8px; border:1px solid #ddd; border-radius: 6px; font-size: 12px; }
+
+    .transport-info { margin: 10px 0; font-size: 12px; }
+    .transport-info span { font-weight:bold; }
+    .transport-info input { padding: 6px; width: 120px; font-size: 12px; border:1px solid #ddd; border-radius:6px; }
+
+    .card { background:#f8f9fa; border-left:4px solid #2196F3; padding: 12px; border-radius: 8px; margin-bottom: 14px; }
+
+    .tabla-container { width: 100%; overflow-x:auto; margin-top: 10px; position: relative; }
+    table { width:100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; min-width: 1700px; background:#fff; }
+    th, td { border: 1px solid #ddd; padding: 6px; text-align:left; overflow:hidden; text-overflow: ellipsis; vertical-align: top; }
+    th { background:#e2e2e2; font-size: 10px; font-weight:bold; }
+    th span { display:block; white-space:normal; line-height: 1.2; }
+    table input { width: 96%; box-sizing:border-box; font-size: 11px; padding: 4px; border:1px solid #ddd; border-radius: 4px; }
+
+    .col-item { width: 35px; }
+    .col-codigo { width: 110px; }
+    .col-desc { width: 220px; }
+    .col-marca { width: 90px; }
+    .col-unidad { width: 70px; }
+    .col-cantidad { width: 70px; }
+    .col-monto { width: 110px; }
+    .col-margen { width: 85px; }
+    .col-descuento-porc { width: 90px; }
+    .col-precio-desc { width: 120px; }
+    .col-subtotal-desc { width: 120px; }
+    .col-descuento-subtotal { width: 120px; }
+    .col-margen-final { width: 120px; }
+    .col-accion { width: 70px; }
+
+    tfoot tr { font-weight:bold; background:#e9e9e9; font-size: 11px; }
+    tfoot td { text-align:right; }
+    tfoot td:first-child { text-align:left; }
+
+    .boton-agregar { text-align:center; margin: 10px 0; }
+    .add-item-btn {
+      background:#4CAF50; padding: 8px 14px; color:white;
+      border:none; cursor:pointer; border-radius: 6px; font-weight:bold; font-size: 12px;
+    }
+    .add-item-btn:hover { background:#45a049; }
+
+    .summary { margin-top: 10px; text-align:right; font-size: 13px; }
+    .summary div { margin-bottom: 4px; }
+
+    .modal { display:none; position:fixed; z-index: 3000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.5); }
+    .modal-content {
+      background:white; margin: 10% auto; padding: 15px; border-radius: 10px;
+      width: 380px; max-width: 92%; box-shadow: 0 4px 22px rgba(0,0,0,0.3);
+    }
+    .modal h3 { color:#2196F3; margin-bottom: 10px; text-align:center; font-size: 15px; }
+    .modal label { display:block; margin: 8px 0 4px 0; font-weight:bold; font-size: 12px; }
+    .modal input { width:100%; padding: 8px; border:1px solid #ddd; border-radius:6px; font-size: 12px; }
+    .modal-buttons { text-align:center; margin-top: 14px; }
+    .modal-btn { padding: 8px 15px; margin: 0 4px; border:none; border-radius: 6px; cursor:pointer; font-weight:bold; font-size: 12px; }
+    .btn-confirmar { background:#4CAF50; color:white; }
+    .btn-confirmar:disabled { background:#ccc; cursor:not-allowed; }
+    .btn-cancelar { background:#f44336; color:white; }
+
+    #portalSuggestions {
+      position: fixed;
+      z-index: 9999;
+      display: none;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+      max-height: 260px;
+      overflow: auto;
+      min-width: 280px;
+    }
+    #portalSuggestions .item { padding: 10px; cursor:pointer; border-bottom:1px solid #f0f0f0; font-size: 13px; }
+    #portalSuggestions .item:hover { background:#f5f7ff; }
+    #portalSuggestions .empty { padding: 10px; color:#666; font-size: 13px; }
+    #portalSuggestions .meta { color:#666; font-size: 12px; margin-top: 4px; line-height: 1.2; }
+
+    .modo-consulta .btn-save,
+    .modo-consulta .save-btn,
+    .modo-consulta .add-item-btn {
+      opacity: 0.7;
+    }
+  </style>
+</head>
+
+<body>
+  <a href="/cotizacion" class="back-button-fixed">⬅️ Volver</a>
+  <div class="estado-fixed estado-en-proceso" id="estado_fixed">
+    Estado: <span id="estado_texto">EN PROCESO</span>
+  </div>
+
+  <div class="container" id="main_container">
+    <input type="hidden" id="cotizacion_id" value="{{ cotizacion_id or '' }}">
+    <input type="hidden" id="modo_consulta" value="{{ modo or '' }}">
+
+    <div class="topbar">
+      <a class="btn btn-back" href="/cotizacion">⬅ Volver a cotizaciones</a>
+      <button class="btn btn-save" id="btnGuardar">💾 Guardar Cotización</button>
+    </div>
+
+    <h2 class="title">Crear Cotización</h2>
+
+    <div class="numero-cotizacion">
+      Cotización Nro: <span id="numero_cotizacion">Se asigna al guardar</span>
+    </div>
+
+    <div class="marca-edn">IN-HOUSE desarrollado por EDN</div>
+
+    <div class="botones-superiores">
+      <button class="action-btn save-btn" type="button" id="btnGrabar">💾 Grabar</button>
+      <button class="action-btn pdf-btn" type="button" id="btnPdf">📄 Generar PDF</button>
+      <button class="action-btn modificar-btn" type="button" id="btnModificar" disabled>🔧 Modificar</button>
+      <button class="action-btn aceptada-btn" type="button" id="btnAceptada">✅ Aceptada</button>
+      <button class="action-btn diag-btn" type="button" id="btnDiagnostico">🔧 Diagnóstico</button>
+    </div>
+
+    <div class="secciones-superiores">
+      <div class="seccion-info">
+        <div class="seccion-titulo">👥 INFORMACIÓN DEL CLIENTE</div>
+
+        <input type="hidden" id="cliente_id" value="">
+
+        <div class="form-group">
+          <label>Señor(es):</label>
+          <input type="text" id="cliente_razon_social" placeholder="Escriba y seleccione" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>RUC/DNI:</label>
+          <input type="text" id="cliente_doc" placeholder="Escriba y seleccione" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Dirección Fiscal:</label>
+          <input type="text" id="cliente_direccion" placeholder="Se completa al seleccionar" readonly>
+        </div>
+
+        <div class="form-group">
+          <label>Estado:</label>
+          <select id="estado">
+            <option value="En Proceso">En Proceso</option>
+            <option value="Generada">Generada</option>
+            <option value="Aceptada por Cliente">Aceptada por Cliente</option>
+            <option value="Rechazada">Rechazada</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Punto de Entrega:</label>
+          <select id="punto_entrega">
+            <option value="">(Opcional) Seleccione punto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Dirección de Entrega:</label>
+          <input type="text" id="direccion_entrega" placeholder="Dirección para la entrega">
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono:</label>
+          <input type="text" id="cliente_telefono" placeholder="(Opcional)">
+        </div>
+
+        <div class="form-group">
+          <label>Atención:</label>
+          <input type="text" id="cliente_contacto" placeholder="(Opcional)">
+        </div>
+
+        <div class="form-group">
+          <label>Requerimiento:</label>
+          <input type="text" id="numero_requerimiento" placeholder="(Opcional) SOLPED / OC / Req">
+        </div>
+
+        <div style="margin-top:10px;">
+          <button class="btn" style="background:#4CAF50;" type="button" id="btnCrearCliente">
+            ➕ Crear cliente en Mantenedor
+          </button>
+        </div>
+      </div>
+
+      <div class="seccion-condiciones">
+        <div class="seccion-titulo">📋 CONDICIONES COMERCIALES KCF</div>
+
+        <div class="condicion-item"><strong>Asesor Comercial:</strong><input type="text" id="asesor_comercial" value=""></div>
+        <div class="condicion-item"><strong>E-mail:</strong><input type="text" id="email_contacto" value=""></div>
+        <div class="condicion-item"><strong>Teléfono:</strong><input type="text" id="telefono_contacto" value=""></div>
+        <div class="condicion-item"><strong>Forma de pago:</strong><input type="text" id="forma_pago" value=""></div>
+        <div class="condicion-item"><strong>Tiempo de Entrega:</strong><input type="text" id="tiempo_entrega" value=""></div>
+        <div class="condicion-item"><strong>Lugar de Entrega:</strong><input type="text" id="lugar_entrega" value=""></div>
+        <div class="condicion-item"><strong>Validez oferta:</strong><input type="text" id="validez_oferta" value=""></div>
+
+        <div class="condicion-item">
+          <strong>Descuento comercial:</strong>
+          <div style="flex:1; display:flex; gap:8px; align-items:center;">
+            <input type="number" id="descuento_comercial" value="0" min="0" max="100" style="max-width:120px;"> %
+            <span style="color:#666; font-size:12px;">(referencial)</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 8px;">
+          <strong>Nota:</strong>
+          <textarea class="nota-textarea" id="nota_cotizacion" placeholder="Notas adicionales para esta cotización..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="transport-info">
+      <span>Monto Total de Transporte (sin IGV): S/.</span>
+      <input type="number" id="monto_transporte" value="0" min="0" step="0.01">
+    </div>
+
+    <hr style="margin: 8px 0;">
+
+    <div class="card" style="border-left-color:#4CAF50;">
+      <h3 style="margin:0 0 10px 0;">Detalle de Productos (Estructura de costos)</h3>
+
+      <div class="tabla-container">
+        <table id="products-table">
+          <thead>
+            <tr>
+              <th class="col-item"><span>Item</span></th>
+              <th class="col-codigo"><span>Código</span></th>
+              <th class="col-desc"><span>Descripción</span></th>
+              <th class="col-marca"><span>Marca</span></th>
+              <th class="col-unidad"><span>Unidad</span></th>
+              <th class="col-cantidad"><span>Cantidad</span></th>
+              <th class="col-monto"><span>Precio Costo Unit</span></th>
+              <th class="col-monto"><span>Subtotal Costo</span></th>
+              <th class="col-monto"><span>Transporte (prorrateo)</span></th>
+              <th class="col-monto"><span>Total Costo</span></th>
+              <th class="col-monto"><span>PU Costo Total</span></th>
+              <th class="col-margen"><span>Margen (%)</span></th>
+              <th class="col-monto"><span>Precio Venta Unit (manual)</span></th>
+              <th class="col-monto"><span>Precio Venta Unit (calc)</span></th>
+              <th class="col-monto"><span>Subtotal Venta</span></th>
+              <th class="col-monto"><span>Margen Subtotal</span></th>
+              <th class="col-descuento-porc"><span>% Desc</span></th>
+              <th class="col-precio-desc"><span>PU Venta Desc</span></th>
+              <th class="col-subtotal-desc"><span>Subtotal Venta Desc</span></th>
+              <th class="col-descuento-subtotal"><span>Desc Subtotal</span></th>
+              <th class="col-margen-final"><span>Margen Final</span></th>
+              <th class="col-accion"><span>Eliminar</span></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="7" style="text-align:right;">Totales:</td>
+              <td id="total_subtotal_costo">0.00</td>
+              <td id="total_transporte_prorrateo">0.00</td>
+              <td id="total_costo_general">0.00</td>
+              <td></td><td></td><td></td><td></td>
+              <td id="total_subtotal_venta">0.00</td>
+              <td id="total_margen_subtotal">0.00</td>
+              <td></td><td></td>
+              <td id="total_subtotal_venta_desc">0.00</td>
+              <td id="total_descuento_subtotal">0.00</td>
+              <td id="total_margen_final">0.00</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="boton-agregar">
+        <button class="add-item-btn" type="button" id="btnAgregarItem">+ Agregar Producto</button>
+      </div>
+
+      <div class="summary">
+        <div>Venta Neta (Subtotal): S/. <span id="summary_subtotal_venta_desc">0.00</span></div>
+        <div>IGV (18%): S/. <span id="summary_igv">0.00</span></div>
+        <div>Total Venta: S/. <span id="summary_total_venta">0.00</span></div>
+      </div>
+
+      <div class="form-group" style="margin-top:12px; align-items:flex-start;">
+        <label>Notas internas (ERP)</label>
+        <textarea id="notas" rows="3" placeholder="Notas internas u observaciones (se guardan en la BD)"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div id="portalSuggestions"></div>
+
+  <div id="modalAceptada" class="modal">
+    <div class="modal-content">
+      <h3>✅ Confirmar Cotización Aceptada</h3>
+      <label for="pedido_cliente">Número de Pedido / Orden de Compra del cliente:</label>
+      <input type="text" id="pedido_cliente" placeholder="Ej: OC-2024-001">
+      <label for="fecha_confirmacion">Fecha de confirmación del cliente:</label>
+      <input type="date" id="fecha_confirmacion">
+      <div class="modal-buttons">
+        <button class="modal-btn btn-confirmar" id="btn-registrar" disabled>Grabar</button>
+        <button class="modal-btn btn-cancelar" id="btn-cancelar-aceptada">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalModificar" class="modal">
+    <div class="modal-content">
+      <h3>🔧 Habilitar Modificación</h3>
+      <p style="font-size: 12px; margin-bottom: 8px;">¿Está seguro que desea habilitar la modificación de esta cotización?</p>
+      <p style="font-size: 11px; color:#666;"><strong>Nota:</strong> El estado cambiará de "Generada" a "En Proceso"</p>
+      <div class="modal-buttons">
+        <button class="modal-btn btn-confirmar" id="btn-confirmar-modificar">Sí, Habilitar</button>
+        <button class="modal-btn btn-cancelar" id="btn-cancelar-modificar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const toNum = (v) => {
+    const x = Number(String(v ?? '').replace(',', '.'));
+    return Number.isFinite(x) ? x : 0;
+  };
+
+  let estadoCotizacion = 'En Proceso';
+  let cotizacionBloqueada = false;
+  let datosModificados = false;
+  let itemCounter = 0;
+  let modoConsulta = false;
+
+  const tableBody = document.getElementById('table-body');
+  const montoTransporteInput = document.getElementById('monto_transporte');
+  const mainContainer = document.getElementById('main_container');
+
+  function actualizarEstadoVisual() {
+    const estadoElement = document.getElementById('estado_fixed');
+    const estadoTexto = document.getElementById('estado_texto');
+    estadoTexto.textContent = estadoCotizacion.toUpperCase();
+
+    estadoElement.className = 'estado-fixed ';
+    if (estadoCotizacion === 'En Proceso') estadoElement.classList.add('estado-en-proceso');
+    else if (estadoCotizacion === 'Generada') estadoElement.classList.add('estado-generada');
+    else if (estadoCotizacion === 'Aceptada por Cliente') estadoElement.classList.add('estado-aceptada');
+    else if (estadoCotizacion === 'Rechazada') estadoElement.classList.add('estado-rechazada');
+    else estadoElement.classList.add('estado-en-proceso');
+
+    actualizarBotones();
+  }
+
+  function actualizarBotones() {
+    const btnPdf = document.getElementById('btnPdf');
+    const btnModificar = document.getElementById('btnModificar');
+    const btnAceptada = document.getElementById('btnAceptada');
+    const btnGuardar = document.getElementById('btnGuardar');
+    const btnGrabar = document.getElementById('btnGrabar');
+    const btnAgregar = document.getElementById('btnAgregarItem');
+
+    if (modoConsulta) {
+      btnGuardar.disabled = true;
+      btnGrabar.disabled = true;
+      btnAgregar.disabled = true;
+      btnModificar.disabled = true;
+      btnAceptada.disabled = true;
+      btnPdf.disabled = false;
+      cotizacionBloqueada = true;
+      return;
+    }
+
+    if (estadoCotizacion === 'En Proceso') {
+      btnPdf.disabled = false;
+      btnModificar.disabled = true;
+      btnAceptada.disabled = false;
+      btnGuardar.disabled = false;
+      btnGrabar.disabled = false;
+      btnAgregar.disabled = false;
+      cotizacionBloqueada = false;
+    } else if (estadoCotizacion === 'Generada') {
+      btnPdf.disabled = false;
+      btnModificar.disabled = false;
+      btnAceptada.disabled = false;
+      btnGuardar.disabled = false;
+      btnGrabar.disabled = false;
+      btnAgregar.disabled = true;
+      cotizacionBloqueada = true;
+    } else {
+      btnPdf.disabled = false;
+      btnModificar.disabled = true;
+      btnAceptada.disabled = true;
+      btnGuardar.disabled = false;
+      btnGrabar.disabled = false;
+      btnAgregar.disabled = true;
+      cotizacionBloqueada = true;
+    }
+  }
+
+  function aplicarBloqueoUI() {
+    const disabled = cotizacionBloqueada;
+
+    document.querySelectorAll('#table-body input').forEach(i => i.disabled = disabled);
+
+    document.getElementById('cliente_razon_social').disabled = disabled;
+    document.getElementById('cliente_doc').disabled = disabled;
+    document.getElementById('cliente_telefono').disabled = disabled;
+    document.getElementById('cliente_contacto').disabled = disabled;
+    document.getElementById('numero_requerimiento').disabled = disabled;
+    document.getElementById('direccion_entrega').disabled = disabled;
+    document.getElementById('punto_entrega').disabled = disabled;
+    document.getElementById('btnCrearCliente').disabled = disabled;
+    document.getElementById('estado').disabled = disabled;
+
+    ['asesor_comercial','email_contacto','telefono_contacto','forma_pago','tiempo_entrega','lugar_entrega','validez_oferta','descuento_comercial','nota_cotizacion','notas','monto_transporte']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.disabled = disabled; });
+
+    document.getElementById('btnAgregarItem').disabled = disabled;
+    document.querySelectorAll('#table-body .btn-del').forEach(b => b.disabled = disabled);
+  }
+
+  document.getElementById('estado').addEventListener('change', () => {
+    if (modoConsulta) return;
+    estadoCotizacion = document.getElementById('estado').value;
+    actualizarEstadoVisual();
+    aplicarBloqueoUI();
+    datosModificados = true;
+  });
+
+  const portal = document.getElementById('portalSuggestions');
+  let portalActive = null;
+
+  function portalHide() {
+    portal.style.display = 'none';
+    portal.innerHTML = '';
+    portalActive = null;
+  }
+
+  function portalShowUnderInput(inputEl, html) {
+    const rect = inputEl.getBoundingClientRect();
+    portal.style.left = rect.left + 'px';
+    portal.style.top = (rect.bottom + 4) + 'px';
+    portal.style.minWidth = Math.max(280, rect.width) + 'px';
+    portal.innerHTML = html;
+    portal.style.display = 'block';
+  }
+
+  document.addEventListener('click', (e) => {
+    if (portal.style.display === 'none') return;
+    if (portal.contains(e.target)) return;
+    if (portalActive?.inputEl === e.target) return;
+    portalHide();
+  });
+
+  window.addEventListener('scroll', () => {
+    if (portalActive?.inputEl) {
+      const rect = portalActive.inputEl.getBoundingClientRect();
+      portal.style.left = rect.left + 'px';
+      portal.style.top = (rect.bottom + 4) + 'px';
+      portal.style.minWidth = Math.max(280, rect.width) + 'px';
+    }
+  }, true);
+
+  async function buscarClientes(q) {
+    const res = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
+    const json = await res.json();
+    if (!json.success) return [];
+    return json.data || [];
+  }
+
+  async function cargarPuntosEntregaSiExiste(clienteId) {
+    const select = document.getElementById('punto_entrega');
+    select.innerHTML = `<option value="">(Opcional) Seleccione punto</option>`;
+    try {
+      const res = await fetch(`/api/clientes/${clienteId}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      const data = json.data || json;
+      const puntos = data.puntos_entrega || [];
+      if (!Array.isArray(puntos) || !puntos.length) return;
+
+      puntos.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = String(p.id || '');
+        opt.textContent = p.nombre_punto || 'Punto';
+        opt.dataset.direccion = p.direccion || '';
+        select.appendChild(opt);
+      });
+
+      select.addEventListener('change', () => {
+        const opt = select.selectedOptions[0];
+        document.getElementById('direccion_entrega').value = opt?.dataset?.direccion || '';
+      });
+    } catch (e) {}
+  }
+
+  function setCliente(cliente) {
+    document.getElementById('cliente_id').value = cliente.id;
+    document.getElementById('cliente_razon_social').value = cliente.razon_social || '';
+    document.getElementById('cliente_doc').value = cliente.numero_documento || '';
+    document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
+    cargarPuntosEntregaSiExiste(cliente.id);
+    datosModificados = true;
+  }
+
+  function attachClientePortal(inputId) {
+    const input = document.getElementById(inputId);
+    input.addEventListener('input', async () => {
+      if (cotizacionBloqueada) return;
+      const q = input.value.trim();
+      if (q.length < 2) { portalHide(); return; }
+
+      const clientes = await buscarClientes(q);
+      if (!clientes.length) {
+        portalActive = {type:'cliente', inputEl: input, items: []};
+        portalShowUnderInput(input, `<div class="empty">No encontrado. Use “Crear cliente en Mantenedor”.</div>`);
+        return;
+      }
+
+      const html = clientes.map(c => `
+        <div class="item" data-id="${c.id}">
+          <strong>${c.razon_social}</strong>
+          <div class="meta">${c.tipo_documento}: ${c.numero_documento} • ${c.direccion_fiscal || ''}</div>
+        </div>
+      `).join('');
+
+      portalActive = {type:'cliente', inputEl: input, items: clientes};
+      portalShowUnderInput(input, html);
+
+      portal.querySelectorAll('.item').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = Number(el.getAttribute('data-id'));
+          const c = clientes.find(x => x.id === id);
+          if (c) setCliente(c);
+          portalHide();
+        });
+      });
+    });
+
+    input.addEventListener('focus', () => {
+      if (cotizacionBloqueada) return;
+      if ((input.value || '').trim().length >= 2) input.dispatchEvent(new Event('input'));
+    });
+  }
+
+  attachClientePortal('cliente_doc');
+  attachClientePortal('cliente_razon_social');
+
+  document.getElementById('btnCrearCliente').addEventListener('click', () => {
+    if (modoConsulta) return;
+    const doc = document.getElementById('cliente_doc').value.trim();
+    const rs = document.getElementById('cliente_razon_social').value.trim();
+    const url = `/mantenedor/clientes/nuevo?numero_documento=${encodeURIComponent(doc)}&razon_social=${encodeURIComponent(rs)}`;
+    window.open(url, '_blank');
+    alert('Complete el registro del cliente en Mantenedor y luego selecciónelo aquí con el buscador.');
+  });
+
+  async function buscarProductos(q) {
+    const res = await fetch(`/api/productos/buscar?q=${encodeURIComponent(q)}`);
+    const json = await res.json();
+    if (!json.success) return [];
+    return json.data || [];
+  }
+
+  function setProductoEnFila(row, p) {
+    row.querySelector('.producto_id').value = p.id;
+    row.querySelector('.codigo_producto').value = p.codigo || '';
+    row.querySelector('.descripcion').value = p.descripcion || '';
+    row.querySelector('.marca').value = p.marca || '';
+    row.querySelector('.unidad').value = p.unidad || '';
+  }
+
+  function attachProductoPortal(row, mode) {
+    const input = row.querySelector(mode === 'codigo' ? '.codigo_producto' : '.descripcion');
+
+    input.addEventListener('input', async () => {
+      if (cotizacionBloqueada) return;
+      const q = input.value.trim();
+      if (q.length < 2) { portalHide(); return; }
+
+      const prods = await buscarProductos(q);
+      if (!prods.length) {
+        portalActive = {type:'producto', inputEl: input, rowEl: row, items: []};
+        portalShowUnderInput(input, `<div class="empty">No encontrado. Cree el producto en Mantenedor.</div>`);
+        return;
+      }
+
+      const html = prods.slice(0, 30).map(p => `
+        <div class="item" data-id="${p.id}">
+          <strong>${p.codigo}</strong> - ${p.descripcion}
+          <div class="meta">${(p.marca || '')} ${(p.modelo || '')} • ${(p.unidad || '')}</div>
+        </div>
+      `).join('');
+
+      portalActive = {type:'producto', inputEl: input, rowEl: row, items: prods};
+      portalShowUnderInput(input, html);
+
+      portal.querySelectorAll('.item').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = Number(el.getAttribute('data-id'));
+          const p = prods.find(x => x.id === id);
+          if (!p) return;
+          setProductoEnFila(row, p);
+          portalHide();
+          recalculateAll();
+          datosModificados = true;
+        });
+      });
+    });
+
+    input.addEventListener('focus', () => {
+      if (cotizacionBloqueada) return;
+      if ((input.value || '').trim().length >= 2) input.dispatchEvent(new Event('input'));
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') portalHide();
+    });
+  }
+
+  function recalculateAll() {
+    const rows = document.querySelectorAll("#table-body tr");
+    const montoTransporte = toNum(montoTransporteInput.value);
+
+    let totalSubtotalCosto = 0;
+    rows.forEach(r => {
+      const cantidad = toNum(r.querySelector('.cantidad').value);
+      const costoU = toNum(r.querySelector('.precio_costo_unitario').value);
+      const sc = cantidad * costoU;
+      r.querySelector('.subtotal_costo').textContent = sc.toFixed(2);
+      totalSubtotalCosto += sc;
+    });
+
+    let totalSubtotalVenta = 0;
+    let totalTransporteProrrateo = 0;
+    let totalCostoGeneral = 0;
+    let totalMargenSubtotal = 0;
+    let totalSubtotalVentaDesc = 0;
+    let totalDescuentoSubtotal = 0;
+    let totalMargenFinal = 0;
+
+    rows.forEach(r => {
+      const cantidad = toNum(r.querySelector('.cantidad').value);
+      const subtotalCosto = toNum(r.querySelector('.subtotal_costo').textContent);
+
+      const prorr = (totalSubtotalCosto > 0) ? (montoTransporte * (subtotalCosto / totalSubtotalCosto)) : 0;
+      const totalCostoItem = subtotalCosto + prorr;
+      const puCostoTotal = (cantidad > 0) ? (totalCostoItem / cantidad) : 0;
+
+      const margenInput = r.querySelector('.margen_venta');
+      const pvInput = r.querySelector('.precio_venta_unitario_input');
+
+      const margenPct = toNum(margenInput.value);
+      const pvManual = toNum(pvInput.value);
+
+      const pvUnitCalc = pvManual > 0 ? pvManual : (puCostoTotal * (1 + (margenPct / 100)));
+
+      const subtotalVenta = pvUnitCalc * cantidad;
+      const margenSubtotal = subtotalVenta - totalCostoItem;
+
+      const descPct = toNum(r.querySelector('.porcentaje_descuento').value);
+      const pvDesc = pvUnitCalc * (1 - (descPct / 100));
+      const subtotalVentaDesc = pvDesc * cantidad;
+
+      const descuentoSubtotal = subtotalVenta - subtotalVentaDesc;
+      const margenFinal = subtotalVentaDesc - totalCostoItem;
+
+      r.querySelector('.transporte_prorrateo').textContent = prorr.toFixed(2);
+      r.querySelector('.total_costo').textContent = totalCostoItem.toFixed(2);
+      r.querySelector('.precio_unitario_costo_total').textContent = puCostoTotal.toFixed(2);
+
+      r.querySelector('.precio_venta_unitario_calc').textContent = pvUnitCalc.toFixed(2);
+      r.querySelector('.subtotal_venta_item').textContent = subtotalVenta.toFixed(2);
+      r.querySelector('.margen_subtotal').textContent = margenSubtotal.toFixed(2);
+
+      r.querySelector('.precio_unitario_venta_desc').textContent = pvDesc.toFixed(2);
+      r.querySelector('.subtotal_venta_desc').textContent = subtotalVentaDesc.toFixed(2);
+      r.querySelector('.descuento_subtotal').textContent = descuentoSubtotal.toFixed(2);
+      r.querySelector('.margen_final').textContent = margenFinal.toFixed(2);
+
+      totalSubtotalVenta += subtotalVenta;
+      totalTransporteProrrateo += prorr;
+      totalCostoGeneral += totalCostoItem;
+      totalMargenSubtotal += margenSubtotal;
+      totalSubtotalVentaDesc += subtotalVentaDesc;
+      totalDescuentoSubtotal += descuentoSubtotal;
+      totalMargenFinal += margenFinal;
+    });
+
+    document.getElementById('total_subtotal_costo').textContent = totalSubtotalCosto.toFixed(2);
+    document.getElementById('total_transporte_prorrateo').textContent = totalTransporteProrrateo.toFixed(2);
+    document.getElementById('total_costo_general').textContent = totalCostoGeneral.toFixed(2);
+    document.getElementById('total_subtotal_venta').textContent = totalSubtotalVenta.toFixed(2);
+    document.getElementById('total_margen_subtotal').textContent = totalMargenSubtotal.toFixed(2);
+    document.getElementById('total_subtotal_venta_desc').textContent = totalSubtotalVentaDesc.toFixed(2);
+    document.getElementById('total_descuento_subtotal').textContent = totalDescuentoSubtotal.toFixed(2);
+    document.getElementById('total_margen_final').textContent = totalMargenFinal.toFixed(2);
+
+    const igv = totalSubtotalVentaDesc * 0.18;
+    const totalVenta = totalSubtotalVentaDesc + igv;
+    document.getElementById('summary_subtotal_venta_desc').textContent = totalSubtotalVentaDesc.toFixed(2);
+    document.getElementById('summary_igv').textContent = igv.toFixed(2);
+    document.getElementById('summary_total_venta').textContent = totalVenta.toFixed(2);
+  }
+
+  montoTransporteInput.addEventListener('input', () => { if (!modoConsulta) { recalculateAll(); datosModificados = true; } });
+
+  function deleteItem(row) {
+    if (cotizacionBloqueada) { alert("⚠️ La cotización está bloqueada."); return; }
+    row.remove();
+    const filas = document.querySelectorAll('#table-body tr');
+    itemCounter = 0;
+    filas.forEach((f) => { itemCounter++; f.cells[0].textContent = itemCounter; });
+    recalculateAll();
+    datosModificados = true;
+  }
+
+  function addItem(prefill = null) {
+    if (cotizacionBloqueada && !prefill) {
+      alert("⚠️ La cotización está bloqueada.");
+      return;
+    }
+
+    itemCounter++;
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="col-item">${itemCounter}</td>
+
+      <td class="col-codigo">
+        <input type="text" class="codigo_producto" placeholder="Escriba y seleccione" autocomplete="off">
+        <input type="hidden" class="producto_id" value="">
+      </td>
+
+      <td class="col-desc">
+        <input type="text" class="descripcion" placeholder="Escriba y seleccione" autocomplete="off">
+      </td>
+
+      <td class="col-marca"><input type="text" class="marca" placeholder="Marca"></td>
+      <td class="col-unidad"><input type="text" class="unidad" placeholder="Und."></td>
+
+      <td class="col-cantidad"><input type="number" class="cantidad" value="1" min="0" step="0.001"></td>
+
+      <td class="col-monto"><input type="number" class="precio_costo_unitario" value="0" min="0" step="0.01"></td>
+      <td class="col-monto subtotal_costo">0.00</td>
+      <td class="col-monto transporte_prorrateo">0.00</td>
+      <td class="col-monto total_costo">0.00</td>
+      <td class="col-monto precio_unitario_costo_total">0.00</td>
+
+      <td class="col-margen"><input type="number" class="margen_venta" value="20" min="0" step="0.01"></td>
+
+      <td class="col-monto">
+        <input type="number" class="precio_venta_unitario_input" value="0" min="0" step="0.01" title="Si 0, se calcula por margen">
+      </td>
+
+      <td class="col-monto precio_venta_unitario_calc">0.00</td>
+      <td class="col-monto subtotal_venta_item">0.00</td>
+      <td class="col-monto margen_subtotal">0.00</td>
+
+      <td class="col-descuento-porc"><input type="number" class="porcentaje_descuento" value="0" min="0" max="100" step="0.01"></td>
+      <td class="col-precio-desc precio_unitario_venta_desc">0.00</td>
+      <td class="col-subtotal-desc subtotal_venta_desc">0.00</td>
+      <td class="col-descuento-subtotal descuento_subtotal">0.00</td>
+      <td class="col-margen-final margen_final">0.00</td>
+
+      <td class="col-accion">
+        <button type="button" class="btn-del" style="background:#f44336; color:white; border:none; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:12px;">🗑</button>
+      </td>
+    `;
+
+    tableBody.appendChild(row);
+
+    attachProductoPortal(row, 'codigo');
+    attachProductoPortal(row, 'descripcion');
+
+    const rec = () => {
+      if (!modoConsulta) {
+        recalculateAll();
+        datosModificados = true;
+      }
+    };
+
+    row.querySelector('.cantidad').addEventListener('input', rec);
+    row.querySelector('.precio_costo_unitario').addEventListener('input', rec);
+    row.querySelector('.margen_venta').addEventListener('input', rec);
+    row.querySelector('.precio_venta_unitario_input').addEventListener('input', rec);
+    row.querySelector('.porcentaje_descuento').addEventListener('input', rec);
+
+    row.querySelector('.btn-del').addEventListener('click', () => deleteItem(row));
+
+    if (prefill) {
+      row.querySelector('.producto_id').value = prefill.producto_id || '';
+      row.querySelector('.codigo_producto').value = prefill.codigo || '';
+      row.querySelector('.descripcion').value = prefill.descripcion || '';
+      row.querySelector('.marca').value = prefill.marca || '';
+      row.querySelector('.unidad').value = prefill.unidad || '';
+
+      row.querySelector('.cantidad').value = prefill.cantidad ?? 1;
+      row.querySelector('.precio_costo_unitario').value = prefill.costo_unitario ?? 0;
+      row.querySelector('.margen_venta').value = prefill.margen_porcentaje ?? 20;
+      row.querySelector('.precio_venta_unitario_input').value = prefill.precio_venta_unitario ?? 0;
+      row.querySelector('.porcentaje_descuento').value = prefill.descuento_porcentaje ?? 0;
+    }
+
+    setTimeout(recalculateAll, 30);
+  }
+
+  document.getElementById('btnAgregarItem').addEventListener('click', () => addItem());
+
+  function construirNotasExtendidas() {
+    const bloque = [
+      "=== CAMPOS COMERCIALES (TEMP) ===",
+      `Señor(es): ${document.getElementById('cliente_razon_social').value || ''}`,
+      `Doc: ${document.getElementById('cliente_doc').value || ''}`,
+      `Dirección entrega: ${document.getElementById('direccion_entrega').value || ''}`,
+      `Teléfono: ${document.getElementById('cliente_telefono').value || ''}`,
+      `Atención: ${document.getElementById('cliente_contacto').value || ''}`,
+      `Requerimiento: ${document.getElementById('numero_requerimiento').value || ''}`,
+      `Asesor: ${document.getElementById('asesor_comercial').value || ''}`,
+      `Email: ${document.getElementById('email_contacto').value || ''}`,
+      `Teléfono contacto: ${document.getElementById('telefono_contacto').value || ''}`,
+      `Forma pago: ${document.getElementById('forma_pago').value || ''}`,
+      `Tiempo entrega: ${document.getElementById('tiempo_entrega').value || ''}`,
+      `Lugar entrega: ${document.getElementById('lugar_entrega').value || ''}`,
+      `Validez: ${document.getElementById('validez_oferta').value || ''}`,
+      `Desc comercial: ${document.getElementById('descuento_comercial').value || 0}%`,
+      `Nota cotización: ${document.getElementById('nota_cotizacion').value || ''}`,
+      "=== FIN ==="
+    ].join("\n");
+
+    const notasERP = (document.getElementById('notas').value || '').trim();
+    return notasERP ? (notasERP + "\n\n" + bloque) : bloque;
+  }
+
+  async function guardarCotizacion() {
+    if (modoConsulta) {
+      alert('Esta cotización está en modo consulta.');
+      return;
+    }
+
+    const clienteId = Number(document.getElementById('cliente_id').value || 0);
+    if (!clienteId) { alert('⚠️ Seleccione un cliente válido desde el buscador.'); return; }
+
+    const rows = document.querySelectorAll('#table-body tr');
+    if (!rows.length) { alert('⚠️ Agregue al menos 1 item.'); return; }
+
+    recalculateAll();
+
+    const productos = [];
+    for (const r of rows) {
+      const producto_id = Number(r.querySelector('.producto_id').value || 0);
+      const cantidad = toNum(r.querySelector('.cantidad').value);
+      if (!producto_id) { alert('⚠️ Hay items sin producto seleccionado (autocomplete).'); return; }
+      if (cantidad <= 0) { alert('⚠️ La cantidad debe ser mayor a 0.'); return; }
+
+      productos.push({
+        producto_id,
+        cantidad,
+        costo_unitario: toNum(r.querySelector('.precio_costo_unitario').value),
+        subtotal_costo: toNum(r.querySelector('.subtotal_costo').textContent),
+        margen_porcentaje: toNum(r.querySelector('.margen_venta').value),
+        precio_venta_unitario: toNum(r.querySelector('.precio_venta_unitario_calc').textContent),
+        subtotal_venta: toNum(r.querySelector('.subtotal_venta_item').textContent),
+        descuento_porcentaje: toNum(r.querySelector('.porcentaje_descuento').value),
+        precio_venta_con_descuento: toNum(r.querySelector('.precio_unitario_venta_desc').textContent),
+        subtotal_venta_con_descuento: toNum(r.querySelector('.subtotal_venta_desc').textContent),
+        descuento_total: toNum(r.querySelector('.descuento_subtotal').textContent),
+        margen_final: toNum(r.querySelector('.margen_final').textContent),
+      });
+    }
+
+    const subtotal = toNum(document.getElementById('summary_subtotal_venta_desc').textContent);
+    const igv = toNum(document.getElementById('summary_igv').textContent);
+    const total = toNum(document.getElementById('summary_total_venta').textContent);
+
+    const payload = {
+      cliente_id: clienteId,
+      estado: document.getElementById('estado').value,
+      subtotal,
+      igv,
+      total,
+      notas: construirNotasExtendidas(),
+      productos
+    };
+
+    try {
+      const res = await fetch('/api/cotizacion/guardar', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (!json.success) { alert(`❌ Error: ${json.error || 'No se pudo guardar'}`); return; }
+
+      const data = json.data || {};
+      if (data.numero_cotizacion) document.getElementById('numero_cotizacion').textContent = data.numero_cotizacion;
+
+      estadoCotizacion = payload.estado;
+      actualizarEstadoVisual();
+      aplicarBloqueoUI();
+      datosModificados = false;
+
+      alert(`✅ Cotización guardada.\nNúmero: ${data.numero_cotizacion || ''}`);
+      document.getElementById('cotizacion_id').value = data.cotizacion_id;
+      generatePdf();
+      window.location.href = '/cotizacion';
+    } catch (e) {
+      console.error(e);
+      alert('❌ Error de conexión o servidor al guardar.');
+    }
+  }
+
+  document.getElementById('btnGuardar').addEventListener('click', guardarCotizacion);
+  document.getElementById('btnGrabar').addEventListener('click', guardarCotizacion);
+
+  async function generatePdf() {
+    const cotId = document.getElementById('cotizacion_id').value.trim();
+    if (!cotId) {
+      alert('⚠️ Guarde la cotización primero para generar el PDF.');
+      return;
+    }
+    try {
+      window.open(`/pdf/${cotId}`, '_blank');
+    } catch (e) {
+      console.error(e);
+      alert('❌ Error al generar PDF.');
+    }
+  }
+  document.getElementById('btnPdf').addEventListener('click', generatePdf);
+
+  function showModificarModal() { document.getElementById('modalModificar').style.display = 'block'; }
+  function cerrarModalModificar() { document.getElementById('modalModificar').style.display = 'none'; }
+
+  document.getElementById('btnModificar').addEventListener('click', () => {
+    if (modoConsulta) return;
+    if (estadoCotizacion !== 'Generada') { alert("⚠️ Solo se habilita modificar si está en 'Generada'."); return; }
+    showModificarModal();
+  });
+
+  document.getElementById('btn-confirmar-modificar').addEventListener('click', () => {
+    estadoCotizacion = 'En Proceso';
+    document.getElementById('estado').value = 'En Proceso';
+    cotizacionBloqueada = false;
+    actualizarEstadoVisual();
+    aplicarBloqueoUI();
+    cerrarModalModificar();
+  });
+  document.getElementById('btn-cancelar-modificar').addEventListener('click', cerrarModalModificar);
+
+  function showAceptadaModal() {
+    if (modoConsulta) return;
+    if (estadoCotizacion !== 'Generada') { alert("⚠️ Solo se puede marcar como aceptada una cotización en estado 'Generada'"); return; }
+    document.getElementById('modalAceptada').style.display = 'block';
+    document.getElementById('fecha_confirmacion').valueAsDate = new Date();
+    validarFormularioAceptada();
+  }
+  function cerrarModalAceptada() {
+    document.getElementById('modalAceptada').style.display = 'none';
+    document.getElementById('pedido_cliente').value = '';
+    document.getElementById('fecha_confirmacion').value = '';
+    document.getElementById('btn-registrar').disabled = true;
+  }
+  function validarFormularioAceptada() {
+    const pedido = document.getElementById('pedido_cliente').value.trim();
+    const fecha = document.getElementById('fecha_confirmacion').value;
+    document.getElementById('btn-registrar').disabled = !(pedido && fecha);
+  }
+  document.getElementById('pedido_cliente').addEventListener('input', validarFormularioAceptada);
+  document.getElementById('fecha_confirmacion').addEventListener('input', validarFormularioAceptada);
+  document.getElementById('btnAceptada').addEventListener('click', showAceptadaModal);
+  document.getElementById('btn-cancelar-aceptada').addEventListener('click', cerrarModalAceptada);
+  document.getElementById('btn-registrar').addEventListener('click', () => {
+    estadoCotizacion = 'Aceptada por Cliente';
+    document.getElementById('estado').value = 'Aceptada por Cliente';
+    actualizarEstadoVisual();
+    aplicarBloqueoUI();
+    cerrarModalAceptada();
+    alert("✅ Marcada como Aceptada (pendiente: persistir OC/fecha en columnas reales).");
+  });
+
+  document.getElementById('btnDiagnostico').addEventListener('click', () => {
+    const issues = [];
+    const clienteId = document.getElementById('cliente_id').value;
+    if (!clienteId) issues.push("Cliente no seleccionado (cliente_id vacío).");
+
+    document.querySelectorAll('#table-body tr').forEach((r, idx) => {
+      const pid = r.querySelector('.producto_id').value;
+      if (!pid) issues.push(`Fila ${idx+1}: producto_id vacío (no se seleccionó del autocomplete).`);
+      const qty = toNum(r.querySelector('.cantidad').value);
+      if (qty <= 0) issues.push(`Fila ${idx+1}: cantidad inválida (${qty}).`);
+    });
+
+    if (!issues.length) alert("✅ Diagnóstico OK: no se detectaron problemas obvios.");
+    else alert("🔧 Diagnóstico:\n\n- " + issues.join("\n- "));
+  });
+
+  function bloquearModoConsulta() {
+    modoConsulta = true;
+    mainContainer.classList.add('modo-consulta');
+    cotizacionBloqueada = true;
+    actualizarBotones();
+    aplicarBloqueoUI();
+  }
+
+  function parseNotasExtendidas(notas) {
+    if (!notas) return;
+
+    const lineas = notas.split('\n');
+
+    const getVal = (prefijo) => {
+      const linea = lineas.find(x => x.startsWith(prefijo));
+      return linea ? linea.replace(prefijo, '').trim() : '';
+    };
+
+    const senores = getVal('Señor(es):');
+    const doc = getVal('Doc:');
+    const dirEntrega = getVal('Dirección entrega:');
+    const telefono = getVal('Teléfono:');
+    const atencion = getVal('Atención:');
+    const requerimiento = getVal('Requerimiento:');
+    const asesor = getVal('Asesor:');
+    const email = getVal('Email:');
+    const telContacto = getVal('Teléfono contacto:');
+    const formaPago = getVal('Forma pago:');
+    const tiempoEntrega = getVal('Tiempo entrega:');
+    const lugarEntrega = getVal('Lugar entrega:');
+    const validez = getVal('Validez:');
+    const descCom = getVal('Desc comercial:');
+    const notaCot = getVal('Nota cotización:');
+
+    if (senores) document.getElementById('cliente_razon_social').value = senores;
+    if (doc) document.getElementById('cliente_doc').value = doc;
+    if (dirEntrega) document.getElementById('direccion_entrega').value = dirEntrega;
+    if (telefono) document.getElementById('cliente_telefono').value = telefono;
+    if (atencion) document.getElementById('cliente_contacto').value = atencion;
+    if (requerimiento) document.getElementById('numero_requerimiento').value = requerimiento;
+    if (asesor) document.getElementById('asesor_comercial').value = asesor;
+    if (email) document.getElementById('email_contacto').value = email;
+    if (telContacto) document.getElementById('telefono_contacto').value = telContacto;
+    if (formaPago) document.getElementById('forma_pago').value = formaPago;
+    if (tiempoEntrega) document.getElementById('tiempo_entrega').value = tiempoEntrega;
+    if (lugarEntrega) document.getElementById('lugar_entrega').value = lugarEntrega;
+    if (validez) document.getElementById('validez_oferta').value = validez;
+    if (descCom) document.getElementById('descuento_comercial').value = descCom.replace('%', '').trim();
+    if (notaCot) document.getElementById('nota_cotizacion').value = notaCot;
+  }
+
+  async function cargarCotizacionSiAplica() {
+    const cotId = (document.getElementById('cotizacion_id')?.value || '').trim();
+    const modo = (document.getElementById('modo_consulta')?.value || '').trim();
+
+    if (!cotId) return;
+
+    if (modo === 'consulta') {
+      bloquearModoConsulta();
+    }
+
+    const res = await fetch(`/api/cotizaciones/${encodeURIComponent(cotId)}`);
+    const json = await res.json();
+
+    if (!json.success) {
+      alert(`❌ No se pudo cargar la cotización: ${json.error || 'Error'}`);
+      return;
+    }
+
+    const data = json.data || {};
+
+    document.getElementById('numero_cotizacion').textContent = data.numero_cotizacion || '';
+    document.getElementById('estado').value = data.estado || 'En Proceso';
+    estadoCotizacion = document.getElementById('estado').value;
+
+    if (data.cliente) {
+      document.getElementById('cliente_id').value = data.cliente.id || '';
+      document.getElementById('cliente_razon_social').value = data.cliente.razon_social || '';
+      document.getElementById('cliente_doc').value = data.cliente.numero_documento || '';
+      document.getElementById('cliente_direccion').value = data.cliente.direccion_fiscal || '';
+
+      if (data.cliente.id) {
+        await cargarPuntosEntregaSiExiste(data.cliente.id);
+      }
+    }
+
+    if (data.notas) {
+      document.getElementById('notas').value = data.notas;
+      parseNotasExtendidas(data.notas);
+    }
+
+    tableBody.innerHTML = '';
+    itemCounter = 0;
+
+    const items = data.items || data.detalle || [];
+    if (!items.length) {
+      addItem();
+    } else {
+      items.forEach(it => addItem(it));
+    }
+
+    recalculateAll();
+    actualizarEstadoVisual();
+    aplicarBloqueoUI();
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    estadoCotizacion = document.getElementById('estado').value || 'En Proceso';
+    actualizarEstadoVisual();
+
+    const cotId = (document.getElementById('cotizacion_id')?.value || '').trim();
+
+    if (cotId) {
+      await cargarCotizacionSiAplica();
+    } else {
+      addItem();
+      aplicarBloqueoUI();
+      recalculateAll();
+    }
+  });
+</script>
+
+</body>
+</html>

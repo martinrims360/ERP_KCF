@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Cotización - KCF CORPORACION</title>
+    <style>
+        /* Estilos para PDF KCF - Colores corporativos: Rojo, Negro, Blanco */
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 10px;
+            color: #000000;
+            line-height: 1.2;
+        }
+        .header {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            height: 120px; /* altura hasta línea roja */
+            margin-bottom: 15px;
+            border-bottom: 3px solid #D32F2F;
+            padding-bottom: 10px;
+        }
+        .logo {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 200px;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    background: #000;
+}
+
+.logo img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+        .empresa-info {
+            padding-left: 220px; /* desplaza texto para evitar logo */
+            z-index: 2;
+        }
+        .empresa-info h1 {
+            color: #D32F2F;
+            margin: 0 0 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .empresa-info p {
+            margin: 2px 0;
+            font-size: 9px;
+            color: #000000;
+        }
+        .cotizacion-info {
+            text-align: right;
+            align-self: start;
+            position: absolute;
+            right: 0;
+            top: 0;
+            z-index: 2;
+        }
+        .numero-cotizacion {
+            font-size: 16px;
+            font-weight: bold;
+            color: #D32F2F;
+            margin-bottom: 5px;
+        }
+        .fecha {
+            font-size: 10px;
+            color: #000000;
+        }
+        .texto-introductorio {
+            margin: 15px 0;
+            padding: 10px;
+            background: #FFFFFF;
+            border: 1px solid #D32F2F;
+            border-radius: 5px;
+            font-size: 10px;
+            color: #000000;
+            text-align: justify;
+        }
+        .layout-principal {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* AMBOS DEL MISMO ANCHO */
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .seccion-cliente, .seccion-condiciones {
+            font-size: 9px;
+            background: #FFFFFF;
+            border: 1px solid #D32F2F;
+            border-radius: 5px;
+            padding: 10px;
+            min-height: 150px; /* MISMA ALTURA PARA AMBOS */
+        }
+        .seccion-cliente h3, .seccion-condiciones h3 {
+            color: #D32F2F;
+            margin: 0 0 8px 0;
+            font-size: 11px;
+            border-bottom: 1px solid #D32F2F;
+            padding-bottom: 3px;
+        }
+        .info-line, .condicion-line {
+            margin-bottom: 4px;
+            display: flex;
+        }
+        .info-label, .condicion-label {
+            font-weight: bold;
+            min-width: 80px;
+            color: #000000;
+        }
+        .info-value, .condicion-value {
+            flex: 1;
+            color: #000000;
+        }
+        .tabla-productos {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 8px;
+            border: 2px solid #D32F2F;
+        }
+        .tabla-productos th {
+            background: #D32F2F;
+            color: #FFFFFF;
+            padding: 8px 4px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #B71C1C;
+        }
+        .tabla-productos td {
+            padding: 6px 4px;
+            border: 1px solid #D32F2F;
+            text-align: center;
+            background: #FFFFFF;
+        }
+        .tabla-productos .descripcion, .tabla-productos .marca {
+            text-align: left;
+        }
+        .col-item-pdf { width: 25px; }
+        .col-desc-pdf { width: 180px; }
+        .col-marca-pdf { width: 50px; }
+        .col-unidad-pdf { width: 35px; }
+        .col-cantidad-pdf { width: 35px; }
+        .col-punit-pdf { width: 55px; }
+        .col-ptotal-pdf { width: 55px; }
+        .col-descuento-pdf { width: 35px; }
+        .col-valor-desc-pdf { width: 55px; }
+        .col-valor-final-pdf { width: 55px; }
+        .fila-con-descuento {
+            background: #FFEBEE;
+        }
+        .seccion-totales {
+            margin-top: 15px;
+            background: #FFFFFF;
+            border: 1px solid #D32F2F;
+            border-radius: 5px;
+            padding: 10px;
+            width: 300px;
+            margin-left: auto;
+        }
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            padding: 3px 0;
+        }
+        .total-final {
+            font-weight: bold;
+            font-size: 11px;
+            border-top: 2px solid #D32F2F;
+            padding-top: 5px;
+            color: #D32F2F;
+        }
+        .seccion-notas {
+            margin-top: 15px;
+            padding: 10px;
+            background: #FFFFFF;
+            border: 1px solid #D32F2F;
+            border-radius: 5px;
+            font-size: 8px;
+        }
+        .seccion-notas h3 {
+            color: #D32F2F;
+            margin: 0 0 5px 0;
+            font-size: 10px;
+        }
+        .nota-item {
+            margin-bottom: 3px;
+            color: #000000;
+        }
+        .nota-principal {
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .espacio-notas {
+            height: 8px;
+            margin-bottom: 8px;
+        }
+        .separador-final {
+            border-top: 1px solid #D32F2F;
+            margin: 8px 0;
+            padding-top: 8px;
+        }
+        .seccion-contacto {
+            margin-top: 20px;
+            text-align: left;
+            font-size: 8px;
+            border-top: 2px solid #D32F2F;
+            padding-top: 10px;
+        }
+        .contacto-line {
+            margin-bottom: 2px;
+            color: #000000;
+        }
+        .numero-formateado {
+            font-family: 'Courier New', monospace;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado KCF con logo -->
+    <div class="header">
+        <div class="logo">
+            <img src="logo-kcf.png" alt="KCF CORPORACION">
+        </div>
+        <div class="empresa-info">
+            <h1>KCF CORPORACION</h1>
+            <p><strong>RUC:</strong> 20602095704</p>
+            <p>Lima, Perú</p>
+        </div>
+        <div class="cotizacion-info">
+            <div class="numero-cotizacion">Cotización Nro: {{ numero_cotizacion }}</div>
+            <div class="fecha"><strong>Fecha:</strong> {{ fecha_actual }}</div>
+        </div>
+    </div>
+
+    <!-- Layout principal: Cliente + Condiciones - MISMO ANCHO -->
+    <div class="layout-principal">
+        <div class="seccion-cliente">
+            <h3>INFORMACIÓN DEL CLIENTE</h3>
+            <div class="info-line">
+                <div class="info-label">Señor(es):</div>
+                <div class="info-value">{{ cliente_razon_social }}</div>
+            </div>
+            <div class="info-line">
+                <div class="info-label">RUC:</div>
+                <div class="info-value">{{ cliente_ruc }}</div>
+            </div>
+            <div class="info-line">
+                <div class="info-label">Dirección:</div>
+                <div class="info-value">{{ cliente_direccion }}</div>
+            </div>
+            <div class="info-line">
+                <div class="info-label">Teléfono:</div>
+                <div class="info-value">{{ cliente_telefono }}</div>
+            </div>
+            <div class="info-line">
+                <div class="info-label">Atención:</div>
+                <div class="info-value">{{ cliente_contacto }}</div>
+            </div>
+            <div class="info-line">
+                <div class="info-label">Requerimiento:</div>
+                <div class="info-value">{{ numero_requerimiento }}</div>
+            </div>
+        </div>
+
+        <div class="seccion-condiciones">
+            <h3>CONDICIONES COMERCIALES</h3>
+            <div class="condicion-line">
+                <div class="condicion-label">Asesor Comercial:</div>
+                <div class="condicion-value">{{ asesor_comercial }}</div>
+            </div>
+            <div class="condicion-line">
+                <div class="condicion-label">E-mail:</div>
+                <div class="condicion-value">{{ email_contacto }}</div>
+            </div>
+            <div class="condicion-line">
+                <div class="condicion-label">Teléfono:</div>
+                <div class="condicion-value">{{ telefono_contacto }}</div>
+            </div>
+            <div class="condicion-line">
+                <div class="condicion-label">Forma de pago:</div>
+                <div class="condicion-value">{{ forma_pago }}</div>
+            </div>
+            <div class="condicion-line">
+                <div class="condicion-label">Tiempo de Entrega:</div>
+                <div class="condicion-value">{{ tiempo_entrega }}</div>
+            </div>
+            <div class="condicion-line">
+                <div class="condicion-label">Lugar de Entrega:</div>
+                <div class="condicion-value">{{ lugar_entrega }}</div>
+            </div>
+            <div class="condicion-line">
+                <div class="condicion-label">Validez oferta:</div>
+                <div class="condicion-value">{{ validez_oferta }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Texto introductorio -->
+    <div class="texto-introductorio">
+        <strong>Mediante la presente y de acuerdo a lo solicitado, ponemos a su consideración nuestra oferta por lo siguiente:</strong>
+    </div>
+
+    <!-- TABLA DE PRODUCTOS CON FILTRO SEGURO -->
+    <table class="tabla-productos">
+        <thead>
+            <tr>
+                <th class="col-item-pdf">Items</th>
+                <th class="col-desc-pdf">Descripción</th>
+                <th class="col-marca-pdf">Marca</th>
+                <th class="col-unidad-pdf">Und.</th>
+                <th class="col-cantidad-pdf">Cant.</th>
+                <th class="col-punit-pdf">Valor Venta Unit S/.</th>
+                <th class="col-ptotal-pdf">Valor Venta Total S/.</th>
+                <th class="col-descuento-pdf">Desc. %</th>
+                <th class="col-valor-desc-pdf">Valor Descuento S/.</th>
+                <th class="col-valor-final-pdf">Valor Venta Final S/.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+            <tr class="{{ 'fila-con-descuento' if producto.porcentaje_descuento > 0 else '' }}">
+                <td>{{ producto.item }}</td>
+                <td class="descripcion">{{ producto.descripcion }}</td>
+                <td class="marca">{{ producto.marca }}</td>
+                <td>{{ producto.unidad }}</td>
+                <td>{{ producto.cantidad }}</td>
+                <td class="numero-formateado">S/ {{ producto.precio_venta_unitario|default(0)|formato_soles }}</td>
+                <td class="numero-formateado">S/ {{ producto.subtotal_venta|default(0)|formato_soles }}</td>
+                <td>
+                    {% if producto.porcentaje_descuento > 0 %}
+                    {{ producto.porcentaje_descuento }}%
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td class="numero-formateado">
+                    {% if producto.porcentaje_descuento > 0 %}
+                    S/ {{ producto.descuento_subtotal|default(0)|formato_soles }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td class="numero-formateado">
+                    {% if producto.porcentaje_descuento > 0 %}
+                    S/ {{ producto.subtotal_venta_desc|default(0)|formato_soles }}
+                    {% else %}
+                    S/ {{ producto.subtotal_venta|default(0)|formato_soles }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="background: #FFCDD2; font-weight: bold;">
+                <td colspan="6" style="text-align: right; border-top: 2px solid #D32F2F;">TOTAL GENERAL S/.</td>
+                <td style="text-align: center; border-top: 2px solid #D32F2F;" class="numero-formateado">S/ {{ total_subtotal_venta|default(0)|formato_soles }}</td>
+                <td style="text-align: center; border-top: 2px solid #D32F2F;">-</td>
+                <td style="text-align: center; border-top: 2px solid #D32F2F;" class="numero-formateado">
+                    {% if hay_descuentos %}
+                    S/ {{ total_descuento_subtotal|default(0)|formato_soles }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td style="text-align: center; border-top: 2px solid #D32F2F;" class="numero-formateado">S/ {{ total_subtotal_venta_desc|default(0)|formato_soles }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Totales CON NOMBRES MODIFICADOS SEGÚN CLIENTE -->
+    <div class="seccion-totales">
+        <div class="total-line">
+            <span>Subtotal S/.:</span>
+            <span class="numero-formateado">S/ {{ total_subtotal_venta_desc|default(0)|formato_soles }}</span>
+        </div>
+        <div class="total-line">
+            <span>IGV (18%):</span>
+            <span class="numero-formateado">S/ {{ summary_igv|default(0)|formato_soles }}</span>
+        </div>
+        <div class="total-line total-final">
+            <span>Total S/.:</span>
+            <span class="numero-formateado">S/ {{ summary_total_venta|default(0)|formato_soles }}</span>
+        </div>
+    </div>
+
+    <!-- Notas comerciales MODIFICADAS SEGÚN CLIENTE -->
+    <div class="seccion-notas">
+        <h3>NOTAS COMERCIALES</h3>
+        {% if nota_cotizacion and nota_cotizacion.strip() %}
+        <div class="nota-item nota-principal"><strong>Nota:</strong> {{ nota_cotizacion }}</div>
+        {% endif %}
+        <div class="espacio-notas"></div>
+        <div class="nota-item">* Los precios SI incluyen IGV.</div>
+        <div class="nota-item">* No se aceptan devoluciones.</div>
+        <div class="nota-item">Les agradecemos la oportunidad de presentarles nuestra oferta quedamos a la espera de sus siempre gratas órdenes.</div>
+        
+        <!-- Separador antes del texto final -->
+        <div class="separador-final"></div>
+        
+        <div class="nota-item">Sin otro particular, quedamos a su entera disposición.</div>
+    </div>
+
+    <!-- Información de contacto -->
+    <div class="seccion-contacto">
+        <div class="contacto-line"><strong>Atentamente,</strong></div>
+        <div class="contacto-line"><strong>{{ asesor_comercial }}</strong></div>
+        <div class="contacto-line">Asesor Comercial</div>
+        <div class="contacto-line">KCF CORPORACIÓN</div>
+        <div class="contacto-line">Celular: (51 1) 999932051</div>
+        <div class="contacto-line">E-mail: {{ email_contacto }}</div>
+        <div class="contacto-line">www.kcfcorporacion.com</div>
+    </div>
+</body>
+</html>

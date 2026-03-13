@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestión de Proveedores - KCF CORPORACION</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #FF9800; padding-bottom: 15px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin: 5px; }
+        .btn-nuevo { background: #4CAF50; color: white; }
+        .btn-volver { background: #6c757d; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #FF9800; color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .acciones { display: flex; gap: 5px; }
+        .btn-editar { background: #2196F3; color: white; padding: 5px 10px; font-size: 12px; }
+        .btn-eliminar { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Gestión de Proveedores</h1>
+            <p>Usuario: {{ session.nombre_completo }}</p>
+        </div>
+
+        <a href="/mantenedor/proveedores/nuevo" class="btn btn-nuevo">➕ Nuevo Proveedor</a>
+        <a href="/mantenedor" class="btn btn-volver">⬅️ Volver al Mantenedor</a>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Razón Social</th>
+                    <th>RUC</th>
+                    <th>Dirección</th>
+                    <th>Teléfono</th>
+                    <th>Contacto</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proveedor in proveedores %}
+                <tr>
+                    <td>{{ proveedor[1] }}</td>
+                    <td>{{ proveedor[2] }}</td>
+                    <td>{{ proveedor[3] }}</td>
+                    <td>{{ proveedor[4] }}</td>
+                    <td>{{ proveedor[5] }}</td>
+                    <td class="acciones">
+                        <a href="#" class="btn btn-editar">✏️ Editar</a>
+                        <a href="#" class="btn btn-eliminar">🗑️ Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

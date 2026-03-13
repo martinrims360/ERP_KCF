@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestión de Clientes - KCF CORPORACION</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2196F3; padding-bottom: 15px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin: 5px; }
+        .btn-nuevo { background: #4CAF50; color: white; }
+        .btn-volver { background: #6c757d; color: white; }
+        .btn-editar { background: #FF9800; color: white; padding: 5px 10px; font-size: 12px; text-decoration: none; border-radius: 3px; }
+        .btn-eliminar { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; text-decoration: none; border-radius: 3px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; vertical-align: top; }
+        th { background: #2196F3; color: white; position: sticky; top: 0; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        tr:hover { background: #f0f8ff; }
+        .acciones { display: flex; gap: 5px; }
+        .documento-badge { 
+            padding: 3px 8px; 
+            border-radius: 12px; 
+            font-size: 11px; 
+            font-weight: bold;
+            color: white;
+        }
+        .badge-ruc { background: #2196F3; }
+        .badge-dni { background: #4CAF50; }
+        .contactos-lista, .puntos-lista { font-size: 12px; color: #666; }
+        .contacto-item, .punto-item { margin-bottom: 5px; padding: 3px 0; border-bottom: 1px solid #f0f0f0; }
+        .contacto-principal, .punto-principal { font-weight: bold; color: #2196F3; }
+        .filtros { background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .filtro-group { display: inline-block; margin-right: 15px; }
+        .filtro-group label { font-weight: bold; margin-right: 5px; }
+        .expand-details { color: #2196F3; cursor: pointer; font-size: 12px; }
+        .detalles-adicionales { display: none; background: #f8f9fa; padding: 10px; margin-top: 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 Gestión de Clientes</h1>
+            <p>Usuario: {{ session.nombre_completo }}</p>
+        </div>
+
+        <a href="/mantenedor/clientes/nuevo" class="btn btn-nuevo">➕ Nuevo Cliente</a>
+        <a href="/mantenedor" class="btn btn-volver">⬅️ Volver al Mantenedor</a>
+
+        <div class="filtros">
+            <div class="filtro-group">
+                <label>Filtrar por Tipo:</label>
+                <select id="filtro-tipo">
+                    <option value="">Todos los tipos</option>
+                    <option value="RUC">RUC</option>
+                    <option value="DNI">DNI</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Buscar:</label>
+                <input type="text" id="filtro-busqueda" placeholder="RUC, razón social, contacto...">
+            </div>
+        </div>
+
+        <table id="tabla-clientes">
+            <thead>
+                <tr>
+                    <th width="100">Documento</th>
+                    <th width="200">Razón Social / Nombre</th>
+                    <th width="250">Dirección Fiscal</th>
+                    <th width="200">Contactos</th>
+                    <th width="200">Puntos de Entrega</th>
+                    <th width="100">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr data-tipo="{{ cliente.tipo_documento }}" data-busqueda="{{ cliente.numero_documento }} {{ cliente.razon_social }} {{ cliente.direccion_fiscal }} {% for contacto in cliente.contactos %}{{ contacto[2] }} {{ contacto[3] }} {{ contacto[4] }} {% endfor %} {% for punto in cliente.puntos_entrega %}{{ punto[2] }} {{ punto[3] }} {% endfor %}">
+                    <td>
+                        <span class="documento-badge {{ 'badge-ruc' if cliente.tipo_documento == 'RUC' else 'badge-dni' }}">
+                            {{ cliente.tipo_documento }}
+                        </span><br>
+                        <strong>{{ cliente.numero_documento }}</strong>
+                    </td>
+                    <td>
+                        <strong>{{ cliente.razon_social }}</strong>
+                    </td>
+                    <td>{{ cliente.direccion_fiscal }}</td>
+                    <td>
+                        <div class="contactos-lista">
+                            {% if cliente.contactos %}
+                                {% for contacto in cliente.contactos %}
+                                <div class="contacto-item {{ 'contacto-principal' if contacto[6] }}">
+                                    <strong>{{ contacto[2] }}</strong><br>
+                                    {{ contacto[4] or '' }}{% if contacto[3] %} • {{ contacto[3] }}{% endif %}{% if contacto[5] %} • {{ contacto[5] }}{% endif %}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <em>Sin contactos registrados</em>
+                            {% endif %}
+                        </div>
+                        {% if cliente.contactos|length > 2 %}
+                        <span class="expand-details" onclick="toggleDetalles(this, 'contactos')">
+                            📞 Ver todos ({{ cliente.contactos|length }})
+                        </span>
+                        <div class="detalles-adicionales" id="detalles-contactos-{{ cliente.id }}">
+                            {% for contacto in cliente.contactos %}
+                            <div class="contacto-item {{ 'contacto-principal' if contacto[6] }}">
+                                <strong>{{ contacto[2] }}</strong><br>
+                                {{ contacto[4] or '' }}{% if contacto[3] %} • {{ contacto[3] }}{% endif %}{% if contacto[5] %} • {{ contacto[5] }}{% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="puntos-lista">
+                            {% if cliente.puntos_entrega %}
+                                {% for punto in cliente.puntos_entrega %}
+                                <div class="punto-item {{ 'punto-principal' if punto[9] }}">
+                                    <strong>{{ punto[2] }}</strong><br>
+                                    {{ punto[3] }}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <em>Sin puntos de entrega</em>
+                            {% endif %}
+                        </div>
+                        {% if cliente.puntos_entrega|length > 2 %}
+                        <span class="expand-details" onclick="toggleDetalles(this, 'puntos')">
+                            📦 Ver todos ({{ cliente.puntos_entrega|length }})
+                        </span>
+                        <div class="detalles-adicionales" id="detalles-puntos-{{ cliente.id }}">
+                            {% for punto in cliente.puntos_entrega %}
+                            <div class="punto-item {{ 'punto-principal' if punto[9] }}">
+                                <strong>{{ punto[2] }}</strong><br>
+                                {{ punto[3] }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="acciones">
+                        <a href="#" class="btn-editar">✏️ Editar</a>
+                        <a href="#" class="btn-eliminar">🗑️ Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Filtrado de clientes
+        document.getElementById('filtro-tipo').addEventListener('change', filtrarClientes);
+        document.getElementById('filtro-busqueda').addEventListener('input', filtrarClientes);
+
+        function filtrarClientes() {
+            const filtroTipo = document.getElementById('filtro-tipo').value;
+            const filtroBusqueda = document.getElementById('filtro-busqueda').value.toLowerCase();
+            const filas = document.querySelectorAll('#tabla-clientes tbody tr');
+
+            filas.forEach(fila => {
+                const tipo = fila.dataset.tipo;
+                const textoBusqueda = fila.dataset.busqueda.toLowerCase();
+
+                const coincideTipo = !filtroTipo || tipo === filtroTipo;
+                const coincideBusqueda = !filtroBusqueda || textoBusqueda.includes(filtroBusqueda);
+
+                fila.style.display = (coincideTipo && coincideBusqueda) ? '' : 'none';
+            });
+        }
+
+        function toggleDetalles(elemento, tipo) {
+            const fila = elemento.closest('tr');
+            const clienteId = fila.querySelector('td:first-child strong').textContent;
+            const detallesId = `detalles-${tipo}-${clienteId}`;
+            const detalles = document.getElementById(detallesId);
+            
+            if (detalles.style.display === 'block') {
+                detalles.style.display = 'none';
+                elemento.textContent = `📞 Ver todos (${tipo === 'contactos' ? fila.querySelectorAll('.contacto-item').length : fila.querySelectorAll('.punto-item').length})`;
+            } else {
+                detalles.style.display = 'block';
+                elemento.textContent = '👆 Ocultar';
+            }
+        }
+    </script>
+</body>
+</html>
