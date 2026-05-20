@@ -7,3 +7,4 @@ reportlab
 openpyxl
 requests
 beautifulsoup4
+gunicorn
