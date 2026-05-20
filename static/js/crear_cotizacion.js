@@ -136,6 +136,97 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
+    // CONSULTA A SUNAT (API)
+    // =========================
+    async function consultarSunat(ruc) {
+        try {
+            mostrarNotificacion(`🔍 Consultando RUC ${ruc} en SUNAT...`, 'info');
+            
+            // Opción 1: Usar una API gratuita (ejemplo con apis.net.pe)
+            const response = await fetch(`https://api.apis.net.pe/v2/sunat/ruc?numero=${ruc}`);
+            
+            if (!response.ok) {
+                throw new Error('Error al consultar SUNAT');
+            }
+            
+            const data = await response.json();
+            
+            if (data && data.razonSocial) {
+                return {
+                    success: true,
+                    razon_social: data.razonSocial || '',
+                    nombre_comercial: data.nombreComercial || '',
+                    direccion: data.direccion || '',
+                    estado: data.estado || ''
+                };
+            } else {
+                return { success: false, error: 'No se encontraron datos' };
+            }
+        } catch (error) {
+            console.error('Error consultando SUNAT:', error);
+            
+            // Opción 2: Usar backend propio como proxy
+            try {
+                const proxyResponse = await fetch(`/api/sunat/consulta?ruc=${ruc}`);
+                const proxyData = await proxyResponse.json();
+                if (proxyData.success) {
+                    return proxyData;
+                }
+            } catch (e) {
+                console.error('Error con proxy:', e);
+            }
+            
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Función para autocompletar el formulario con datos de SUNAT
+    async function autocompletarConSunat() {
+        const tipoDocumento = document.getElementById('nuevo_tipo_documento')?.value;
+        const numeroDocumento = document.getElementById('nuevo_numero_documento')?.value.trim();
+        
+        if (tipoDocumento !== 'RUC') {
+            mostrarNotificacion('⚠️ La búsqueda en SUNAT solo está disponible para RUC', 'warning');
+            return;
+        }
+        
+        if (!numeroDocumento || numeroDocumento.length !== 11) {
+            mostrarNotificacion('⚠️ Ingrese un RUC válido de 11 dígitos', 'warning');
+            return;
+        }
+        
+        const btnBuscar = document.getElementById('btnBuscarSunat');
+        const textoOriginal = btnBuscar?.innerHTML;
+        if (btnBuscar) {
+            btnBuscar.innerHTML = '<i class="bi bi-hourglass-split"></i> Buscando...';
+            btnBuscar.disabled = true;
+        }
+        
+        try {
+            const resultado = await consultarSunat(numeroDocumento);
+            
+            if (resultado.success) {
+                // Autocompletar campos
+                document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
+                document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
+                document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
+                
+                mostrarNotificacion('✅ Datos cargados desde SUNAT correctamente', 'success');
+            } else {
+                mostrarNotificacion('❌ No se encontraron datos para este RUC', 'danger');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarNotificacion('❌ Error al consultar SUNAT', 'danger');
+        } finally {
+            if (btnBuscar) {
+                btnBuscar.innerHTML = textoOriginal;
+                btnBuscar.disabled = false;
+            }
+        }
+    }
+
+    // =========================
     // CONFIGURAR TIEMPO DE ENTREGA
     // =========================
     function configurarTiempoEntrega() {
@@ -893,7 +984,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================
     // EVENTOS
     // =========================
-    document.getElementById('btnGuardar')?.addEventListener('click', guardarCotizacion);
     document.getElementById('btnGuardarBorrador')?.addEventListener('click', guardarCotizacion);
     document.getElementById('btnGuardarOficial')?.addEventListener('click', convertirAOficial);
     document.getElementById('btnPdf')?.addEventListener('click', generatePdf);
@@ -905,6 +995,12 @@ document.addEventListener('DOMContentLoaded', () => {
         new bootstrap.Modal(document.getElementById('modalNuevoCliente')).show();
     });
     document.getElementById('btnGuardarNuevoCliente')?.addEventListener('click', guardarNuevoCliente);
+    
+    // Botón de búsqueda SUNAT
+    const btnBuscarSunat = document.getElementById('btnBuscarSunat');
+    if (btnBuscarSunat) {
+        btnBuscarSunat.addEventListener('click', autocompletarConSunat);
+    }
 
     // =========================
     // INIT
@@ -940,23 +1036,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 formaPago.value = "Transferencia";
                 formaPago.disabled = true;
             } else { formaPago.disabled = false; }
-        });
-    }
-
-    // =========================
-    // TIEMPO DE ENTREGA AUTO
-    // =========================
-    const tipoEntrega = document.getElementById("tipo_entrega");
-    const tiempoEntrega = document.getElementById("tiempo_entrega");
-    if (tipoEntrega && tiempoEntrega) {
-        tipoEntrega.addEventListener("change", function () {
-            let valor = this.value;
-            if (valor === "stock") { tiempoEntrega.value = "Inmediata"; }
-            else if (valor === "proveedor_inmediato") { tiempoEntrega.value = "2 días hábiles"; }
-            else if (valor === "proveedor_variable") {
-                let dias = prompt("¿Cuántos días demora el proveedor?");
-                if (dias) { dias = parseInt(dias); if (!isNaN(dias)) { tiempoEntrega.value = (dias + 2) + " días hábiles"; } }
-            } else { tiempoEntrega.value = ""; }
         });
     }
 });

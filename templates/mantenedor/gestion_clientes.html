@@ -31,6 +31,74 @@
     <link rel="stylesheet"
     href="/static/css/gestion_clientes.css">
 
+    <style>
+        .btn-action {
+            border: none;
+            background: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px 8px;
+            margin: 0 2px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .btn-edit {
+            color: #0d6efd;
+        }
+        
+        .btn-edit:hover {
+            background-color: #0d6efd10;
+            transform: scale(1.1);
+        }
+        
+        .btn-delete {
+            color: #dc3545;
+        }
+        
+        .btn-delete:hover {
+            background-color: #dc354510;
+            transform: scale(1.1);
+        }
+
+        .item-agregable {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+            border: 1px solid #e9ecef;
+        }
+
+        .btn-eliminar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .btn-eliminar:hover {
+            background: #c82333;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-group input {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -235,168 +303,103 @@
     <!-- Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- JS -->
-    <script src="{{ url_for('static', filename='js/nuevo_cliente.js') }}"></script>
-<!-- 🔥 MODAL NUEVO CLIENTE -->
-<div class="modal fade" id="modalCliente" tabindex="-1" aria-hidden="true">
+    <!-- MODAL NUEVO CLIENTE -->
+    <div class="modal fade" id="modalCliente" tabindex="-1" aria-hidden="true">
 
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
 
-        <div class="modal-content">
+            <div class="modal-content">
 
-            <div class="modal-header bg-dark text-white">
+                <div class="modal-header bg-dark text-white">
 
-                <h5 class="modal-title">
-                    👥 Nuevo Cliente
-                </h5>
+                    <h5 class="modal-title">
+                        👥 Nuevo Cliente
+                    </h5>
 
-                <button type="button"
-                        class="btn-close btn-close-white"
-                        data-bs-dismiss="modal">
-                </button>
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal">
+                    </button>
 
-            </div>
+                </div>
 
-            <div class="modal-body">
+                <div class="modal-body">
 
-                <!-- AQUÍ VA TU FORMULARIO -->
-                <form id="formCliente">
+                    <form id="formCliente">
 
-    <div class="erp-section">
+                        <div class="erp-section">
 
-    <div class="erp-section-title">
-        📋 Información General
-    </div>
+                            <div class="erp-section-title">
+                                📋 Información General
+                            </div>
 
-    <div class="row g-3">
+                            <div class="row g-3">
 
-        <!-- TIPO DOCUMENTO -->
-        <div class="col-md-4">
+                                <div class="col-md-4">
+                                    <label class="form-label" id="label_documento">Tipo Documento *:</label>
+                                    <select class="form-select" id="tipo_documento">
+                                        <option value="">Seleccione</option>
+                                        <option value="RUC">RUC</option>
+                                        <option value="DNI">DNI</option>
+                                    </select>
+                                </div>
 
-            <label class="form-label">Tipo Documento</label>
+                                <div class="col-md-4">
+                                    <label class="form-label">Número Documento *:</label>
+                                    <input type="text" class="form-control" id="numero_documento" placeholder="Ingrese número">
+                                </div>
 
-            <select class="form-select" id="tipo_documento">
+                                <div class="col-md-4">
+                                    <label class="form-label">Razón Social *:</label>
+                                    <input type="text" class="form-control" id="razon_social" placeholder="Nombre del cliente">
+                                </div>
 
-                <option value="">Seleccione</option>
-                <option value="RUC">RUC</option>
-                <option value="DNI">DNI</option>
+                                <div class="col-md-3">
+                                    <label class="form-label">Nombre Comercial</label>
+                                    <input type="text" class="form-control" id="nombre_comercial" placeholder="Nombre comercial">
+                                </div>
 
-            </select>
+                                <div class="col-12">
+                                    <label class="form-label">Dirección Fiscal</label>
+                                    <textarea class="form-control" id="direccion_fiscal" rows="2" placeholder="Dirección completa"></textarea>
+                                </div>
 
-        </div>
+                            </div>
 
-        <!-- NÚMERO -->
-        <div class="col-md-4">
+                            <hr class="my-3">
 
-            <label class="form-label">Número Documento</label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">📞 Contactos</h6>
+                                <button type="button" class="btn btn-sm btn-success" id="btnAgregarContacto">
+                                    + Agregar
+                                </button>
+                            </div>
 
-            <input type="text"
-                   class="form-control"
-                   id="numero_documento"
-                   placeholder="Ingrese número">
+                            <div id="listaContactos"></div>
 
-        </div>
+                            <hr class="my-3">
 
-        <!-- RAZÓN SOCIAL -->
-        <div class="col-md-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">📦 Puntos de Entrega</h6>
+                                <button type="button" class="btn btn-sm btn-success" id="btnAgregarPunto">
+                                    + Agregar
+                                </button>
+                            </div>
 
-            <label class="form-label">Razón Social</label>
+                            <div id="listaPuntos"></div>
 
-            <input type="text"
-                   class="form-control"
-                   id="razon_social"
-                   placeholder="Nombre del cliente">
+                        </div>
 
-        </div>
+                    </form>
 
-        <!-- NOMBRE COMERCIAL -->
-        <div class="col-md-3">
+                </div>
 
-             <label class="form-label">
-             Nombre Comercial
-             </label>
+                <div class="modal-footer">
 
-        <input
-        type="text"
-        class="form-control"
-        id="nombre_comercial"
-        placeholder="Nombre comercial"
-         >
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" form="formCliente" class="btn btn-danger">💾 Guardar</button>
 
-        </div>
-
-        <!-- DIRECCIÓN -->
-        <div class="col-12">
-
-            <label class="form-label">Dirección Fiscal</label>
-
-            <textarea class="form-control"
-                      id="direccion_fiscal"
-                      rows="2"
-                      placeholder="Dirección completa"></textarea>
-
-        </div>
-
-    </div>
-
-    <hr class="my-3">
-
-    <!-- CONTACTOS -->
-    <div class="d-flex justify-content-between align-items-center mb-2">
-
-        <h6 class="mb-0">📞 Contactos</h6>
-        
-
-        <button type="button"
-                class="btn btn-sm btn-success"
-                id="btnAgregarContacto">
-
-            + Agregar
-
-        </button>
-
-    </div>
-
-    <div id="listaContactos"></div>
-
-    <hr class="my-3">
-
-    <!-- PUNTOS DE ENTREGA -->
-    <div class="d-flex justify-content-between align-items-center mb-2">
-
-        <h6 class="mb-0">📦 Puntos de Entrega</h6>
-        <button type="button"
-                class="btn btn-sm btn-success"
-                id="btnAgregarPunto">
-
-            + Agregar
-
-        </button>
-
-    </div>
-
-    <div id="listaPuntos"></div>
-
-</form>
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-
-                    Cancelar
-
-                </button>
-
-                <button
-                   type="submit"
-                   form="formCliente"
-                   class="btn btn-danger"
-                >
-                   💾 Guardar
-                </button>
+                </div>
 
             </div>
 
@@ -404,101 +407,144 @@
 
     </div>
 
-</div>
-<!-- =========================================
-MODAL EDITAR CLIENTE
-========================================= -->
-<div class="modal fade" id="modalEditarCliente" tabindex="-1">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
+    <!-- =========================================
+    MODAL EDITAR CLIENTE (IDÉNTICO AL MODAL NUEVO)
+    ========================================= -->
+    <div class="modal fade" id="modalEditarCliente" tabindex="-1" aria-hidden="true">
 
-      <form id="formEditarCliente">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
 
-        <div class="modal-header">
-          <h5 class="modal-title">Editar Cliente</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-content">
+
+                <div class="modal-header bg-dark text-white">
+
+                    <h5 class="modal-title">
+                        ✏️ Editar Cliente
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <form id="formEditarCliente">
+
+                        <input type="hidden" id="edit_id">
+
+                        <div class="erp-section">
+
+                            <div class="erp-section-title">
+                                📋 Información General
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-4">
+                                    <label class="form-label" id="edit_label_documento">Tipo Documento *:</label>
+                                    <select class="form-select" id="edit_tipo_documento">
+                                        <option value="">Seleccione</option>
+                                        <option value="RUC">RUC</option>
+                                        <option value="DNI">DNI</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Número Documento *:</label>
+                                    <input type="text" class="form-control" id="edit_numero_documento" placeholder="Ingrese número">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Razón Social *:</label>
+                                    <input type="text" class="form-control" id="edit_razon_social" placeholder="Nombre del cliente">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Nombre Comercial</label>
+                                    <input type="text" class="form-control" id="edit_nombre_comercial" placeholder="Nombre comercial">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Dirección Fiscal</label>
+                                    <textarea class="form-control" id="edit_direccion_fiscal" rows="2" placeholder="Dirección completa"></textarea>
+                                </div>
+
+                            </div>
+
+                            <hr class="my-3">
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">📞 Contactos</h6>
+                                <button type="button" class="btn btn-sm btn-success" id="btnAgregarContactoEdit">
+                                    + Agregar
+                                </button>
+                            </div>
+
+                            <div id="edit_listaContactos"></div>
+
+                            <hr class="my-3">
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">📦 Puntos de Entrega</h6>
+                                <button type="button" class="btn btn-sm btn-success" id="btnAgregarPuntoEdit">
+                                    + Agregar
+                                </button>
+                            </div>
+
+                            <div id="edit_listaPuntos"></div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" form="formEditarCliente" class="btn btn-primary">💾 Guardar Cambios</button>
+
+                </div>
+
+            </div>
+
         </div>
-
-        <div class="modal-body">
-
-          <input type="hidden" id="edit_id">
-
-          <div class="row">
-
-            <div class="col-md-4">
-              <label>Tipo Documento</label>
-              <select id="edit_tipo_documento" class="form-select">
-                <option value="RUC">RUC</option>
-                <option value="DNI">DNI</option>
-              </select>
-            </div>
-
-            <div class="col-md-4">
-              <label>Número Documento</label>
-              <input id="edit_numero_documento" class="form-control">
-            </div>
-
-            <div class="col-md-4">
-              <label>Razón Social</label>
-              <input id="edit_razon_social" class="form-control">
-            </div>
-
-          </div>
-
-          <div class="row mt-2">
-
-            <div class="col-md-6">
-              <label>Nombre Comercial</label>
-              <input id="edit_nombre_comercial" class="form-control">
-            </div>
-
-            <div class="col-md-6">
-              <label>Dirección Fiscal</label>
-              <input id="edit_direccion_fiscal" class="form-control">
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">
-            Guardar Cambios
-          </button>
-        </div>
-
-      </form>
 
     </div>
-  </div>
-</div>
-<!-- =========================================
-MODAL ELIMINAR CLIENTE
-========================================= -->
-<div class="modal fade" id="modalEliminarCliente" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
 
-      <div class="modal-header">
-        <h5 class="modal-title">Eliminar Cliente</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+    <!-- MODAL ELIMINAR CLIENTE -->
+    <div class="modal fade" id="modalEliminarCliente" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
 
-      <div class="modal-body">
-        <input type="hidden" id="delete_id">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Eliminar Cliente
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
 
-        <p>¿Estás seguro de eliminar este cliente?</p>
-      </div>
+                <div class="modal-body">
+                    <input type="hidden" id="delete_id">
+                    <p>¿Estás seguro de eliminar este cliente?</p>
+                    <p class="text-danger">Esta acción no se puede deshacer.</p>
+                </div>
 
-      <div class="modal-footer">
-        <button id="btnConfirmarEliminar" class="btn btn-danger">
-          Sí, eliminar
-        </button>
-      </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btnConfirmarEliminar" class="btn btn-danger">
+                        <i class="bi bi-trash-fill"></i> Sí, eliminar
+                    </button>
+                </div>
 
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-<script src="{{ url_for('static', filename='js/gestion_clientes.js') }}"></script> 
+    
+    <script src="{{ url_for('static', filename='js/gestion_clientes.js') }}"></script>
+    
 </body>
 </html>

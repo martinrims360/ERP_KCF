@@ -1,5 +1,3 @@
-// static/js/productos.js
-
 const filtroFamilia = document.getElementById('filtro-familia');
 const filtroBusqueda = document.getElementById('filtro-busqueda');
 
@@ -38,8 +36,81 @@ function filtrarProductos() {
             : 'none';
 
     });
-
 }
+// =====================================================
+// CÁLCULO AUTOMÁTICO DE MARGEN - NUEVO Y EDITAR
+// =====================================================
+
+function inicializarCalculoMargen() {
+
+    // === MODAL NUEVO PRODUCTO ===
+    const costoNuevo = document.getElementById('costo_unitario');
+    const precioNuevo = document.getElementById('precio_unitario');
+    const margenNuevo = document.getElementById('margen');
+
+    if (costoNuevo && precioNuevo && margenNuevo) {
+        function calcularNuevo() {
+            const costo = parseFloat(costoNuevo.value) || 0;
+            const precio = parseFloat(precioNuevo.value) || 0;
+
+            if (costo > 0) {
+                const margen = ((precio - costo) / costo) * 100;
+                margenNuevo.value = margen.toFixed(2);
+            } else {
+                margenNuevo.value = '';
+            }
+        }
+
+        costoNuevo.addEventListener('input', calcularNuevo);
+        precioNuevo.addEventListener('input', calcularNuevo);
+    }
+
+    // === MODAL EDITAR PRODUCTO ===
+    const costoEdit = document.getElementById('edit_costo_unitario');
+    const precioEdit = document.getElementById('edit_precio_unitario');
+    const margenEdit = document.getElementById('edit_margen');
+
+    if (costoEdit && precioEdit && margenEdit) {
+        function calcularEdit() {
+            const costo = parseFloat(costoEdit.value) || 0;
+            const precio = parseFloat(precioEdit.value) || 0;
+
+            if (costo > 0) {
+                const margen = ((precio - costo) / costo) * 100;
+                margenEdit.value = margen.toFixed(2);
+            } else {
+                margenEdit.value = '';
+            }
+        }
+
+        costoEdit.addEventListener('input', calcularEdit);
+        precioEdit.addEventListener('input', calcularEdit);
+    }
+}
+
+// =====================================================
+// EJECUTAR AL CARGAR Y AL ABRIR MODALES
+// =====================================================
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarCalculoMargen();
+
+    // Re-inicializar cuando se abra el modal de Nuevo (importante)
+    const modalNuevo = document.getElementById('modalNuevoProducto');
+    if (modalNuevo) {
+        modalNuevo.addEventListener('shown.bs.modal', () => {
+            inicializarCalculoMargen();
+        });
+    }
+
+    // También para el modal de Editar
+    const modalEditar = document.getElementById('modalEditarProducto');
+    if (modalEditar) {
+        modalEditar.addEventListener('shown.bs.modal', () => {
+            inicializarCalculoMargen();
+        });
+    }
+});
+
 
 /* IMPORTAR EXCEL */
 document
@@ -113,109 +184,227 @@ document.getElementById('tipo_peso')
 });
 
 // =====================================================
-// MODAL EDITAR PRODUCTO
+// MODALES - EDITAR Y ELIMINAR PRODUCTO
 // =====================================================
 
-document.querySelectorAll('.btn-editar-producto')
-    .forEach(btn => {
+document.addEventListener('DOMContentLoaded', () => {
 
-        btn.addEventListener('click', function () {
+    console.log("✅ gestion_productos.js cargado");
 
-            // ID
-            document.getElementById('edit_id').value =
-                this.dataset.id || '';
+    // TBODY DE LA TABLA
+    const tbody = document.getElementById('tbody-productos');
 
-            // FAMILIA
-            document.getElementById('edit_familia').value =
-                this.dataset.familia || '';
+    if (!tbody) {
+        console.error("❌ No existe tbody-productos");
+        return;
+    }
 
-            // DESCRIPCION
-            document.getElementById('edit_descripcion').value =
-                this.dataset.descripcion || '';
+    console.log("✅ tbody encontrado");
 
-            // DESCRIPCION LARGA
-            document.getElementById('edit_descripcion_larga').value =
-                this.dataset.descripcion_larga || '';
+    // =====================================================
+    // DELEGACIÓN DE EVENTOS
+    // =====================================================
+    tbody.addEventListener('click', function (e) {
 
-            // MARCA
-            document.getElementById('edit_marca').value =
-                this.dataset.marca || '';
+        // ================= EDITAR =================
+        const btnEditar = e.target.closest('.btn-editar-producto');
 
-            // MODELO
-            document.getElementById('edit_modelo').value =
-                this.dataset.modelo || '';
+        if (btnEditar) {
 
-            // UNIDAD
-            document.getElementById('edit_unidad').value =
-                this.dataset.unidad || '';
+            console.log("✏️ CLICK EDITAR");
 
-            // PESO
-            document.getElementById('edit_peso').value =
-                this.dataset.peso || '';
+            editarProducto(btnEditar);
+            return;
+        }
 
-            // VOLUMEN
-            document.getElementById('edit_volumen').value =
-                this.dataset.volumen || '';
+        // ================= ELIMINAR =================
+        const btnEliminar = e.target.closest('.btn-eliminar-producto');
 
-            // OBSERVACIONES
-            document.getElementById('edit_observaciones').value =
-                this.dataset.observaciones || '';
+        if (btnEliminar) {
 
-            // TRANSPORTE
-            document.getElementById('edit_transporte').value =
-                this.dataset.transporte || '';
+            console.log("🗑️ CLICK ELIMINAR");
 
-            // ABRIR MODAL
-            const modalEditar =
-                new bootstrap.Modal(
-                    document.getElementById(
-                        'modalEditarProducto'
-                    )
-                );
-
-            modalEditar.show();
-
-        });
+            eliminarProducto(btnEliminar);
+            return;
+        }
 
     });
 
+    // =====================================================
+    // BOTÓN GUARDAR EDICIÓN
+    // =====================================================
+    const btnGuardar = document.getElementById('btnGuardarEdicionProducto');
 
+    if (btnGuardar) {
+        btnGuardar.addEventListener('click', guardarEdicionProducto);
+    }
+
+});
 
 // =====================================================
-// MODAL ELIMINAR PRODUCTO
+// EDITAR PRODUCTO
 // =====================================================
+function editarProducto(btn) {
 
-document.querySelectorAll('.btn-eliminar-producto')
-    .forEach(btn => {
+    console.log("✏️ EDITAR PRODUCTO");
 
-        btn.addEventListener('click', function () {
+    const campos = {
 
-            const id =
-                this.dataset.id;
+        edit_id: btn.dataset.id,
+        edit_familia: btn.dataset.familia,
+        edit_marca: btn.dataset.marca,
+        edit_descripcion: btn.dataset.descripcion,
+        edit_modelo: btn.dataset.modelo,
+        edit_unidad: btn.dataset.unidad,
+        edit_volumen: btn.dataset.volumen,
+        edit_transporte: btn.dataset.transporte,
+        edit_observaciones: btn.dataset.observaciones,
+        edit_descripcion_larga: btn.dataset.descripcion_larga,
+        edit_costo_unitario: btn.dataset.costo_unitario,
+        edit_precio_unitario: btn.dataset.precio_unitario,
+        edit_stock: btn.dataset.stock
+    };
 
-            const descripcion =
-                this.dataset.descripcion;
+    // RECORRER CAMPOS
+    for (const id in campos) {
 
-            // INPUT HIDDEN
-            document.getElementById(
-                'eliminar_id_producto'
-            ).value = id;
+        const elemento =
+            document.getElementById(id);
 
-            // TEXTO PRODUCTO
-            document.getElementById(
-                'textoProductoEliminar'
-            ).textContent = descripcion;
+        if (!elemento) {
 
-            // ABRIR MODAL
-            const modalEliminar =
-                new bootstrap.Modal(
-                    document.getElementById(
-                        'modalEliminarProducto'
-                    )
-                );
+            console.error(`❌ NO EXISTE EL ID: ${id}`);
+            continue;
+        }
 
-            modalEliminar.show();
+        elemento.value =
+            campos[id] || '';
+    }
+
+    // ABRIR MODAL
+    const modal = new bootstrap.Modal(
+        document.getElementById('modalEditarProducto')
+    );
+
+    modal.show();
+}
+
+// =====================================================
+// GUARDAR EDICIÓN
+// =====================================================
+async function guardarEdicionProducto() {
+
+    const id = document.getElementById('edit_id').value;
+
+    if (!id) {
+        alert("❌ No se encontró el ID");
+        return;
+    }
+
+    const datos = {
+
+        familia:
+            document.getElementById('edit_familia').value,
+
+        marca:
+            document.getElementById('edit_marca').value,
+
+        descripcion:
+            document.getElementById('edit_descripcion').value,
+
+        modelo:
+            document.getElementById('edit_modelo').value,
+
+        unidad:
+            document.getElementById('edit_unidad').value,
+
+        volumen:
+            document.getElementById('edit_volumen').value,
+
+        transporte:
+            document.getElementById('edit_transporte').value,
+
+        observaciones:
+            document.getElementById('edit_observaciones').value,
+
+        descripcion_larga:
+            document.getElementById('edit_descripcion_larga').value,
+
+        costo_unitario:
+            parseFloat(document.getElementById('edit_costo_unitario').value) || 0,
+
+        precio_unitario:
+            parseFloat(document.getElementById('edit_precio_unitario').value) || 0,
+
+        stock:
+            parseInt(document.getElementById('edit_stock').value) || 0
+    };
+
+    try {
+
+        const response = await fetch(`/api/productos/${id}`, {
+
+            method: 'PUT',
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(datos)
 
         });
 
-    });
+        if (response.ok) {
+
+            alert("✅ Producto actualizado");
+
+            // CERRAR MODAL
+            bootstrap.Modal.getInstance(
+                document.getElementById('modalEditarProducto')
+            ).hide();
+
+            // RECARGAR TABLA
+            if (typeof cargarProductos === "function") {
+                cargarProductos();
+            }
+
+        } else {
+
+            alert("❌ Error al actualizar");
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("❌ Error de conexión");
+
+    }
+
+}
+
+// =====================================================
+// ELIMINAR PRODUCTO
+// =====================================================
+function eliminarProducto(btn) {
+
+    const id =
+        btn.dataset.id;
+
+    const descripcion =
+        btn.dataset.descripcion || 'Producto';
+
+    document.getElementById('eliminar_id_producto').value =
+        id;
+
+    document.getElementById('textoProductoEliminar').textContent =
+        descripcion;
+
+    // ABRIR MODAL
+    const modal = new bootstrap.Modal(
+        document.getElementById('modalEliminarProducto')
+    );
+
+    modal.show();
+}

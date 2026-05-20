@@ -1,9 +1,11 @@
 import os
 import sys
 import pandas as pd
+import requests
 sys.dont_write_bytecode = True
 from flask import (
-    Flask, render_template, request, redirect, url_for,session, flash)
+    Flask, render_template, request, redirect, url_for, session, flash, jsonify
+)
 from functools import wraps
 from routes.clientes import clientes_bp
 from routes.productos import productos_bp
@@ -17,6 +19,19 @@ from routes.mantenedor_proveedores import mantenedor_proveedores_bp
 from routes.mantenedor_usuarios import mantenedor_usuarios_bp
 from database import (
     verificar_usuario,
+    insertar_cliente_completo,
+    obtener_todos_clientes_con_detalles,
+    obtener_cliente_completo_por_id,
+    actualizar_cliente_completo,
+    eliminar_cliente_db,
+    obtener_ultimo_codigo_cliente,
+    # Funciones para proveedores
+    insertar_proveedor_completo,
+    obtener_todos_proveedores,
+    obtener_proveedor_por_id,
+    actualizar_proveedor,
+    eliminar_proveedor_db,
+    obtener_ultimo_codigo_proveedor
 )
 
 from pdf_generator import pdf_generator
@@ -146,6 +161,7 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/logout")
 def logout():
     session.clear()
@@ -156,6 +172,302 @@ def logout():
 @app.route("/index")
 def index():
     return render_template("index.html")
+
+
+# =========================
+# ENDPOINTS CLIENTES API
+# =========================
+
+@app.route("/api/clientes/guardar", methods=["POST"])
+def api_guardar_cliente():
+    """Guardar nuevo cliente - El código se genera automáticamente"""
+    try:
+        data = request.get_json()
+        
+        # Validaciones
+        if not data.get("razon_social"):
+            return jsonify({"success": False, "error": "La razón social es obligatoria"})
+        
+        if not data.get("numero_documento"):
+            return jsonify({"success": False, "error": "El número de documento es obligatorio"})
+        
+        if not data.get("contactos") or len(data.get("contactos")) == 0:
+            return jsonify({"success": False, "error": "Agregue al menos un contacto"})
+        
+        if not data.get("puntos_entrega") or len(data.get("puntos_entrega")) == 0:
+            return jsonify({"success": False, "error": "Agregue al menos un punto de entrega"})
+        
+        # Insertar cliente (el código se genera automáticamente por el trigger)
+        resultado = insertar_cliente_completo(data)
+        
+        return jsonify({
+            "success": True,
+            "data": resultado,
+            "message": f'Cliente creado con código {resultado["codigo_cliente"]}'
+        })
+        
+    except Exception as e:
+        print(f"Error al guardar cliente: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/clientes/buscar", methods=["GET"])
+def api_buscar_clientes():
+    """Buscar clientes con filtros"""
+    try:
+        tipo_documento = request.args.get("tipo_documento", "")
+        busqueda = request.args.get("busqueda", "")
+        
+        clientes = obtener_todos_clientes_con_detalles()
+        
+        # Aplicar filtros
+        if tipo_documento:
+            clientes = [c for c in clientes if c.get("tipo_documento") == tipo_documento]
+        
+        if busqueda:
+            busqueda_lower = busqueda.lower()
+            clientes = [
+                c for c in clientes 
+                if busqueda_lower in c.get("razon_social", "").lower()
+                or busqueda_lower in c.get("nombre_comercial", "").lower()
+                or busqueda_lower in c.get("numero_documento", "")
+                or busqueda_lower in c.get("codigo_cliente", "").lower()
+            ]
+        
+        return jsonify({"success": True, "data": clientes})
+        
+    except Exception as e:
+        print(f"Error al buscar clientes: {e}")
+        return jsonify({"success": False, "data": [], "error": str(e)})
+
+
+@app.route("/api/clientes/<int:cliente_id>", methods=["GET"])
+def api_obtener_cliente(cliente_id):
+    """Obtener cliente por ID"""
+    try:
+        cliente = obtener_cliente_completo_por_id(cliente_id)
+        
+        if not cliente:
+            return jsonify({"success": False, "error": "Cliente no encontrado"})
+        
+        return jsonify({"success": True, "data": cliente})
+        
+    except Exception as e:
+        print(f"Error al obtener cliente: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/clientes/<int:cliente_id>", methods=["PUT"])
+def api_actualizar_cliente(cliente_id):
+    """Actualizar cliente existente"""
+    try:
+        data = request.get_json()
+        resultado = actualizar_cliente_completo(cliente_id, data)
+        return jsonify({"success": True, "data": resultado, "message": "Cliente actualizado correctamente"})
+        
+    except Exception as e:
+        print(f"Error al actualizar cliente: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/clientes/<int:cliente_id>", methods=["DELETE"])
+def api_eliminar_cliente(cliente_id):
+    """Eliminar cliente (borrado lógico)"""
+    try:
+        resultado = eliminar_cliente_db(cliente_id)
+        return jsonify({"success": True, "data": resultado, "message": "Cliente eliminado correctamente"})
+        
+    except Exception as e:
+        print(f"Error al eliminar cliente: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/clientes/ultimo-codigo", methods=["GET"])
+def api_ultimo_codigo():
+    """Obtener el último código generado (opcional)"""
+    try:
+        codigo = obtener_ultimo_codigo_cliente()
+        return jsonify({"success": True, "ultimoCodigo": codigo})
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+# =========================
+# ENDPOINTS PROVEEDORES API
+# =========================
+
+@app.route("/api/proveedores/guardar", methods=["POST"])
+def api_guardar_proveedor():
+    """Guardar nuevo proveedor - El código se genera automáticamente"""
+    try:
+        data = request.get_json()
+        
+        # Validaciones
+        if not data.get("razon_social"):
+            return jsonify({"success": False, "error": "La razón social es obligatoria"})
+        
+        if not data.get("ruc"):
+            return jsonify({"success": False, "error": "El RUC es obligatorio"})
+        
+        if len(data.get("ruc", "")) != 11:
+            return jsonify({"success": False, "error": "El RUC debe tener 11 dígitos"})
+        
+        if not data.get("direccion"):
+            return jsonify({"success": False, "error": "La dirección es obligatoria"})
+        
+        # Insertar proveedor (el código se genera automáticamente por el trigger)
+        resultado = insertar_proveedor_completo(data)
+        
+        return jsonify({
+            "success": True,
+            "data": resultado,
+            "message": f'Proveedor creado con código {resultado["codigo_proveedor"]}'
+        })
+        
+    except Exception as e:
+        print(f"Error al guardar proveedor: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/proveedores/listar", methods=["GET"])
+def api_listar_proveedores():
+    """Listar todos los proveedores"""
+    try:
+        proveedores = obtener_todos_proveedores()
+        return jsonify({"success": True, "data": proveedores})
+        
+    except Exception as e:
+        print(f"Error al listar proveedores: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/proveedores", methods=["GET"])
+def api_buscar_proveedores():
+    """Buscar proveedores con filtros"""
+    try:
+        busqueda = request.args.get("busqueda", "")
+        tipo = request.args.get("tipo_documento", "")
+        
+        proveedores = obtener_todos_proveedores()
+        
+        # Aplicar filtros
+        if busqueda:
+            busqueda_lower = busqueda.lower()
+            proveedores = [
+                p for p in proveedores 
+                if busqueda_lower in p.get("razon_social", "").lower()
+                or busqueda_lower in p.get("ruc", "").lower()
+                or busqueda_lower in p.get("codigo_proveedor", "").lower()
+            ]
+        
+        return jsonify({"success": True, "data": proveedores})
+        
+    except Exception as e:
+        print(f"Error al buscar proveedores: {e}")
+        return jsonify({"success": False, "data": [], "error": str(e)})
+
+
+@app.route("/api/proveedores/<int:id>", methods=["GET"])
+def api_obtener_proveedor(id):
+    """Obtener proveedor por ID"""
+    try:
+        proveedor = obtener_proveedor_por_id(id)
+        
+        if not proveedor:
+            return jsonify({"success": False, "error": "Proveedor no encontrado"})
+        
+        return jsonify({"success": True, "data": proveedor})
+        
+    except Exception as e:
+        print(f"Error al obtener proveedor: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/proveedores/<int:id>", methods=["PUT"])
+def api_actualizar_proveedor(id):
+    """Actualizar proveedor existente"""
+    try:
+        data = request.get_json()
+        resultado = actualizar_proveedor(id, data)
+        return jsonify({"success": True, "data": resultado, "message": "Proveedor actualizado correctamente"})
+        
+    except Exception as e:
+        print(f"Error al actualizar proveedor: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/proveedores/<int:id>", methods=["DELETE"])
+def api_eliminar_proveedor(id):
+    """Eliminar proveedor (borrado lógico)"""
+    try:
+        resultado = eliminar_proveedor_db(id)
+        return jsonify({"success": True, "data": resultado, "message": "Proveedor eliminado correctamente"})
+        
+    except Exception as e:
+        print(f"Error al eliminar proveedor: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route("/api/proveedores/ultimo-codigo", methods=["GET"])
+def api_ultimo_codigo_proveedor():
+    """Obtener el último código generado de proveedor"""
+    try:
+        codigo = obtener_ultimo_codigo_proveedor()
+        return jsonify({"success": True, "ultimoCodigo": codigo})
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+# =========================
+# ENDPOINT SUNAT (LATINFO - 100% GRATIS)
+# =========================
+
+@app.route("/api/sunat/consulta", methods=["GET"])
+def api_consulta_sunat():
+    """Consulta a SUNAT usando Latinfo API (100% gratis, 100k consultas/día)"""
+    
+    ruc = request.args.get('ruc', '')
+    
+    if not ruc or len(ruc) != 11:
+        return jsonify({'success': False, 'error': 'RUC inválido, debe tener 11 dígitos'})
+    
+    try:
+        # Latinfo API - Gratis, sin token, 100,000 consultas por día
+        url = f'https://api.latinfo.dev/pe/ruc/{ruc}'
+        
+        response = requests.get(url, timeout=15)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verificar si hay datos válidos
+            if data and data.get('razon_social'):
+                return jsonify({
+                    'success': True,
+                    'razon_social': data.get('razon_social', ''),
+                    'nombre_comercial': data.get('nombre_comercial', ''),
+                    'direccion': data.get('direccion_completa', ''),
+                    'estado': data.get('estado', ''),
+                    'condicion': data.get('condicion', '')
+                })
+            else:
+                return jsonify({'success': False, 'error': 'No se encontraron datos para este RUC'})
+                
+        elif response.status_code == 404:
+            return jsonify({'success': False, 'error': 'RUC no encontrado en SUNAT'})
+        else:
+            return jsonify({'success': False, 'error': f'Error en la consulta: Código {response.status_code}'})
+            
+    except requests.exceptions.Timeout:
+        return jsonify({'success': False, 'error': 'Tiempo de espera agotado. Intente nuevamente.'})
+    except requests.exceptions.ConnectionError:
+        return jsonify({'success': False, 'error': 'Error de conexión. Verifique su internet.'})
+    except Exception as e:
+        print(f"Error consultando SUNAT: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
 
 # =========================
 # Ejecutar
@@ -174,4 +486,3 @@ if __name__ == "__main__":
         host=host,
         port=port
     )
-    

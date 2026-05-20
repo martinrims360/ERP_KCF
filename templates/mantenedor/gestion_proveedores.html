@@ -20,9 +20,191 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap"
     rel="stylesheet">
 
-    <!-- CSS -->
-    <link rel="stylesheet"
-    href="/static/css/listado_proveedores.css">
+    <style>
+        :root{
+            --rojo:#d90429;
+            --negro:#111827;
+            --gris:#6b7280;
+            --fondo:#f4f6f9;
+        }
+
+        body{
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, #f8fafc, #eef2f7);
+        }
+
+        /* NAVBAR */
+        .erp-navbar{
+            background: linear-gradient(135deg, #111827, #1f2937);
+            padding: 18px 30px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .left{
+            display:flex;
+            align-items:center;
+            gap:15px;
+        }
+
+        .logo{
+            width:55px;
+            height:55px;
+            border-radius:14px;
+            background: linear-gradient(135deg, var(--rojo), #ef233c);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            color:white;
+            font-size:22px;
+        }
+
+        .title{
+            color:white;
+            font-weight:800;
+            font-size:20px;
+        }
+
+        .subtitle{
+            color:#cbd5e1;
+            font-size:12px;
+        }
+
+        .user{
+            color:white;
+            background: rgba(255,255,255,0.08);
+            padding:10px 14px;
+            border-radius:12px;
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+
+        /* HERO */
+        .hero{
+            background:white;
+            padding:30px;
+            border-radius:20px;
+            box-shadow:0 8px 25px rgba(0,0,0,0.05);
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            flex-wrap:wrap;
+        }
+
+        .hero h1{
+            font-weight:900;
+            margin:0;
+        }
+
+        .hero p{
+            color:var(--gris);
+            margin-top:5px;
+        }
+
+        /* BUTTONS */
+        .actions{
+            display:flex;
+            gap:10px;
+        }
+
+        .btn{
+            border-radius:12px;
+            padding:10px 18px;
+            font-weight:700;
+        }
+
+        /* CARDS */
+        .card-erp{
+            background:white;
+            border-radius:20px;
+            overflow:hidden;
+            box-shadow:0 8px 25px rgba(0,0,0,0.05);
+        }
+
+        .card-header{
+            background:#111827;
+            color:white;
+            padding:15px 20px;
+            font-weight:700;
+        }
+
+        .card-header.red{
+            background: linear-gradient(135deg, var(--rojo), #ef233c);
+        }
+
+        .card-body{
+            padding:20px;
+        }
+
+        /* TABLE */
+        .table-modern thead th{
+            background:#111827;
+            color:white;
+            border:none;
+            padding:14px;
+            font-size:13px;
+        }
+
+        .table-modern tbody td{
+            padding:14px;
+            border-color:#f1f1f1;
+        }
+
+        .table-modern tbody tr:hover{
+            background: rgba(217,4,41,0.05);
+        }
+
+        /* INPUTS */
+        input, select{
+            border-radius:12px !important;
+            padding:10px;
+        }
+
+        label{
+            font-weight:700;
+            font-size:13px;
+            margin-bottom:5px;
+        }
+
+        /* MODAL STYLES */
+        .modal-header.bg-dark-custom {
+            background: linear-gradient(135deg, #1e2930 0%, #0f1724 100%);
+        }
+
+        .erp-section {
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .erp-section-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--rojo);
+            display: inline-block;
+        }
+
+        /* RESPONSIVE */
+        @media(max-width:768px){
+            .hero{
+                flex-direction:column;
+                align-items:flex-start;
+                gap:15px;
+            }
+
+            .actions{
+                width:100%;
+            }
+
+            .btn{
+                width:100%;
+            }
+        }
+    </style>
 
 </head>
 
@@ -82,7 +264,7 @@
 
         <div class="actions">
 
-            <button class="btn btn-success btn-erp"
+            <button class="btn btn-success"
                     data-bs-toggle="modal"
                     data-bs-target="#modalNuevoProveedor">
 
@@ -104,7 +286,7 @@
     </div>
 
     <!-- FILTROS -->
-    <div class="card-erp">
+    <div class="card-erp mt-4">
 
         <div class="card-header">
 
@@ -175,10 +357,8 @@
                 <thead>
 
                     <tr>
-
                         <th>ID</th>
                         <th>Código</th>
-                        <th>Nombre Comercial</th>
                         <th>Razón Social</th>
                         <th>RUC</th>
                         <th>Dirección</th>
@@ -186,7 +366,6 @@
                         <th>Contacto</th>
                         <th>Email</th>
                         <th>Acciones</th>
-
                     </tr>
 
                 </thead>
@@ -203,24 +382,16 @@
 
 </div>
 
-<!-- MODAL NUEVO PROVEEDOR -->
 <!-- =========================================
-MODAL NUEVO PROVEEDOR ERP MODERNO
+MODAL NUEVO PROVEEDOR
 ========================================= -->
-
-<div
-    class="modal fade"
-    id="modalNuevoProveedor"
-    tabindex="-1"
-    aria-hidden="true"
->
+<div class="modal fade" id="modalNuevoProveedor" tabindex="-1" aria-hidden="true">
 
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
 
         <div class="modal-content">
 
-            <!-- HEADER -->
-            <div class="modal-header">
+            <div class="modal-header bg-dark text-white">
 
                 <div>
                     <h4 class="modal-title">
@@ -232,22 +403,13 @@ MODAL NUEVO PROVEEDOR ERP MODERNO
                     </small>
                 </div>
 
-                <button
-                    type="button"
-                    class="btn-close btn-close-white"
-                    data-bs-dismiss="modal"
-                ></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
 
             </div>
 
-            <!-- BODY -->
             <div class="modal-body">
 
                 <form id="formProveedor">
-
-                    <!-- =========================================
-                    SECCIÓN GENERAL
-                    ========================================= -->
 
                     <div class="erp-section">
 
@@ -257,263 +419,87 @@ MODAL NUEVO PROVEEDOR ERP MODERNO
 
                         <div class="row g-4">
 
-                            <!-- RAZON SOCIAL -->
                             <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Razón Social
-                                </label>
-
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="razon_social"
-                                    name="razon_social"
-                                    placeholder="Nombre legal del proveedor"
-                                    required
-                                >
-
+                                <label class="form-label">Razón Social *</label>
+                                <input type="text" class="form-control" id="razon_social" name="razon_social" placeholder="Nombre legal del proveedor" required>
                             </div>
 
-                            <!-- RAZON COMERCIAL -->
                             <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Razón Comercial
-                                </label>
-
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="razon_comercial"
-                                    name="razon_comercial"
-                                    placeholder="Nombre comercial"
-                                    required
-                                >
-
+                                <label class="form-label">Razón Comercial</label>
+                                <input type="text" class="form-control" id="razon_comercial" name="razon_comercial" placeholder="Nombre comercial">
                             </div>
 
-                            <!-- DIRECCION -->
                             <div class="col-md-12">
-
-                                <label class="form-label">
-                                    Dirección Fiscal
-                                </label>
-
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="direccion"
-                                    name="direccion"
-                                    placeholder="Dirección fiscal completa"
-                                    required
-                                >
-
+                                <label class="form-label">Dirección Fiscal</label>
+                                <input type="text" class="form-control" id="direccion" name="direccion" placeholder="Dirección fiscal completa" required>
                             </div>
 
-                            <!-- CONTACTO -->
                             <div class="col-md-4">
-
-                                <label class="form-label">
-                                    Persona de Contacto
-                                </label>
-
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="contacto"
-                                    name="contacto"
-                                    placeholder="Nombre del contacto"
-                                    required
-                                >
-
+                                <label class="form-label">RUC *</label>
+                                <input type="text" class="form-control" id="ruc" name="ruc" placeholder="11 dígitos" maxlength="11" required>
                             </div>
 
-                            <!-- RUC -->
                             <div class="col-md-4">
-
-                                <label class="form-label">
-                                    RUC
-                                </label>
-
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="ruc"
-                                    name="ruc"
-                                    placeholder="11 dígitos"
-                                    maxlength="11"
-                                    required
-                                >
-
+                                <label class="form-label">Persona de Contacto</label>
+                                <input type="text" class="form-control" id="contacto" name="contacto" placeholder="Nombre del contacto">
                             </div>
 
-                            <!-- TELEFONO -->
                             <div class="col-md-4">
-
-                                <label class="form-label">
-                                    Teléfono
-                                </label>
-
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="telefono"
-                                    name="telefono"
-                                    placeholder="Número telefónico"
-                                >
-
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="telefono" name="telefono" placeholder="Número telefónico">
                             </div>
 
-                            <!-- EMAIL -->
                             <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Correo Electrónico
-                                </label>
-
-                                <input
-                                    type="email"
-                                    class="form-control"
-                                    id="email"
-                                    name="email"
-                                    placeholder="correo@proveedor.com"
-                                >
-
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="correo@proveedor.com">
                             </div>
 
-                            <!-- CONDICION -->
                             <div class="col-md-3">
-
-                                <label class="form-label">
-                                    Condición de Pago
-                                </label>
-
-                                <select
-                                    id="condicion_pago"
-                                    name="condicion_pago"
-                                    class="form-select"
-                                >
-
-                                    <option value="">
-                                        Seleccione
-                                    </option>
-
-                                    <option value="Credito">
-                                        Crédito
-                                    </option>
-
-                                    <option value="Contado">
-                                        Contado
-                                    </option>
-
+                                <label class="form-label">Condición de Pago</label>
+                                <select id="condicion_pago" name="condicion_pago" class="form-select">
+                                    <option value="">Seleccione</option>
+                                    <option value="Credito">Crédito</option>
+                                    <option value="Contado">Contado</option>
                                 </select>
-
                             </div>
 
-                            <!-- TIEMPO -->
-                            <div
-                                class="col-md-3"
-                                id="campo_tiempo_credito"
-                                style="display:none;"
-                            >
-
-                                <label class="form-label">
-                                    Tiempo Crédito
-                                </label>
-
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="tiempo_credito"
-                                    name="tiempo_credito"
-                                    placeholder="Ej: 30 días"
-                                >
-
+                            <div class="col-md-3" id="campo_tiempo_credito" style="display:none;">
+                                <label class="form-label">Tiempo Crédito</label>
+                                <input type="text" class="form-control" id="tiempo_credito" name="tiempo_credito" placeholder="Ej: 30 días">
                             </div>
 
                         </div>
 
                     </div>
 
-                    <!-- =========================================
-                    SECCIÓN FINANCIERA
-                    ========================================= -->
+                    <div class="erp-section">
 
-<div class="erp-section">
+                        <div class="erp-section-title">
+                            💳 Información Bancaria
+                        </div>
 
-    <div class="erp-section-title">
-        💳 Información Bancaria
-    </div>
+                        <div class="row g-4">
 
-    <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Banco</label>
+                                <select class="form-select" id="banco" name="banco">
+                                    <option value="">Seleccione banco</option>
+                                    <option value="BCP">BCP</option>
+                                    <option value="BBVA">BBVA</option>
+                                    <option value="Interbank">Interbank</option>
+                                    <option value="Scotiabank">Scotiabank</option>
+                                </select>
+                            </div>
 
-        <!-- BANCO -->
-        <div class="col-md-4">
+                            <div class="col-md-8">
+                                <label class="form-label">Número de Cuenta / CCI</label>
+                                <input type="text" class="form-control" id="numero_cuenta_cci" name="numero_cuenta_cci" placeholder="Ingrese cuenta bancaria o CCI">
+                                <small class="text-muted">Cuenta bancaria o código interbancario</small>
+                            </div>
 
-            <label class="form-label fw-semibold">
-                Banco
-            </label>
+                        </div>
 
-            <select
-                class="form-select form-select-lg"
-                name="banco"
-                required
-            >
-
-                <option value="">
-                    Seleccione banco
-                </option>
-
-                <option value="BCP">
-                    BCP
-                </option>
-
-                <option value="BBVA">
-                    BBVA
-                </option>
-
-                <option value="Interbank">
-                    Interbank
-                </option>
-
-                <option value="Scotiabank">
-                    Scotiabank
-                </option>
-
-            </select>
-
-        </div>
-
-        <!-- NÚMERO -->
-        <div class="col-md-8">
-
-            <label class="form-label fw-semibold">
-                Número de Cuenta / CCI
-            </label>
-
-            <input
-                type="text"
-                class="form-control form-control-lg"
-                id="numero_cuenta_cci"
-                name="numero_cuenta_cci"
-                placeholder="Ingrese cuenta bancaria o CCI"
-            >
-
-            <small class="text-muted">
-                Cuenta bancaria o código interbancario
-            </small>
-
-        </div>
-
-    </div>
-
-</div>
-
-                   
-                    <!-- =========================================
-                    SECCIÓN LOGÍSTICA
-                    ========================================= -->
+                    </div>
 
                     <div class="erp-section">
 
@@ -523,104 +509,27 @@ MODAL NUEVO PROVEEDOR ERP MODERNO
 
                         <div class="row g-4">
 
-                            <!-- OPCION -->
                             <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Lugar de Recojo
-                                </label>
-
-                                <select
-                                    id="tipo_recojo"
-                                    class="form-select"
-                                >
-
-                                    <option value="">
-                                        Seleccione opción
-                                    </option>
-
-                                    <option value="lista">
-                                        Elegir distrito
-                                    </option>
-
-                                    <option value="manual">
-                                        Escribir manualmente
-                                    </option>
-
+                                <label class="form-label">Lugar de Recojo</label>
+                                <select id="tipo_recojo" class="form-select">
+                                    <option value="">Seleccione opción</option>
+                                    <option value="lista">Elegir distrito</option>
+                                    <option value="manual">Escribir manualmente</option>
                                 </select>
-
                             </div>
 
-                            <!-- LISTA -->
-                            <div
-                                class="col-md-6"
-                                id="bloque_lista_distritos"
-                                style="display:none;"
-                            >
-
-                                <label class="form-label">
-                                    Buscar Distrito
-                                </label>
-
-                                <input
-                                    type="text"
-                                    id="buscarDistrito"
-                                    class="form-control mb-3"
-                                    placeholder="Buscar distrito..."
-                                >
-
-                                <select
-                                    id="lugar_recojo"
-                                    name="lugar_recojo"
-                                    class="form-select"
-                                    size="8"
-                                ></select>
-
+                            <div class="col-md-6" id="bloque_lista_distritos" style="display:none;">
+                                <label class="form-label">Buscar Distrito</label>
+                                <input type="text" id="buscarDistrito" class="form-control mb-3" placeholder="Buscar distrito...">
+                                <select id="lugar_recojo" name="lugar_recojo" class="form-select" size="8"></select>
                             </div>
 
-                            <!-- MANUAL -->
-                            <div
-                                class="col-md-6"
-                                id="bloque_manual"
-                                style="display:none;"
-                            >
-
-                                <label class="form-label">
-                                    Distrito Manual
-                                </label>
-
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id="otro_distrito"
-                                    name="otro_distrito"
-                                    placeholder="Ingrese distrito"
-                                >
-
+                            <div class="col-md-6" id="bloque_manual" style="display:none;">
+                                <label class="form-label">Distrito Manual</label>
+                                <input type="text" class="form-control" id="otro_distrito" name="otro_distrito" placeholder="Ingrese distrito">
                             </div>
 
                         </div>
-
-                    </div>
-
-                    <!-- FOOTER -->
-                    <div class="modal-footer">
-
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal"
-                        >
-                            ❌ Cancelar
-                        </button>
-
-                       <button
-                           type="button"
-                           id="btnGuardarProveedor"
-                           class="btn btn-success"
-                       >
-                         💾 Guardar Proveedor
-                       </button>
 
                     </div>
 
@@ -628,17 +537,207 @@ MODAL NUEVO PROVEEDOR ERP MODERNO
 
             </div>
 
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    ❌ Cancelar
+                </button>
+                <button type="button" id="btnGuardarProveedor" class="btn btn-success">
+                    💾 Guardar Proveedor
+                </button>
+            </div>
+
         </div>
 
     </div>
 
 </div>
+
+<!-- =========================================
+MODAL EDITAR PROVEEDOR
+========================================= -->
+<div class="modal fade" id="modalEditarProveedor" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header bg-dark text-white">
+                <div>
+                    <h4 class="modal-title">
+                        <i class="bi bi-pencil-fill"></i> Editar Proveedor
+                    </h4>
+                    <small class="text-white-50">Modificar datos del proveedor</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <form id="formEditarProveedor">
+
+                    <input type="hidden" id="edit_id_proveedor">
+
+                    <div class="erp-section">
+
+                        <div class="erp-section-title">
+                            📋 Información General
+                        </div>
+
+                        <div class="row g-4">
+
+                            <div class="col-md-6">
+                                <label class="form-label">Razón Social *</label>
+                                <input type="text" class="form-control" id="edit_razon_social_proveedor" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Razón Comercial</label>
+                                <input type="text" class="form-control" id="edit_razon_comercial_proveedor">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label">Dirección Fiscal</label>
+                                <input type="text" class="form-control" id="edit_direccion_proveedor">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">RUC *</label>
+                                <input type="text" class="form-control" id="edit_ruc_proveedor" maxlength="11" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Persona de Contacto</label>
+                                <input type="text" class="form-control" id="edit_contacto_proveedor">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="edit_telefono_proveedor">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="edit_email_proveedor">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Condición de Pago</label>
+                                <select id="edit_condicion_pago_proveedor" class="form-select">
+                                    <option value="">Seleccione</option>
+                                    <option value="Credito">Crédito</option>
+                                    <option value="Contado">Contado</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3" id="edit_campo_tiempo_credito_proveedor" style="display:none;">
+                                <label class="form-label">Tiempo Crédito</label>
+                                <input type="text" class="form-control" id="edit_tiempo_credito_proveedor" placeholder="Ej: 30 días">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="erp-section">
+
+                        <div class="erp-section-title">
+                            💳 Información Bancaria
+                        </div>
+
+                        <div class="row g-4">
+
+                            <div class="col-md-4">
+                                <label class="form-label">Banco</label>
+                                <select class="form-select" id="edit_banco_proveedor">
+                                    <option value="">Seleccione banco</option>
+                                    <option value="BCP">BCP</option>
+                                    <option value="BBVA">BBVA</option>
+                                    <option value="Interbank">Interbank</option>
+                                    <option value="Scotiabank">Scotiabank</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-8">
+                                <label class="form-label">Número de Cuenta / CCI</label>
+                                <input type="text" class="form-control" id="edit_numero_cuenta_cci_proveedor">
+                                <small class="text-muted">Cuenta bancaria o código interbancario</small>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="erp-section">
+
+                        <div class="erp-section-title">
+                            🚚 Información Logística
+                        </div>
+
+                        <div class="row g-4">
+
+                            <div class="col-md-12">
+                                <label class="form-label">Lugar de Recojo</label>
+                                <input type="text" class="form-control" id="edit_lugar_recojo_proveedor" placeholder="Distrito o ubicación">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="submit" form="formEditarProveedor" class="btn btn-primary">
+                    <i class="bi bi-save-fill"></i> Guardar Cambios
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- =========================================
+MODAL ELIMINAR PROVEEDOR
+========================================= -->
+<div class="modal fade" id="modalEliminarProveedor" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Eliminar Proveedor
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="delete_id_proveedor">
+                <p>¿Estás seguro de eliminar este proveedor?</p>
+                <p class="text-danger">Esta acción no se puede deshacer.</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button id="btnConfirmarEliminarProveedor" class="btn btn-danger">
+                    <i class="bi bi-trash-fill"></i> Sí, eliminar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- JS -->
-<script src="{{ url_for('static', filename='js/nuevo_proveedor.js') }}"></script> 
-<!-- JS -->
+<script src="{{ url_for('static', filename='js/nuevo_proveedor.js') }}"></script>
 <script src="{{ url_for('static', filename='js/listado_proveedores.js') }}"></script>
+
 </body>
 </html>

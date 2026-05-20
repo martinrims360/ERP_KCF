@@ -198,26 +198,45 @@
             overflow-y: auto;
         }
         
+        /* Notificaciones */
+        #notificacionesContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .notificacion {
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            min-width: 300px;
+            max-width: 500px;
+            animation: slideIn 0.3s ease;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        
+        .notificacion-exito { background: #4CAF50; color: white; }
+        .notificacion-error { background: #f44336; color: white; }
+        .notificacion-info { background: #2196F3; color: white; }
+        .notificacion-warning { background: #ff9800; color: white; }
+        
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
         @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
         }
         
         @media (max-width: 768px) {
@@ -375,7 +394,7 @@
 
 </div>
 
-<!-- MODAL CREAR NUEVO CLIENTE (desde listado) -->
+<!-- MODAL CREAR NUEVO CLIENTE (desde listado) CON BOTÓN SUNAT -->
 <div class="modal fade" id="modalNuevoClienteListado" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content modal-confirmacion">
@@ -399,7 +418,13 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Número Documento <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="nuevo_numero_documento_listado" required>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="nuevo_numero_documento_listado" required placeholder="11 dígitos para RUC">
+                                <button class="btn btn-primary" type="button" id="btnBuscarSunatListado">
+                                    <i class="bi bi-search"></i> Buscar en SUNAT
+                                </button>
+                            </div>
+                            <small class="text-muted">Para RUC, puede buscar datos automáticamente en SUNAT</small>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Razón Social / Nombre <span class="text-danger">*</span></label>
@@ -489,6 +514,9 @@
         </div>
     </div>
 </div>
+
+<!-- Notificaciones Container -->
+<div id="notificacionesContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/listado_cotizaciones.js"></script>

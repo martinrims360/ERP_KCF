@@ -5,3 +5,5 @@ weasyprint
 pdfkit
 reportlab
 openpyxl
+requests
+beautifulsoup4

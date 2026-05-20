@@ -61,7 +61,83 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnGuardarNuevoClienteListado) {
         btnGuardarNuevoClienteListado.addEventListener("click", guardarNuevoClienteListado);
     }
+
+    // 🔍 Botón buscar en SUNAT
+    const btnBuscarSunatListado = document.getElementById("btnBuscarSunatListado");
+    if (btnBuscarSunatListado) {
+        btnBuscarSunatListado.addEventListener("click", autocompletarConSunatListado);
+    }
 });
+
+// ===========================
+// CONSULTA A SUNAT
+// ===========================
+async function consultarSunatListado(ruc) {
+    try {
+        mostrarNotificacion(`🔍 Consultando RUC ${ruc} en SUNAT...`, 'info');
+        
+        const response = await fetch(`/api/sunat/consulta?ruc=${ruc}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            return {
+                success: true,
+                razon_social: data.razon_social || '',
+                nombre_comercial: data.nombre_comercial || '',
+                direccion: data.direccion || ''
+            };
+        } else {
+            return { success: false, error: data.error || 'No se encontraron datos' };
+        }
+    } catch (error) {
+        console.error('Error consultando SUNAT:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function autocompletarConSunatListado() {
+    const tipoDocumento = document.getElementById('nuevo_tipo_documento_listado')?.value;
+    const numeroDocumento = document.getElementById('nuevo_numero_documento_listado')?.value.trim();
+    
+    if (tipoDocumento !== 'RUC') {
+        mostrarNotificacion('⚠️ La búsqueda en SUNAT solo está disponible para RUC', 'warning');
+        return;
+    }
+    
+    if (!numeroDocumento || numeroDocumento.length !== 11) {
+        mostrarNotificacion('⚠️ Ingrese un RUC válido de 11 dígitos', 'warning');
+        return;
+    }
+    
+    const btnBuscar = document.getElementById('btnBuscarSunatListado');
+    const textoOriginal = btnBuscar?.innerHTML;
+    if (btnBuscar) {
+        btnBuscar.innerHTML = '<i class="bi bi-hourglass-split"></i> Buscando...';
+        btnBuscar.disabled = true;
+    }
+    
+    try {
+        const resultado = await consultarSunatListado(numeroDocumento);
+        
+        if (resultado.success) {
+            document.getElementById('nuevo_razon_social_listado').value = resultado.razon_social || '';
+            document.getElementById('nuevo_nombre_comercial_listado').value = resultado.nombre_comercial || '';
+            document.getElementById('nuevo_direccion_fiscal_listado').value = resultado.direccion || '';
+            
+            mostrarNotificacion('✅ Datos cargados desde SUNAT correctamente', 'success');
+        } else {
+            mostrarNotificacion('❌ ' + (resultado.error || 'No se encontraron datos para este RUC'), 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('❌ Error al consultar SUNAT', 'danger');
+    } finally {
+        if (btnBuscar) {
+            btnBuscar.innerHTML = textoOriginal;
+            btnBuscar.disabled = false;
+        }
+    }
+}
 
 // ===========================
 // CARGAR COTIZACIONES
@@ -296,7 +372,7 @@ async function verDetalle(id) {
                                         <th class="text-center">Cant</th><th class="text-end">P.Unit</th><th class="text-end">Subtotal</th>
                                     </tr>
                                 </thead>
-                                <tbody>${productosHtml || '<tr><td colspan="6" class="text-center">Sin productos</td></tr>'}</tbody>
+                                <tbody>${productosHtml || '<tr><td colspan="6" class="text-center">Sin productos</td>'}</tbody>
                             </table>
                         </div>
                     </div>
