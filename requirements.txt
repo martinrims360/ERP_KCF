@@ -2,7 +2,6 @@ Flask
 pandas 
 psycopg2
 weasyprint
-pdfkit
 reportlab
 openpyxl
 requests
