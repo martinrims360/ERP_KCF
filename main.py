@@ -421,36 +421,51 @@ def api_ultimo_codigo_proveedor():
 
 
 # =========================
-# ENDPOINT SUNAT (LATINFO - 100% GRATIS)
+# ENDPOINT SUNAT CORREGIDO - VERSIÓN DEFINITIVA
 # =========================
 
 @app.route("/api/sunat/consulta", methods=["GET"])
 def api_consulta_sunat():
-    """Consulta a SUNAT usando Latinfo API (100% gratis, 100k consultas/día)"""
+    """Consulta a SUNAT usando API de apis.net.pe - VERSIÓN CORREGIDA"""
     
     ruc = request.args.get('ruc', '')
+    
+    # Log para depuración
+    print(f"🔍 Consultando RUC: {ruc}")
     
     if not ruc or len(ruc) != 11:
         return jsonify({'success': False, 'error': 'RUC inválido, debe tener 11 dígitos'})
     
     try:
-        # Latinfo API - Gratis, sin token, 100,000 consultas por día
-        url = f'https://api.latinfo.dev/pe/ruc/{ruc}'
+        # API funcional de apis.net.pe
+        url = f'https://api.apis.net.pe/v1/ruc?numero={ruc}'
         
-        response = requests.get(url, timeout=15)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json'
+        }
+        
+        response = requests.get(url, timeout=15, headers=headers)
+        
+        print(f"📡 Status code: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
+            print(f"✅ Datos recibidos: {data}")
             
-            # Verificar si hay datos válidos
-            if data and data.get('razon_social'):
+            # IMPORTANTE: La API usa "nombre" no "razonSocial"
+            if data and data.get('nombre'):
                 return jsonify({
                     'success': True,
-                    'razon_social': data.get('razon_social', ''),
-                    'nombre_comercial': data.get('nombre_comercial', ''),
-                    'direccion': data.get('direccion_completa', ''),
+                    'razon_social': data.get('nombre', ''),
+                    'nombre_comercial': data.get('nombre', ''),
+                    'direccion': data.get('direccion', ''),
                     'estado': data.get('estado', ''),
-                    'condicion': data.get('condicion', '')
+                    'condicion': data.get('condicion', ''),
+                    'distrito': data.get('distrito', ''),
+                    'provincia': data.get('provincia', ''),
+                    'departamento': data.get('departamento', ''),
+                    'ubigeo': data.get('ubigeo', '')
                 })
             else:
                 return jsonify({'success': False, 'error': 'No se encontraron datos para este RUC'})
@@ -465,7 +480,7 @@ def api_consulta_sunat():
     except requests.exceptions.ConnectionError:
         return jsonify({'success': False, 'error': 'Error de conexión. Verifique su internet.'})
     except Exception as e:
-        print(f"Error consultando SUNAT: {e}")
+        print(f"❌ Error: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 
