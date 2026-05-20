@@ -9,13 +9,13 @@ import base64
 
 class PDFGenerator:
     def __init__(self):
-        self.templates_dir = 'templates/pdf/'
+        self.templates_dir = 'templates/cotizacion_oc/'
         self.logo_base64 = None  # Cache para el logo
 
     def _obtener_logo_base64(self):
         """Obtiene el logo en base64 para incrustarlo en el PDF"""
         if self.logo_base64:
-            return self.logo_base64
+            return self.logo_base64 
         
         logo_path = 'logo-kcf.png'
         if os.path.exists(logo_path):
@@ -64,7 +64,7 @@ class PDFGenerator:
             print(f"Datos mapeados: {list(datos_mapeados.keys())}")
             
             # Cargar template original
-            template_path = os.path.join(self.templates_dir, 'cotizacion_kcf.html')
+            template_path = os.path.join(self.templates_dir, 'cotizacion_comercial.html')
             if not os.path.exists(template_path):
                 print(f"Template no encontrado en {template_path}")
                 return None
@@ -247,7 +247,7 @@ class PDFGenerator:
                 os.makedirs(self.templates_dir)
             
             # Cargar template HTML para PDF de orden de compra
-            template_path = os.path.join(self.templates_dir, 'orden_compra_kcf.html')
+            template_path = os.path.join(self.templates_dir, 'generar_orden_compra.html')
             
             if not os.path.exists(template_path):
                 self._crear_template_orden_compra_basico(template_path)

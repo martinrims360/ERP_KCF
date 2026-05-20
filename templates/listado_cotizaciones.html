@@ -1,162 +1,497 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Listado de Cotizaciones - KCF CORPORACION</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Cotizaciones - KCF CORPORACION</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cotizaciones.css') }}">
+    
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background-color: #f9f9f9; }
-        .container { max-width: 1300px; margin: 0 auto; padding: 20px; }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .header h1 { color: #2196F3; margin-bottom: 6px; }
-
-        .top-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: white;
-            padding: 12px 18px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
+        /* Estilos adicionales específicos para listado */
+        .card-custom {
+            border-radius: 20px;
             border: none;
-            cursor: pointer;
-        }
-        .btn-nueva { background-color: #4CAF50; }
-        .btn-nueva:hover { background-color: #45a049; }
-        .btn-volver { background-color: #6c757d; }
-        .btn-volver:hover { background-color: #5a6268; }
-
-        .tabla-container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
             overflow: hidden;
         }
-
-        table { width: 100%; border-collapse: collapse; }
-        th {
-            background-color: #2196F3;
+        
+        .page-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #111827;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .btn-custom {
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+        
+        .search-input {
+            border-radius: 40px;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+        
+        .search-input:focus {
+            border-color: #d90429;
+            box-shadow: 0 0 0 3px rgba(217,4,41,0.1);
+            outline: none;
+        }
+        
+        .table thead th {
+            background: #111827;
             color: white;
-            padding: 14px 10px;
-            text-align: left;
-            font-weight: bold;
-            font-size: 13px;
+            font-weight: 600;
+            padding: 15px;
+            border: none;
         }
-        td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #e9ecef;
-            font-size: 13px;
+        
+        .table tbody td {
+            padding: 15px;
             vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
         }
-        tr:hover { background-color: #f8f9fa; }
-
-        .estado {
-            padding: 5px 10px;
-            border-radius: 14px;
-            font-size: 11px;
-            font-weight: bold;
+        
+        .table tbody tr:hover {
+            background: rgba(217,4,41,0.03);
+        }
+        
+        .badge-estado {
             display: inline-block;
-            min-width: 100px;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 700;
             text-align: center;
         }
-        .estado-proceso { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-        .estado-generada { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-        .estado-aceptada { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .estado-rechazada { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-
-        .monto { text-align: right; font-weight: bold; }
-
-        .acciones { white-space: nowrap; }
-        .btn-mini {
+        
+        .estado-borrador {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 3px solid #f59e0b;
+        }
+        
+        .estado-generada {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .estado-aceptada {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 3px solid #10b981;
+        }
+        
+        .estado-rechazada {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 3px solid #ef4444;
+        }
+        
+        .estado-en-proceso {
+            background: #e0e7ff;
+            color: #3730a3;
+            border-left: 3px solid #6366f1;
+        }
+        
+        .monto {
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        .acciones {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .acciones .btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 10px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 12px;
-            text-decoration: none;
-            color: white;
+            justify-content: center;
+            transition: all 0.2s ease;
         }
-        .btn-consultar { background: #007BFF; }
-        .btn-consultar:hover { background: #0056b3; }
+        
+        .acciones .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .badge-codigo {
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: 700;
+            background: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 8px;
+            color: #374151;
+        }
+        
+        .codigo-tmp {
+            color: #f59e0b;
+            background: #fef3c7;
+        }
+        
+        /* Modal de confirmación */
+        .modal-confirmacion {
+            border-radius: 20px;
+        }
+        
+        .modal-confirmacion .modal-header {
+            background: linear-gradient(135deg, #111827, #1f2937);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        /* Toolbar stats */
+        .stats-bar {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 16px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: #111827;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        /* Modal crear cliente */
+        .modal-crear-cliente .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+            
+            .left-actions, .right-actions {
+                justify-content: center;
+            }
+            
+            .search-input {
+                width: 100%;
+                min-width: auto !important;
+            }
+            
+            .acciones {
+                flex-wrap: wrap;
+            }
+            
+            .stat-number {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>📊 Listado de Cotizaciones</h1>
-        <div style="color:#666; font-size:13px;">Cotizaciones registradas en el sistema</div>
+
+<div class="container py-4">
+
+    <!-- HEADER -->
+    <div class="card card-custom mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="page-title mb-1">
+                    <i class="bi bi-clipboard-data-fill text-primary"></i>
+                    Gestor de Cotizaciones
+                </h1>
+                <div class="subtitle">
+                    Administración de cotizaciones comerciales y órdenes de compra
+                </div>
+            </div>
+            <div>
+                <span class="badge bg-primary fs-6 px-3 py-2">
+                    <i class="bi bi-buildings-fill me-1"></i>
+                    KCF CORPORACION
+                </span>
+            </div>
+        </div>
     </div>
 
-    <div class="top-actions">
-        <a class="btn btn-volver" href="/index">⬅ Volver</a>
-        <a class="btn btn-nueva" href="/cotizacion/nueva">➕ Nueva Cotización</a>
+    <!-- STATS BAR (Dinámico) -->
+    <div class="stats-bar" id="statsBar">
+        <div class="row text-center">
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" id="totalCotizaciones">0</div>
+                <div class="stat-label">Total Cotizaciones</div>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" id="totalBorradores">0</div>
+                <div class="stat-label">Borradores</div>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" id="totalGeneradas">0</div>
+                <div class="stat-label">Generadas</div>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" id="totalAceptadas">0</div>
+                <div class="stat-label">Aceptadas</div>
+            </div>
+        </div>
     </div>
 
-    <div class="tabla-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>N° Cotización</th>
-                    <th>Fecha</th>
-                    <th>Cliente</th>
-                    <th>Estado</th>
-                    <th style="text-align:right;">Total (S/.)</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in cotizaciones %}
-                <tr>
-                    <td><strong>{{ c.numero_cotizacion }}</strong></td>
-                    <td>{{ c.fecha_creacion }}</td>
-                    <td>{{ c.cliente_razon_social }}</td>
-                    <td>
-                        {% set est = c.estado %}
-                        <span class="estado
-                            {% if est == 'En Proceso' %}estado-proceso
-                            {% elif est == 'Generada' %}estado-generada
-                            {% elif est == 'Aceptada por Cliente' %}estado-aceptada
-                            {% elif est == 'Rechazada' %}estado-rechazada
-                            {% else %}estado-generada{% endif %}">
-                            {{ est }}
-                        </span>
-                    </td>
-                    <td class="monto">S/ {{ c.total | formato_soles }}</td>
-                    <td class="acciones">
-                        <a class="btn-mini btn-consultar" href="/cotizacion/consultar/{{ c.id }}">🔎 Consultar</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" style="text-align:center; padding:20px; color:#666;">
-                        No hay cotizaciones registradas.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- ACCIONES -->
+    <div class="card card-custom mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 top-bar">
+
+                <!-- IZQUIERDA -->
+                <div class="d-flex align-items-center flex-wrap gap-2 left-actions">
+                    <a href="/index" class="btn btn-secondary btn-custom">
+                        <i class="bi bi-arrow-left"></i>
+                        Volver
+                    </a>
+
+                    <select id="filtroTipo" class="form-select" style="width: 220px; border-radius: 12px;">
+                        <option value="todas">📋 Ver Todo</option>
+                        <option value="borrador">📝 Borradores</option>
+                        <option value="generada">📄 Generadas</option>
+                        <option value="aceptada">✅ Aceptadas</option>
+                        <option value="rechazada">❌ Rechazadas</option>
+                        <option value="en_proceso">⏳ En Proceso</option>
+                    </select>
+
+                    <div class="position-relative">
+                        <i class="bi bi-search position-absolute" style="left:15px; top:11px; color:#888;"></i>
+                        <input type="text" id="buscador" class="form-control search-input ps-5"
+                               placeholder="Buscar por N° / Código / Cliente / Vendedor..."
+                               style="min-width:300px;">
+                    </div>
+                </div>
+
+                <!-- DERECHA -->
+                <div class="d-flex gap-2 right-actions">
+                    <button class="btn btn-success btn-custom" id="btnCrearClienteListado">
+                        <i class="bi bi-person-plus-fill"></i>
+                        Crear Nuevo Cliente
+                    </button>
+                    <button class="btn btn-info btn-custom" id="btnRefrescar">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Refrescar
+                    </button>
+                    <a href="/crear_cotizacion" class="btn btn-success btn-custom">
+                        <i class="bi bi-plus-circle"></i>
+                        Nueva Cotización
+                    </a>
+                    <a href="/cotizacion/orden" class="btn btn-danger btn-custom">
+                        <i class="bi bi-file-earmark-plus"></i>
+                        Nueva Orden
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA -->
+    <div class="card card-custom">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>N° Cotización / Código</th>
+                            <th>Fecha</th>
+                            <th>Cliente / Vendedor</th>
+                            <th>Estado</th>
+                            <th class="text-end">Total (S/.)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyCotizaciones">
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3"></div>
+                                <div class="text-muted">Cargando cotizaciones...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL CREAR NUEVO CLIENTE (desde listado) -->
+<div class="modal fade" id="modalNuevoClienteListado" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modal-confirmacion">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus-fill text-success"></i>
+                    Nuevo Cliente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body modal-crear-cliente">
+                <form id="formNuevoClienteListado">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo Documento <span class="text-danger">*</span></label>
+                            <select class="form-select" id="nuevo_tipo_documento_listado" required>
+                                <option value="RUC">RUC</option>
+                                <option value="DNI">DNI</option>
+                                <option value="CE">Carnet de Extranjería</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Número Documento <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nuevo_numero_documento_listado" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Razón Social / Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nuevo_razon_social_listado" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Nombre Comercial</label>
+                            <input type="text" class="form-control" id="nuevo_nombre_comercial_listado">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Dirección Fiscal</label>
+                            <input type="text" class="form-control" id="nuevo_direccion_fiscal_listado">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono Contacto</label>
+                            <input type="text" class="form-control" id="nuevo_telefono_listado">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Contacto</label>
+                            <input type="email" class="form-control" id="nuevo_email_listado">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Nombre Contacto</label>
+                            <input type="text" class="form-control" id="nuevo_nombre_contacto_listado">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btnGuardarNuevoClienteListado">
+                    <i class="bi bi-save-fill"></i> Guardar Cliente
+                </button>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- MODAL DE ELIMINACIÓN -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirmacion">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                    Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea eliminar esta cotización?</p>
+                <p class="text-muted small" id="eliminarInfo">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE VER DETALLE -->
+<div class="modal fade" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modal-confirmacion">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-text-fill me-2"></i>
+                    Detalle de Cotización
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detalleBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/listado_cotizaciones.js"></script>
+
 </body>
 </html>

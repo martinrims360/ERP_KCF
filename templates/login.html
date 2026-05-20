@@ -1,141 +1,179 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+
 <head>
-    <title>Login - KCF CORPORACION</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 400px;
-        }
-        .logo { text-align: center; margin-bottom: 25px; }
-        .logo h1 { color: #2196F3; margin-bottom: 5px; }
-        .logo p { color: #666; font-size: 14px; }
 
-        .form-group { margin-bottom: 18px; }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        .form-group input:focus, .form-group select:focus {
-            border-color: #2196F3;
-            outline: none;
-        }
-        .btn-login {
-            width: 100%;
-            padding: 12px;
-            background: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-login:hover { background: #1976D2; }
+    <title>Login - KCF ERP</title>
 
-        .alert {
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-size: 13px;
-        }
-        .alert-error {
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
-        }
-        .alert-success {
-            background: #e8f5e8;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-        .alert-info {
-            background: #e3f2fd;
-            color: #1565c0;
-            border: 1px solid #bbdefb;
-        }
-        .edn-marca {
-            text-align: center;
-            margin-top: 18px;
-            font-size: 10px;
-            color: #999;
-        }
-    </style>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/login.css') }}">
 </head>
+
 <body>
+
+    <!-- BACKGROUND -->
     <div class="login-container">
-        <div class="logo">
-            <h1>KCF CORPORACION</h1>
-            <p>Sistema de Gestión "In-House"</p>
-        </div>
 
-        <!-- Mensajes flash -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'error' if category == 'error' else 'info' if category == 'info' else 'success' }}">
-                        {{ message }}
+        <!-- LEFT -->
+        <div class="login-left">
+
+            <div class="overlay"></div>
+
+            <div class="left-content">
+
+                <h1>KCF ERP</h1>
+
+                <p>
+                    Sistema Empresarial Integrado
+                </p>
+
+                <div class="features">
+
+                    <div class="feature-item">
+                        <i class="bi bi-bar-chart"></i>
+                        <span>Gestión Comercial</span>
                     </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
 
-        <form method="POST" autocomplete="off">
-            <div class="form-group">
-                <label for="usuario">Usuario</label>
-                <input type="text" id="usuario" name="usuario" required placeholder="Ingrese su usuario">
+                    <div class="feature-item">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Control de Inventario</span>
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <span>Indicadores KPI</span>
+                    </div>
+
+                </div>
+
             </div>
 
-            <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" required placeholder="Ingrese su contraseña">
-            </div>
-
-            <div class="form-group">
-                <label for="rol">Tipo de acceso</label>
-                <select id="rol" name="rol" required>
-                    <option value="">Seleccione</option>
-                    <option value="usuario">Usuario</option>
-                    <option value="administrador">Administrador</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn-login">🔐 Iniciar Sesión</button>
-        </form>
-
-        <div class="edn-marca">
-            IN-HOUSE desarrollado por EDN
         </div>
+
+        <!-- RIGHT -->
+        <div class="login-right">
+
+            <div class="login-card">
+
+                <div class="login-header">
+
+                    <div class="logo-circle">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+
+                    <h2>Bienvenido</h2>
+
+                    <p>Ingrese sus credenciales</p>
+
+                </div>
+
+                <!-- ALERTAS -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+
+                            <div class="alert alert-{{ category }}">
+
+                                {{ message }}
+
+                            </div>
+
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- FORM -->
+                <form method="POST">
+
+                    <!-- USUARIO -->
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Usuario
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+
+                            <input type="text"
+                                name="usuario"
+                                class="form-control"
+                                placeholder="Ingrese su usuario"
+                                required>
+
+                        </div>
+
+                    </div>
+
+                    <!-- PASSWORD -->
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Contraseña
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+
+                            <input type="password"
+                                name="password"
+                                class="form-control"
+                                placeholder="Ingrese su contraseña"
+                                required>
+
+                        </div>
+
+                    </div>
+
+                    <!-- BUTTON -->
+                    <button type="submit" class="btn-login">
+
+                        <i class="bi bi-box-arrow-in-right"></i>
+
+                        Iniciar Sesión
+
+                    </button>
+
+                </form>
+
+                <div class="footer-text">
+
+                    IN-HOUSE desarrollado por EDN
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <script>
-        document.getElementById('usuario').focus();
-    </script>
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JS -->
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+
 </body>
+
 </html>

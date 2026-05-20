@@ -1,23 +1,30 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head> <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <title>Nuevo Producto - KCF CORPORACION</title>
     <style>
-        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
-        .container { max-width: 700px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
+        body {  font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; margin: 0; background: linear-gradient(135deg, #34ff0b, #79ff5f);}
+        .container { max-width: 900px; margin: 40px auto; background: rgba(253, 250, 89, 0.788); padding: 25px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.08);backdrop-filter: blur(10px); }
+        .form-group { margin-bottom: 15px;padding: 2px;}
+        .observaciones { height: 60px; padding: 2px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #dddddd; border-radius: 5px; font-size: 14px; }
         textarea { resize: vertical; }
-        .descripcion-corta { height: 60px; }
-        .descripcion-larga { height: 100px; }
+        .descripcion-corta { height: 60px; padding: 2px;}
+        .descripcion-larga { height: 100px; padding: 2px; }
         .btn { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin-right: 10px; }
         .btn-guardar { background: #4CAF50; color: white; }
         .btn-cancelar { background: #ccc; color: #333; text-decoration: none; display: inline-block; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2196F3; padding-bottom: 10px; }
-        .form-row { display: flex; gap: 15px; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1bff26; padding-bottom: 10px; }
+        .form-row { display: flex;padding: 2px; }
         .form-row .form-group { flex: 1; }
-        .info-codigo { background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #2196F3; }
+        .info-codigo { background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #ffe137; }
+        .select2-container .select2-selection--single {
+    height: 40px !important;
+    padding-top: 5px;
+    border-radius: 6px !important;
+    
+}
     </style>
 </head>
 <body>
@@ -31,26 +38,50 @@
             <strong>💡 Información:</strong> El código del producto se generará automáticamente al guardar, basado en la familia seleccionada.
         </div>
 
-        <form method="POST">
+        <form method="POST" action="/mantenedor/productos/guardar">
             <!-- Paso 1: Seleccionar Familia -->
             <div class="form-group">
-                <label for="familia">1. Familia del Producto *:</label>
-                <select id="familia" name="familia" required onchange="actualizarInfoFamilia()">
-                    <option value="">Seleccione la familia</option>
-                    <option value="EQUIPOS DE PROTECCIÓN PERSONAL (EPP)">🛡️ EQUIPOS DE PROTECCIÓN PERSONAL (EPP)</option>
-                    <option value="HERRAMIENTAS MANUALES">🔧 HERRAMIENTAS MANUALES</option>
-                    <option value="HERRAMIENTAS ELÉCTRICAS">⚡ HERRAMIENTAS ELÉCTRICAS</option>
-                    <option value="MATERIALES ELÉCTRICOS">🔌 MATERIALES ELÉCTRICOS</option>
-                    <option value="PRODUCTOS QUÍMICOS Y ADHESIVOS">🧪 PRODUCTOS QUÍMICOS Y ADHESIVOS</option>
-                    <option value="MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN">🚧 MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN</option>
-                    <option value="EQUIPOS DE SOLDADURA">🔥 EQUIPOS DE SOLDADURA</option>
-                    <option value="MATERIALES DE EMBALAJE">📦 MATERIALES DE EMBALAJE</option>
-                    <option value="EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA">📱 EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA</option>
-                    <option value="MOBILIARIO Y EQUIPOS DE OFICINA">💺 MOBILIARIO Y EQUIPOS DE OFICINA</option>
-                    <option value="MATERIALES DE LIMPIEZA Y MANTENIMIENTO">🧹 MATERIALES DE LIMPIEZA Y MANTENIMIENTO</option>
-                    <option value="REPUESTOS Y ACCESORIOS AUTOMOTRICES">🚗 REPUESTOS Y ACCESORIOS AUTOMOTRICES</option>
-                </select>
-            </div>
+
+    <label for="familia">1. FAMILIA DEL PRODUCTO *:</label>
+
+    <select 
+        id="familia" 
+        name="familia" 
+        required 
+        onchange="actualizarInfoFamilia()"
+    >
+
+        <option value="">Seleccione la familia</option>
+
+        <option value="EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA">📱 EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA</option>
+
+        <option value="EQUIPOS DE PROTECCIÓN PERSONAL (EPP)">🛡️ EQUIPOS DE PROTECCIÓN PERSONAL (EPP)</option>
+
+        <option value="EQUIPOS DE SOLDADURA">🔥 EQUIPOS DE SOLDADURA</option>
+
+        <option value="HERRAMIENTAS ELÉCTRICAS">⚡ HERRAMIENTAS ELÉCTRICAS</option>
+
+        <option value="HERRAMIENTAS MANUALES">🔧 HERRAMIENTAS MANUALES</option>
+
+        <option value="MATERIALES DE EMBALAJE">📦 MATERIALES DE EMBALAJE</option>
+
+        <option value="MATERIALES DE LIMPIEZA Y MANTENIMIENTO">🧹 MATERIALES DE LIMPIEZA Y MANTENIMIENTO</option>
+
+        <option value="MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN">🚧 MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN</option>
+
+        <option value="MATERIALES ELÉCTRICOS">🔌 MATERIALES ELÉCTRICOS</option>
+
+        <option value="MOBILIARIO Y EQUIPOS DE OFICINA">💺 MOBILIARIO Y EQUIPOS DE OFICINA</option>
+
+        <option value="PRODUCTOS QUÍMICOS Y ADHESIVOS">🧪 PRODUCTOS QUÍMICOS Y ADHESIVOS</option>
+
+        <option value="REPUESTOS Y ACCESORIOS AUTOMOTRICES">🚗 REPUESTOS Y ACCESORIOS AUTOMOTRICES</option>
+
+        <option value="ROPA DE PROTECCIÓN">🦺 ROPA DE PROTECCIÓN</option>
+
+    </select>
+
+</div>
 
             <!-- Paso 2: Descripciones -->
             <div class="form-group">
@@ -68,12 +99,23 @@
                 <small>Información adicional para referencia interna</small>
             </div>
 
-            <!-- Paso 3: Marca y Modelo -->
+            <!--  Marca  -->
             <div class="form-row">
-                <div class="form-group">
-                    <label for="marca">4. Marca:</label>
-                    <input type="text" id="marca" name="marca" placeholder="Marca del producto">
-                </div>
+         <div class="form-group">
+
+          <label for="marca">4. MARCA *:</label>
+
+            <select id="marca" name="marca" required>
+            <option value="">Seleccione una marca</option>
+
+            <option value="dimerc">Dimerc</option>
+            <option value="magnaflux">Magnaflux</option>
+            <option value="shurtape">Shurtape</option>
+            <option value="vistony">Vistony</option>
+
+              </select>
+
+           </div>
 
                 <div class="form-group">
                     <label for="modelo">5. Modelo:</label>
@@ -83,21 +125,149 @@
 
             <!-- Paso 4: Unidad -->
             <div class="form-group">
-                <label for="unidad">6. Unidad de Medida *:</label>
-                <select id="unidad" name="unidad" required>
-                    <option value="">Seleccione unidad</option>
-                    <option value="Unidad">Unidad</option>
-                    <option value="Rollo">Rollo</option>
-                    <option value="Kg">Kilogramo</option>
-                    <option value="Litro">Litro</option>
-                    <option value="Paquete">Paquete</option>
-                    <option value="Caja">Caja</option>
-                    <option value="Metro">Metro</option>
-                    <option value="Set">Set</option>
-                    <option value="Galón">Galón</option>
-                    <option value="ml">Mililitro (ml)</option>
-                    <option value="Par">Par</option>
-                    <option value="Blister">Blister</option>
+
+    <label for="unidad">6. UNIDAD DE MEDIDA *:</label>
+
+    <select id="unidad" name="unidad" required>
+        <option value="">Seleccione una unidad</option>
+
+        <option value="Blister">Blister</option>
+        <option value="Caja">Caja</option>
+        <option value="Galón">Galón</option>
+        <option value="Kilogramo">Kilogramo</option>
+        <option value="Litro">Litro</option>
+        <option value="Metro">Metro</option>
+        <option value="Mililitro (ml)">Mililitro (ml)</option>
+        <option value="Paquete">Paquete</option>
+        <option value="Par">Par</option>
+        <option value="Rollo">Rollo</option>
+        <option value="Set">Set</option>
+        <option value="Unidad">Unidad</option>
+
+    </select>
+
+                <!-- Paso 5: Peso -->
+            <div class="form-row">
+
+    <!-- Tipo de ingreso -->
+    <div class="form-group">
+
+        <label for="tipo_peso">
+            7. PESO DEL PRODUCTO *
+        </label>
+
+        <select id="tipo_peso">
+
+            <option value="rango">
+                Seleccionar rango
+            </option>
+
+            <option value="exacto">
+                Ingresar peso exacto
+            </option>
+
+        </select>
+
+    </div>
+
+    <!-- Contenido dinámico -->
+    <div class="form-group">
+
+        <!-- RANGOS -->
+        <div id="contenedor-rango">
+
+            <label>Rango de Peso</label>
+
+            <select id="peso_rango" name="peso_rango">
+
+                <option value="">
+                    Seleccione un rango
+                </option>
+
+                <option value="0-1 kg">
+                    0 - 1 kg
+                </option>
+
+                <option value="1-2 kg">
+                    1 - 2 kg
+                </option>
+
+                <option value="2-3 kg">
+                    2 - 3 kg
+                </option>
+
+                <option value="3-4 kg">
+                    3 - 4 kg
+                </option>
+
+                <option value="4-5 kg">
+                    4 - 5 kg
+                </option>
+
+                <option value="5-10 kg">
+                    5 - 10 kg
+                </option>
+
+                <option value="10-20 kg">
+                    10 - 20 kg
+                </option>
+
+                <option value="20+ kg">
+                    Más de 20 kg
+                </option>
+
+            </select>
+
+        </div>
+
+        <!-- PESO EXACTO -->
+        <div id="contenedor-exacto" style="display:none;">
+
+            <label>Peso Exacto</label>
+
+            <input 
+                type="number"
+                id="peso_exacto"
+                name="peso_exacto"
+                placeholder="Ejemplo: 2.75"
+                step="0.01"
+                min="0"
+            >
+
+        </div>
+
+    </div>  
+    </div>
+
+
+            <div class="form-group">
+                <label for="volumen">8. Volumen del producto *:</label>
+                <select id="volumen" name="volumen" required>
+                  <option value="">Seleccione una opción</option>
+                  <option value="0-1000">0 - 1000 cm³</option>
+                  <option value="1000-5000">1000 - 5000 cm³</option>
+                  <option value="5000-10000">5000 - 10000 cm³</option>
+                  <option value="10000+">Más de 10000 cm³</option>
+                </select>
+            </div>
+
+           
+            <div class="form-group">
+                <label for="observaciones">9. Observaciones *:</label>
+                <textarea id="observaciones" name="observaciones" class="observaciones" 
+                    placeholder="Ej: Este producto requiere movilidad grande"
+                    required></textarea>
+            </div>
+
+             <div class="form-group">
+                <label for="transporte">10. Transporte *:</label>
+                <select id="transporte" name="transporte" required>
+                  <option value="">Seleccione un vehículo</option>
+                  <option value="motorizado">Motorizado</option>
+                  <option value="auto">Auto</option>
+                  <option value="miniban">Miniban</option>
+                  <option value="camioneta">Camioneta</option>
+                  <option value="camion">Camión</option>
                 </select>
             </div>
 
@@ -124,7 +294,8 @@
                     "EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA": "ELE",
                     "MOBILIARIO Y EQUIPOS DE OFICINA": "OFI",
                     "MATERIALES DE LIMPIEZA Y MANTENIMIENTO": "LIM",
-                    "REPUESTOS Y ACCESORIOS AUTOMOTRICES": "AUT"
+                    "REPUESTOS Y ACCESORIOS AUTOMOTRICES": "AUT",
+                    "ROPA DE PROTECCIÓN": "RPP" 
                 };
                 
                 const prefijo = prefijos[familiaSelect.value] || 'GEN';
@@ -134,5 +305,63 @@
             }
         }
     </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#unidad').select2({
+            placeholder: "Buscar unidad...",
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        $('#marca').select2({
+            placeholder: "Buscar marca...",
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
+<script>
+document.getElementById('tipo_peso')
+    .addEventListener('change', function() {
+
+    const rango =
+        document.getElementById('contenedor-rango');
+
+    const exacto =
+        document.getElementById('contenedor-exacto');
+
+    if (this.value === 'exacto') {
+
+        rango.style.display = 'none';
+        exacto.style.display = 'block';
+
+    } else {
+
+        rango.style.display = 'block';
+        exacto.style.display = 'none';
+
+    }
+
+});
+</script>
+<script>
+$(document).ready(function() {
+
+    $('#familia').select2({
+
+        placeholder: "Buscar familia...",
+        allowClear: true,
+        width: '100%'
+
+    });
+
+});
+</script>
 </body>
 </html>

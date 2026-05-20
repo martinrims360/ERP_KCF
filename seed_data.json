@@ -4,22 +4,25 @@
       "usuario": "admin",
       "password": "Admin#2026!",
       "rol": "administrador",
-      "nombre_completo": "Administrador Principal",
-      "email": "admin@kcf.com"
+      "nombre_completo": "Antony Gamonal",
+      "email": "admin@kcf.com",
+      "telefono" : "987654321"
     },
     {
       "usuario": "maria",
       "password": "User#2026!",
       "rol": "usuario",
       "nombre_completo": "María García",
-      "email": "maria@kcf.com"
+      "email": "maria@kcf.com",   
+      "telefono" : "982345678"
     },
     {
       "usuario": "carlos",
-      "password": "User#2026!",
+      "password": "Carlin#2026!",
       "rol": "usuario",
       "nombre_completo": "Carlos Mendoza",
-      "email": "carlos@kcf.com"
+      "email": "carlos@kcf.com",
+      "telefono" : "987654123"
     }
   ],
   "proveedores": [

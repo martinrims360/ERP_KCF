@@ -1,144 +1,1122 @@
+<!-- templates/productos.html -->
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Gestión de Productos - KCF CORPORACION</title>
-    <style>
-        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
-        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2196F3; padding-bottom: 15px; }
-        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin: 5px; }
-        .btn-nuevo { background: #4CAF50; color: white; }
-        .btn-volver { background: #6c757d; color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background: #2196F3; color: white; position: sticky; top: 0; }
-        tr:nth-child(even) { background: #f9f9f9; }
-        tr:hover { background: #f0f8ff; }
-        .acciones { display: flex; gap: 5px; }
-        .btn-editar { background: #FF9800; color: white; padding: 5px 10px; font-size: 12px; text-decoration: none; border-radius: 3px; }
-        .btn-eliminar { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; text-decoration: none; border-radius: 3px; }
-        .familia-badge { 
-            padding: 3px 8px; 
-            border-radius: 12px; 
-            font-size: 11px; 
-            font-weight: bold;
-            color: white;
-        }
-        .familia-badge.epp { background: #2196F3; }
-        .familia-badge.hma { background: #FF9800; }
-        .familia-badge.hel { background: #9C27B0; }
-        .familia-badge.mel { background: #4CAF50; }
-        .familia-badge.qui { background: #F44336; }
-        .familia-badge.seg { background: #607D8B; }
-        .familia-badge.sol { background: #795548; }
-        .familia-badge.emb { background: #009688; }
-        .familia-badge.ele { background: #673AB7; }
-        .familia-badge.ofi { background: #FF5722; }
-        .familia-badge.lim { background: #00BCD4; }
-        .familia-badge.aut { background: #8BC34A; }
-        .familia-badge.default { background: #666; }
-        .descripcion-corta { max-width: 300px; }
-        .descripcion-larga { max-width: 400px; color: #666; font-size: 12px; }
-        .filtros { background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        .filtro-group { display: inline-block; margin-right: 15px; }
-        .filtro-group label { font-weight: bold; margin-right: 5px; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestión de Productos | KCF CORPORACIÓN</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- SELECT2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gestion_productos.css') }}">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📦 Gestión de Productos</h1>
-            <p>Usuario: {{ session.nombre_completo }}</p>
-        </div>
 
-        <a href="/mantenedor/productos/nuevo" class="btn btn-nuevo">➕ Nuevo Producto</a>
-        <a href="/mantenedor" class="btn btn-volver">⬅️ Volver al Mantenedor</a>
+<div class="container-fluid py-4">
 
-        <div class="filtros">
-            <div class="filtro-group">
-                <label>Filtrar por Familia:</label>
-                <select id="filtro-familia">
-                    <option value="">Todas las familias</option>
-                    <option value="EPP">EPP - Equipos Protección</option>
-                    <option value="HMA">HMA - Herramientas Manuales</option>
-                    <option value="HEL">HEL - Herramientas Eléctricas</option>
-                    <option value="MEL">MEL - Materiales Eléctricos</option>
-                    <option value="QUI">QUI - Productos Químicos</option>
-                    <option value="SEG">SEG - Seguridad y Señalización</option>
-                    <option value="SOL">SOL - Equipos Soldadura</option>
-                    <option value="EMB">EMB - Materiales Embalaje</option>
-                    <option value="ELE">ELE - Electrónica y Comunicación</option>
-                    <option value="OFI">OFI - Mobiliario Oficina</option>
-                    <option value="LIM">LIM - Limpieza y Mantenimiento</option>
-                    <option value="AUT">AUT - Repuestos Automotrices</option>
-                </select>
+    <!-- HEADER -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        <i class="bi bi-box-seam text-primary"></i>
+                        Gestión de Productos
+                    </h2>
+
+                    <p class="text-muted mb-0">
+                        Usuario: {{ session.nombre_completo }}
+                    </p>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+
+                    <button class="btn btn-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalNuevoProducto">
+
+                        <i class="bi bi-plus-circle"></i>
+                            Nuevo Producto
+
+                    </button>
+
+                    <form action="/mantenedor/productos/importar"
+                          method="POST"
+                          enctype="multipart/form-data">
+
+                        <input type="file"
+                               id="fileInput"
+                               name="archivo"
+                               hidden
+                               required>
+
+                        <button type="button"
+                                class="btn btn-danger"
+                                id="btnImportar">
+
+                            <i class="bi bi-upload"></i>
+                            Importar Excel
+                        </button>
+
+                    </form>
+
+                    <a href="/mantenedor"
+                       class="btn btn-secondary">
+
+                        <i class="bi bi-arrow-left"></i>
+                        Volver
+                    </a>
+
+                </div>
+
             </div>
-            <div class="filtro-group">
-                <label>Buscar:</label>
-                <input type="text" id="filtro-busqueda" placeholder="Código, descripción, marca...">
-            </div>
-        </div>
 
-        <table id="tabla-productos">
-            <thead>
-                <tr>
-                    <th width="80">Código</th>
-                    <th width="150">Familia</th>
-                    <th width="300">Descripción Corta</th>
-                    <th width="400">Descripción Larga</th>
-                    <th width="100">Marca</th>
-                    <th width="100">Modelo</th>
-                    <th width="80">Unidad</th>
-                    <th width="100">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for producto in productos %}
-                <tr data-familia="{{ producto[1] }}" data-codigo="{{ producto[2] }}" data-descripcion="{{ producto[3] }} {{ producto[4] }} {{ producto[5] }} {{ producto[6] }}">
-                    <td><strong>{{ producto[2] }}</strong></td>
-                    <td>
-                        <span class="familia-badge {% if 'EPP' in producto[2] %}epp{% elif 'HMA' in producto[2] %}hma{% elif 'HEL' in producto[2] %}hel{% elif 'MEL' in producto[2] %}mel{% elif 'QUI' in producto[2] %}qui{% elif 'SEG' in producto[2] %}seg{% elif 'SOL' in producto[2] %}sol{% elif 'EMB' in producto[2] %}emb{% elif 'ELE' in producto[2] %}ele{% elif 'OFI' in producto[2] %}ofi{% elif 'LIM' in producto[2] %}lim{% elif 'AUT' in producto[2] %}aut{% else %}default{% endif %}">
-                            {{ producto[1][:20] }}{% if producto[1]|length > 20 %}...{% endif %}
-                        </span>
-                    </td>
-                    <td class="descripcion-corta">{{ producto[3] }}</td>
-                    <td class="descripcion-larga">{{ producto[4] or 'Sin descripción adicional' }}</td>
-                    <td>{{ producto[5] or '-' }}</td>
-                    <td>{{ producto[6] or '-' }}</td>
-                    <td>{{ producto[7] }}</td>
-                    <td class="acciones">
-                        <a href="#" class="btn-editar">✏️ Editar</a>
-                        <a href="#" class="btn-eliminar">🗑️ Eliminar</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        </div>
     </div>
 
-    <script>
-        // Filtrado de productos
-        document.getElementById('filtro-familia').addEventListener('change', filtrarProductos);
-        document.getElementById('filtro-busqueda').addEventListener('input', filtrarProductos);
+    <!-- FILTROS -->
+    <div class="card shadow-sm border-0 mb-4">
 
-        function filtrarProductos() {
-            const filtroFamilia = document.getElementById('filtro-familia').value;
-            const filtroBusqueda = document.getElementById('filtro-busqueda').value.toLowerCase();
-            const filas = document.querySelectorAll('#tabla-productos tbody tr');
+        <div class="card-body">
 
-            filas.forEach(fila => {
-                const familia = fila.dataset.familia;
-                const textoBusqueda = fila.dataset.descripcion.toLowerCase();
-                const codigo = fila.dataset.codigo.toLowerCase();
+            <div class="row g-3">
 
-                const coincideFamilia = !filtroFamilia || familia.includes(filtroFamilia);
-                const coincideBusqueda = !filtroBusqueda || 
-                    textoBusqueda.includes(filtroBusqueda) || 
-                    codigo.includes(filtroBusqueda);
+                <div class="col-md-4">
 
-                fila.style.display = (coincideFamilia && coincideBusqueda) ? '' : 'none';
-            });
-        }
-    </script>
+                    <label class="form-label fw-semibold">
+                        Familia
+                    </label>
+
+                    <select id="filtro-familia"
+                            class="form-select">
+
+                        <option value="">Todas las familias</option>
+
+                        <option value="EQUIPOS DE PROTECCIÓN PERSONAL">
+                            EPP - Equipos Protección
+                        </option>
+
+                        <option value="HERRAMIENTAS MANUALES">
+                            HMA - Herramientas Manuales
+                        </option>
+
+                        <option value="HERRAMIENTAS ELÉCTRICAS">
+                            HEL - Herramientas Eléctricas
+                        </option>
+
+                        <option value="MATERIALES ELÉCTRICOS">
+                            MEL - Materiales Eléctricos
+                        </option>
+
+                        <option value="PRODUCTOS QUÍMICOS">
+                            QUI - Productos Químicos
+                        </option>
+
+                        <option value="SEGURIDAD Y SEÑALIZACIÓN">
+                            SEG - Seguridad y Señalización
+                        </option>
+
+                        <option value="EQUIPOS DE SOLDADURA">
+                            SOL - Equipos Soldadura
+                        </option>
+
+                        <option value="MATERIALES DE EMBALAJE">
+                            EMB - Materiales Embalaje
+                        </option>
+
+                        <option value="ELECTRÓNICA Y COMUNICACIÓN">
+                            ELE - Electrónica y Comunicación
+                        </option>
+
+                        <option value="MOBILIARIO OFICINA">
+                            OFI - Mobiliario Oficina
+                        </option>
+
+                        <option value="LIMPIEZA Y MANTENIMIENTO">
+                            LIM - Limpieza y Mantenimiento
+                        </option>
+
+                        <option value="REPUESTOS AUTOMOTRICES">
+                            AUT - Repuestos Automotrices
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label fw-semibold">
+                        Buscar Producto
+                    </label>
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+
+                        <input type="text"
+                               id="filtro-busqueda"
+                               class="form-control"
+                               placeholder="Código, descripción, marca...">
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label fw-semibold">
+                        Total Productos
+                    </label>
+
+                    <div class="form-control bg-light fw-bold text-primary">
+                        {{ productos|length }} productos
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TABLA -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive tabla-container">
+
+                <table class="table table-hover align-middle mb-0"
+                       id="tabla-productos">
+
+                    <thead class="table-dark">
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Código</th>
+                        <th>Familia</th>
+                        <th>Descripción</th>
+                        <th>Modelo</th>
+                        <th>Marca</th>
+                        <th>Unidad</th>
+                        <th>Peso</th>
+                        <th>Transporte</th>
+
+                        <!-- NUEVA COLUMNA -->
+                        <th class="text-center">
+                            Acciones
+                        </th>
+                    </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    {% for p in productos %}
+
+                    <tr
+                        data-familia="{{ p.familia }}"
+                        data-codigo="{{ p.codigo }}"
+                        data-descripcion="{{ p.descripcion }} {{ p.marca }} {{ p.modelo }}"
+                    >
+
+                        <td class="fw-semibold">
+                            {{ p.id }}
+                        </td>
+
+                        <td>
+                            <span class="badge bg-primary codigo-badge">
+                                {{ p.codigo }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="badge familia-badge">
+                                {{ p.familia }}
+                            </span>
+                        </td>
+
+                        <td class="descripcion-col">
+                            {{ p.descripcion }}
+                        </td>
+
+                        <td>
+                            {{ p.modelo or '-' }}
+                        </td>
+
+                        <td>
+                            {{ p.marca or '-' }}
+                        </td>
+
+                        <td>
+                            {{ p.unidad }}
+                        </td>
+
+                        <td>
+                            {{ p.peso or '-' }}
+                        </td>
+
+                        <td>
+
+                            {% if p.transporte == 'SI' %}
+
+                            <span class="badge bg-success">
+                                SI
+                            </span>
+
+                            {% else %}
+
+                            <span class="badge bg-secondary">
+                                NO
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+                        <!-- ACCIONES -->
+                        <td class="text-center">
+
+                            <div class="d-flex justify-content-center gap-2">
+
+                                <!-- EDITAR -->
+                                <button
+                                  class="btn btn-warning btn-sm btn-editar-producto"
+
+                                  data-id="{{ p.id }}"
+                                  data-familia="{{ p.familia }}"
+                                  data-descripcion="{{ p.descripcion }}"
+                                  data-descripcion_larga="{{ p.descripcion_larga }}"
+                                  data-marca="{{ p.marca }}"
+                                  data-modelo="{{ p.modelo }}"
+                                  data-unidad="{{ p.unidad }}"
+                                  data-peso="{{ p.peso }}"
+                                  data-volumen="{{ p.volumen }}"
+                                  data-observaciones="{{ p.observaciones }}"
+                                  data-transporte="{{ p.transporte }}"
+
+                                  title="Editar producto"
+                                  >
+
+                                  <i class="bi bi-pencil-square"></i>
+
+                                 </button>
+                                 
+                                <!-- ELIMINAR -->
+                                <button
+                                  class="btn btn-danger btn-sm btn-eliminar-producto"
+
+                                  data-id="{{ p.id }}"
+                                  data-descripcion="{{ p.descripcion }}"
+
+                                  title="Eliminar producto"
+                                >
+
+                                  <i class="bi bi-trash"></i>
+
+                                </button>
+
+                            </div>
+
+                        </td>
+        
+                    </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+ 
+</div>
+<!-- MODAL NUEVO PRODUCTO -->
+<div class="modal fade"
+     id="modalNuevoProducto"
+     tabindex="-1"
+     aria-hidden="true">
+
+<div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+    <div class="modal-content border-0 shadow-lg">
+
+        <!-- HEADER -->
+        <div class="modal-header modal-header-producto">
+
+            <div>
+                <h4 class="modal-title fw-bold mb-1">
+                    <i class="bi bi-box-seam"></i>
+                    Nuevo Producto
+                </h4>
+
+                <small class="text-light">
+                    Registro de productos ERP
+                </small>
+            </div>
+
+            <button type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"></button>
+
+        </div>
+
+        <!-- BODY -->
+        <div class="modal-body">
+
+            <div class="alert alert-info border-0 shadow-sm">
+
+                <i class="bi bi-info-circle-fill"></i>
+
+                El código del producto se generará automáticamente
+                según la familia seleccionada.
+
+            </div>
+
+            <form method="POST"
+                  action="/mantenedor/productos/guardar"
+                  id="formNuevoProducto">
+
+                <!-- FILA 1 -->
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Familia *
+                        </label>
+
+                        <select id="familia"
+                                name="familia"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                Seleccione familia
+                            </option>
+
+                            <option value="EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA">
+                                📱 EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA
+                            </option>
+
+                            <option value="EQUIPOS DE PROTECCIÓN PERSONAL (EPP)">
+                                🛡️ EQUIPOS DE PROTECCIÓN PERSONAL (EPP)
+                            </option>
+
+                            <option value="EQUIPOS DE SOLDADURA">
+                                🔥 EQUIPOS DE SOLDADURA
+                            </option>
+
+                            <option value="HERRAMIENTAS ELÉCTRICAS">
+                                ⚡ HERRAMIENTAS ELÉCTRICAS
+                            </option>
+
+                            <option value="HERRAMIENTAS MANUALES">
+                                🔧 HERRAMIENTAS MANUALES
+                            </option>
+
+                            <option value="MATERIALES DE EMBALAJE">
+                                📦 MATERIALES DE EMBALAJE
+                            </option>
+
+                            <option value="MATERIALES DE LIMPIEZA Y MANTENIMIENTO">
+                                🧹 MATERIALES DE LIMPIEZA Y MANTENIMIENTO
+                            </option>
+
+                            <option value="MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN">
+                                🚧 MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN
+                            </option>
+
+                            <option value="MATERIALES ELÉCTRICOS">
+                                🔌 MATERIALES ELÉCTRICOS
+                            </option>
+
+                            <option value="MOBILIARIO Y EQUIPOS DE OFICINA">
+                                💺 MOBILIARIO Y EQUIPOS DE OFICINA
+                            </option>
+
+                            <option value="PRODUCTOS QUÍMICOS Y ADHESIVOS">
+                                🧪 PRODUCTOS QUÍMICOS Y ADHESIVOS
+                            </option>
+
+                            <option value="REPUESTOS Y ACCESORIOS AUTOMOTRICES">
+                                🚗 REPUESTOS Y ACCESORIOS AUTOMOTRICES
+                            </option>
+
+                            <option value="ROPA DE PROTECCIÓN">
+                                🦺 ROPA DE PROTECCIÓN
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Marca *
+                        </label>
+
+                        <select id="marca"
+                                name="marca"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                Seleccione marca
+                            </option>
+
+                            <option value="dimerc">
+                                Dimerc
+                            </option>
+
+                            <option value="magnaflux">
+                                Magnaflux
+                            </option>
+
+                            <option value="shurtape">
+                                Shurtape
+                            </option>
+
+                            <option value="vistony">
+                                Vistony
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <!-- FILA 2 -->
+                <div class="row g-3 mt-1">
+
+                    <div class="col-md-8">
+
+                        <label class="form-label fw-semibold">
+                            Descripción *
+                        </label>
+
+                        <textarea id="descripcion"
+                                  name="descripcion"
+                                  class="form-control"
+                                  rows="3"
+                                  required></textarea>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Modelo
+                        </label>
+
+                        <input type="text"
+                               id="modelo"
+                               name="modelo"
+                               class="form-control">
+
+                    </div>
+
+                </div>
+
+                <!-- FILA 3 -->
+                <div class="row g-3 mt-1">
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Unidad *
+                        </label>
+
+                        <select id="unidad"
+                                name="unidad"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                Seleccione
+                            </option>
+
+                            <option value="Unidad">
+                                Unidad
+                            </option>
+
+                            <option value="Caja">
+                                Caja
+                            </option>
+
+                            <option value="Galón">
+                                Galón
+                            </option>
+
+                            <option value="Litro">
+                                Litro
+                            </option>
+
+                            <option value="Metro">
+                                Metro
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Peso *
+                        </label>
+
+                        <select id="tipo_peso"
+                                class="form-select">
+
+                            <option value="rango">
+                                Rango
+                            </option>
+
+                            <option value="exacto">
+                                Exacto
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Valor Peso
+                        </label>
+
+                        <div id="contenedor-rango">
+
+                            <select id="peso_rango"
+                                    name="peso_rango"
+                                    class="form-select">
+
+                                <option value="">
+                                    Seleccione
+                                </option>
+
+                                <option value="0-1 kg">
+                                    0 - 1 kg
+                                </option>
+
+                                <option value="1-2 kg">
+                                    1 - 2 kg
+                                </option>
+
+                                <option value="2-3 kg">
+                                    2 - 3 kg
+                                </option>
+
+                                <option value="5-10 kg">
+                                    5 - 10 kg
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div id="contenedor-exacto"
+                             style="display:none;">
+
+                            <input type="number"
+                                   step="0.01"
+                                   min="0"
+                                   id="peso_exacto"
+                                   name="peso_exacto"
+                                   class="form-control"
+                                   placeholder="2.50">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- FILA 4 -->
+                <div class="row g-3 mt-1">
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Volumen *
+                        </label>
+
+                        <select id="volumen"
+                                name="volumen"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                Seleccione
+                            </option>
+
+                            <option value="0-1000">
+                                0 - 1000 cm³
+                            </option>
+
+                            <option value="1000-5000">
+                                1000 - 5000 cm³
+                            </option>
+
+                            <option value="5000-10000">
+                                5000 - 10000 cm³
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Transporte *
+                        </label>
+
+                        <select id="transporte"
+                                name="transporte"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                Seleccione
+                            </option>
+
+                            <option value="motorizado">
+                                Motorizado
+                            </option>
+
+                            <option value="auto">
+                                Auto
+                            </option>
+
+                            <option value="camioneta">
+                                Camioneta
+                            </option>
+
+                            <option value="camion">
+                                Camión
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-semibold">
+                            Observaciones
+                        </label>
+
+                        <textarea id="observaciones"
+                                  name="observaciones"
+                                  class="form-control"
+                                  rows="2"></textarea>
+
+                    </div>
+
+                </div>
+
+                <!-- DESCRIPCION LARGA -->
+                <div class="mt-3">
+
+                    <label class="form-label fw-semibold">
+                        Descripción Larga
+                    </label>
+
+                    <textarea id="descripcion_larga"
+                              name="descripcion_larga"
+                              class="form-control"
+                              rows="4"></textarea>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-footer border-0">
+
+            <button type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal">
+
+                Cancelar
+
+            </button>
+
+            <button type="submit"
+                    form="formNuevoProducto"
+                    class="btn btn-success">
+
+                <i class="bi bi-check-circle"></i>
+                Guardar Producto
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+<!-- ===================================================== -->
+<!-- MODAL EDITAR PRODUCTO -->
+<!-- ===================================================== -->
+<div class="modal fade"
+     id="modalEditarProducto"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+        <div class="modal-content border-0 shadow-lg">
+
+            <!-- HEADER -->
+            <div class="modal-header bg-warning border-0">
+
+                <div>
+
+                    <h4 class="modal-title fw-bold text-dark mb-1">
+
+                        <i class="bi bi-pencil-square"></i>
+                        Editar Producto
+
+                    </h4>
+
+                    <small class="text-dark">
+                        Modificación de información del producto
+                    </small>
+
+                </div>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"></button>
+
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+
+                <form method="POST"
+                      action="/mantenedor/productos/editar"
+                      id="formEditarProducto">
+
+                    <!-- ID -->
+                    <input type="hidden"
+                           id="edit_id"
+                           name="id">
+
+                    <!-- FILA 1 -->
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+                                Familia *
+                            </label>
+
+                            <input type="text"
+                                   id="edit_familia"
+                                   name="familia"
+                                   class="form-control"
+                                   required>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+                                Marca *
+                            </label>
+
+                            <input type="text"
+                                   id="edit_marca"
+                                   name="marca"
+                                   class="form-control"
+                                   required>
+
+                        </div>
+
+                    </div>
+
+                    <!-- FILA 2 -->
+                    <div class="row g-3 mt-1">
+
+                        <div class="col-md-8">
+
+                            <label class="form-label fw-semibold">
+                                Descripción *
+                            </label>
+
+                            <textarea id="edit_descripcion"
+                                      name="descripcion"
+                                      class="form-control"
+                                      rows="3"
+                                      required></textarea>
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <label class="form-label fw-semibold">
+                                Modelo
+                            </label>
+
+                            <input type="text"
+                                   id="edit_modelo"
+                                   name="modelo"
+                                   class="form-control">
+
+                        </div>
+
+                    </div>
+
+                    <!-- FILA 3 -->
+                    <div class="row g-3 mt-1">
+
+                        <div class="col-md-4">
+
+                            <label class="form-label fw-semibold">
+                                Unidad
+                            </label>
+
+                            <input type="text"
+                                   id="edit_unidad"
+                                   name="unidad"
+                                   class="form-control">
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <label class="form-label fw-semibold">
+                                Peso
+                            </label>
+
+                            <input type="text"
+                                   id="edit_peso"
+                                   name="peso"
+                                   class="form-control">
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <label class="form-label fw-semibold">
+                                Volumen
+                            </label>
+
+                            <input type="text"
+                                   id="edit_volumen"
+                                   name="volumen"
+                                   class="form-control">
+
+                        </div>
+
+                    </div>
+
+                    <!-- FILA 4 -->
+                    <div class="row g-3 mt-1">
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+                                Transporte
+                            </label>
+
+                            <input type="text"
+                                   id="edit_transporte"
+                                   name="transporte"
+                                   class="form-control">
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+                                Observaciones
+                            </label>
+
+                            <textarea id="edit_observaciones"
+                                      name="observaciones"
+                                      class="form-control"
+                                      rows="2"></textarea>
+
+                        </div>
+
+                    </div>
+
+                    <!-- DESCRIPCION LARGA -->
+                    <div class="mt-3">
+
+                        <label class="form-label fw-semibold">
+                            Descripción Larga
+                        </label>
+
+                        <textarea id="edit_descripcion_larga"
+                                  name="descripcion_larga"
+                                  class="form-control"
+                                  rows="4"></textarea>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer border-0">
+
+                <button type="button"
+                        class="btn btn-light"
+                        data-bs-dismiss="modal">
+
+                    Cancelar
+
+                </button>
+
+                <button type="submit"
+                        form="formEditarProducto"
+                        class="btn btn-warning">
+
+                    <i class="bi bi-check-circle"></i>
+                    Guardar Cambios
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- ===================================================== -->
+<!-- MODAL ELIMINAR PRODUCTO -->
+<!-- ===================================================== -->
+<div class="modal fade"
+     id="modalEliminarProducto"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content border-0 shadow-lg">
+
+            <!-- HEADER -->
+            <div class="modal-header bg-danger border-0 text-white">
+
+                <h5 class="modal-title fw-bold">
+
+                    <i class="bi bi-trash"></i>
+                    Eliminar Producto
+
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body text-center py-4">
+
+                <i class="bi bi-exclamation-triangle-fill
+                          text-danger"
+                   style="font-size: 60px;"></i>
+
+                <h5 class="fw-bold mt-3">
+
+                    ¿Deseas eliminar este producto?
+
+                </h5>
+
+                <p class="text-muted">
+                    Esta acción no se puede deshacer.
+                </p>
+
+                <div class="alert alert-light border mt-3">
+
+                    <strong id="textoProductoEliminar">
+                        Producto
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer border-0">
+
+                <button type="button"
+                        class="btn btn-light"
+                        data-bs-dismiss="modal">
+
+                    Cancelar
+
+                </button>
+
+                <form method="POST"
+                      action="/mantenedor/productos/eliminar">
+
+                    <input type="hidden"
+                           id="eliminar_id_producto"
+                           name="id">
+
+                    <button type="submit"
+                            class="btn btn-danger">
+
+                        <i class="bi bi-trash"></i>
+                        Eliminar
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JQUERY -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- SELECT2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- TU JS -->
+<script src="{{ url_for('static', filename='js/gestion_productos.js') }}"></script>
+
 </body>
 </html>

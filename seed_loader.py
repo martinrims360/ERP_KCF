@@ -7,54 +7,38 @@
 # Opcional (reset total):
 #   python seed_loader.py seed_data.json --reset
 
+# seed_loader.py (VERSIÓN POSTGRESQL)
 import json
-import os
 import sys
 
 from database import (
-    init_db,
     crear_usuario,
     insertar_cliente,
     insertar_contacto_cliente,
     insertar_punto_entrega,
     insertar_producto,
-    insertar_proveedor,
-    DB_PATH
+    insertar_proveedor
 )
 
-import sqlite3
 
-
-def reset_db_file():
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-        print(f"🧹 Base de datos eliminada: {DB_PATH}")
-    else:
-        print("ℹ️ No existe base de datos para eliminar.")
+from psycopg2 import IntegrityError
 
 
 def safe_run(label, fn, *args, **kwargs):
-    """Ejecuta una inserción y si choca con UNIQUE, lo omite sin romper el seed."""
+    """Ejecuta inserción y si choca con UNIQUE, lo omite."""
     try:
         return fn(*args, **kwargs)
-    except sqlite3.IntegrityError as e:
-        msg = str(e).lower()
-        if "unique constraint failed" in msg:
-            print(f"⚠️ Omitido (ya existe): {label}")
-            return None
-        raise
+    except IntegrityError:
+        print(f"⚠️ Omitido (ya existe): {label}")
+        return None
 
 
-def load_seed(path: str, reset: bool = False):
-    if reset:
-        reset_db_file()
+def load_seed(path: str):
 
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    init_db()
-
-    # Usuarios (UNIQUE: usuario)
+    # 👇 Usuarios
     for u in data.get("usuarios", []):
         safe_run(
             f"usuario={u.get('usuario')}",
@@ -66,7 +50,7 @@ def load_seed(path: str, reset: bool = False):
             email=u.get("email", "")
         )
 
-    # Proveedores (UNIQUE: ruc)
+    # 👇 Proveedores
     for p in data.get("proveedores", []):
         safe_run(
             f"proveedor ruc={p.get('ruc')}",
@@ -79,8 +63,7 @@ def load_seed(path: str, reset: bool = False):
             email=p.get("email", "")
         )
 
-    # Productos (UNIQUE: codigo) -> OJO: insertar_producto genera código automático.
-    # Para evitar duplicar por descripción, en seed lo omitimos si choca.
+    # 👇 Productos
     for pr in data.get("productos", []):
         safe_run(
             f"producto desc={pr.get('descripcion')}",
@@ -93,7 +76,7 @@ def load_seed(path: str, reset: bool = False):
             unidad=pr.get("unidad", "Unidad")
         )
 
-    # Clientes (UNIQUE: numero_documento)
+    # 👇 Clientes
     for c in data.get("clientes", []):
         cliente_id = safe_run(
             f"cliente doc={c.get('numero_documento')}",
@@ -104,13 +87,13 @@ def load_seed(path: str, reset: bool = False):
             direccion_fiscal=c["direccion_fiscal"]
         )
 
-        # Si el cliente ya existía, no insertamos contactos/puntos (evita duplicación).
         if not cliente_id:
             continue
 
+        # 👇 Contactos
         for cc in c.get("contactos", []):
             safe_run(
-                f"contacto cliente_id={cliente_id} nombre={cc.get('nombre_contacto')}",
+                f"contacto cliente_id={cliente_id}",
                 insertar_contacto_cliente,
                 cliente_id=cliente_id,
                 nombre_contacto=cc["nombre_contacto"],
@@ -120,9 +103,10 @@ def load_seed(path: str, reset: bool = False):
                 principal=cc.get("principal", False)
             )
 
+        # 👇 Puntos de entrega
         for pe in c.get("puntos_entrega", []):
             safe_run(
-                f"punto_entrega cliente_id={cliente_id} nombre={pe.get('nombre_punto')}",
+                f"punto_entrega cliente_id={cliente_id}",
                 insertar_punto_entrega,
                 cliente_id=cliente_id,
                 nombre_punto=pe["nombre_punto"],
@@ -135,17 +119,16 @@ def load_seed(path: str, reset: bool = False):
                 principal=pe.get("principal", False)
             )
 
-    print("✅ Seed finalizado correctamente.")
+    print("✅ Seed cargado correctamente en PostgreSQL.")
 
 
 def main():
     if len(sys.argv) < 2:
-        print("Uso: python seed_loader.py seed_data.json [--reset]")
+        print("Uso: python seed_loader.py seed_data.json")
         sys.exit(1)
 
     seed_path = sys.argv[1]
-    reset = "--reset" in sys.argv[2:]
-    load_seed(seed_path, reset=reset)
+    load_seed(seed_path)
 
 
 if __name__ == "__main__":

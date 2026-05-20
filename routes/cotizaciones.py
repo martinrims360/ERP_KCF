@@ -1,0 +1,802 @@
+from flask import Blueprint, render_template, jsonify, request, session, send_file, make_response, Response
+from psycopg2.extras import RealDictCursor, DictCursor
+from database import (obtener_cotizaciones_recientes, crear_cotizacion_transaccional, obtener_cotizacion_completa,
+                      db_query, db_execute, db_tx, get_connection)
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from io import BytesIO
+import pdfkit 
+import base64
+import logging
+import os
+
+config = pdfkit.configuration(
+    wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+)
+from datetime import datetime
+
+cotizaciones_bp = Blueprint("cotizaciones", __name__)
+
+# ==========================================
+# RUTAS DE VISTAS (HTML)
+# ==========================================
+
+@cotizaciones_bp.route("/cotizacion")
+def cotizacion_principal():
+    return render_template("listado_cotizaciones.html")
+
+
+@cotizaciones_bp.route("/crear_cotizacion")
+def cotizacion():
+    cotizaciones = obtener_cotizaciones_recientes(limit=300)
+    return render_template("cotizacion_oc/crear_cotizacion.html",
+                          cotizaciones=cotizaciones)
+
+
+@cotizaciones_bp.route("/cotizacion/nueva")
+def nueva_cotizacion():
+    return render_template("cotizacion_oc/crear_cotizacion.html")
+
+
+@cotizaciones_bp.route("/cotizacion/orden")
+def nueva_orden():
+    return render_template("cotizacion_oc/generar_orden_compra.html")
+
+
+@cotizaciones_bp.route("/cotizacion/consultar/<int:cotizacion_id>")
+def cotizacion_consultar(cotizacion_id):
+    return render_template("cotizacion_oc/crear_cotizacion.html",
+                          cotizacion_id=cotizacion_id)
+
+
+# ==========================================
+# FUNCIONES AUXILIARES
+# ==========================================
+
+def obtener_cotizaciones_recientes(limit=100):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            c.id,
+            c.numero_cotizacion,
+            c.codigo_cotizacion,
+            c.correlativo,
+            c.fecha_creacion,
+            c.estado,
+            COALESCE(cl.razon_social, 'Sin cliente') AS cliente,
+            COALESCE(SUM(d.subtotal_venta_con_descuento), 0) AS total
+        FROM cotizaciones c
+        LEFT JOIN clientes cl ON c.cliente_id = cl.id
+        LEFT JOIN cotizacion_detalle d ON c.id = d.cotizacion_id
+        GROUP BY c.id, cl.razon_social, c.numero_cotizacion, c.codigo_cotizacion, c.correlativo, c.fecha_creacion, c.estado
+        ORDER BY c.id DESC
+        LIMIT %s
+    """, (limit,))
+
+    columnas = [col[0] for col in cursor.description]
+    cotizaciones = [dict(zip(columnas, row)) for row in cursor.fetchall()]
+
+    conn.close()
+    return cotizaciones
+
+
+# ==========================================
+# 🔥 ENDPOINTS PARA CÓDIGOS DE COTIZACIÓN PERSONALIZADOS
+# ==========================================
+
+@cotizaciones_bp.route("/api/usuarios/actual", methods=["GET"])
+def obtener_usuario_actual():
+    """Obtener usuario actual con su código de vendedor"""
+    try:
+        usuario_id = session.get('usuario_id')
+        
+        if usuario_id:
+            query = """
+                SELECT id, nombre_completo, email, telefono, codigo_vendedor, rol 
+                FROM usuarios 
+                WHERE id = %s AND estado = 'activo'
+            """
+            usuarios = db_query(query, (usuario_id,))
+        else:
+            query = """
+                SELECT id, nombre_completo, email, telefono, codigo_vendedor, rol 
+                FROM usuarios 
+                WHERE estado = 'activo'
+                LIMIT 1
+            """
+            usuarios = db_query(query)
+        
+        if not usuarios:
+            return jsonify({
+                'success': False,
+                'error': 'No hay usuarios activos'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'data': usuarios[0]
+        })
+        
+    except Exception as e:
+        print(f"Error en /api/usuarios/actual: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@cotizaciones_bp.route("/api/cotizacion/ultimo-correlativo", methods=["GET"])
+def obtener_ultimo_correlativo():
+    """Obtener el último correlativo de cotizaciones por usuario"""
+    try:
+        usuario_id = request.args.get('usuario_id')
+        
+        if not usuario_id:
+            return jsonify({
+                'success': False,
+                'error': 'usuario_id es requerido'
+            }), 400
+        
+        query = """
+            SELECT MAX(correlativo) as ultimo 
+            FROM cotizaciones 
+            WHERE usuario_id = %s
+        """
+        resultado = db_query(query, (usuario_id,))
+        
+        ultimo_correlativo = resultado[0]['ultimo'] if resultado and resultado[0]['ultimo'] else 0
+        
+        return jsonify({
+            'success': True,
+            'correlativo': ultimo_correlativo
+        })
+        
+    except Exception as e:
+        print(f"Error en /api/cotizacion/ultimo-correlativo: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@cotizaciones_bp.route("/api/usuarios/buscar", methods=["GET"])
+def buscar_usuarios():
+    """Buscar usuarios asesores por nombre"""
+    try:
+        q = request.args.get('q', '')
+        
+        if q and q.strip():
+            query = """
+                SELECT id, nombre_completo, email, telefono, codigo_vendedor, rol
+                FROM usuarios 
+                WHERE (nombre_completo ILIKE %s OR email ILIKE %s)
+                AND estado = 'activo'
+                AND rol IN ('vendedor', 'admin', 'supervisor')
+                LIMIT 20
+            """
+            usuarios = db_query(query, (f'%{q}%', f'%{q}%'))
+        else:
+            query = """
+                SELECT id, nombre_completo, email, telefono, codigo_vendedor, rol
+                FROM usuarios 
+                WHERE estado = 'activo'
+                AND rol IN ('vendedor', 'admin', 'supervisor')
+                LIMIT 20
+            """
+            usuarios = db_query(query)
+        
+        return jsonify({
+            'success': True,
+            'data': usuarios
+        })
+        
+    except Exception as e:
+        print(f"Error en /api/usuarios/buscar: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@cotizaciones_bp.route("/api/clientes/buscar", methods=["GET"])
+def buscar_clientes():
+    """Buscar clientes por nombre o documento"""
+    try:
+        q = request.args.get('q', '')
+        
+        if q and q.strip():
+            query = """
+                SELECT id, razon_social, numero_documento, 
+                       direccion_fiscal, telefono_contacto, nombre_contacto, 
+                       tipo_documento
+                FROM clientes 
+                WHERE razon_social ILIKE %s OR numero_documento ILIKE %s
+                LIMIT 20
+            """
+            clientes = db_query(query, (f'%{q}%', f'%{q}%'))
+        else:
+            query = """
+                SELECT id, razon_social, numero_documento, 
+                       direccion_fiscal, telefono_contacto, nombre_contacto,
+                       tipo_documento
+                FROM clientes 
+                LIMIT 20
+            """
+            clientes = db_query(query)
+        
+        for cliente in clientes:
+            cliente['cliente_ruc'] = cliente['numero_documento']
+        
+        return jsonify({
+            'success': True,
+            'data': clientes
+        })
+        
+    except Exception as e:
+        print(f"Error en /api/clientes/buscar: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@cotizaciones_bp.route("/api/clientes/<int:id>", methods=["GET"])
+def obtener_cliente(id):
+    """Obtener cliente por ID con sus puntos de entrega"""
+    try:
+        query = """
+            SELECT id, razon_social, numero_documento, direccion_fiscal, 
+                   telefono_contacto, nombre_contacto, tipo_documento
+            FROM clientes 
+            WHERE id = %s
+        """
+        cliente = db_query(query, (id,))
+        
+        if not cliente:
+            return jsonify({'success': False, 'error': 'Cliente no encontrado'}), 404
+        
+        # Obtener puntos de entrega
+        query_puntos = """
+            SELECT id, nombre_punto, direccion, telefono_contacto, nombre_contacto,
+                   condicion_pago
+            FROM clientes_puntos_entrega 
+            WHERE cliente_id = %s
+        """
+        puntos_entrega = db_query(query_puntos, (id,))
+        
+        cliente[0]['puntos_entrega'] = puntos_entrega
+        
+        return jsonify({
+            'success': True,
+            'data': cliente[0]
+        })
+        
+    except Exception as e:
+        print(f"Error en /api/clientes/{id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@cotizaciones_bp.route("/api/clientes/<int:cliente_id>/contactos", methods=["GET"])
+def buscar_contactos_cliente(cliente_id):
+    """Buscar contactos de un cliente específico (para el campo Atención)"""
+    try:
+        q = request.args.get('q', '')
+        
+        if q and q.strip():
+            query = """
+                SELECT id, nombre_contacto, email, telefono, cargo, principal
+                FROM clientes_contactos
+                WHERE cliente_id = %s 
+                AND (nombre_contacto ILIKE %s OR email ILIKE %s OR telefono ILIKE %s)
+                ORDER BY principal DESC, nombre_contacto
+                LIMIT 10
+            """
+            contactos = db_query(query, (cliente_id, f'%{q}%', f'%{q}%', f'%{q}%'))
+        else:
+            query = """
+                SELECT id, nombre_contacto, email, telefono, cargo, principal
+                FROM clientes_contactos
+                WHERE cliente_id = %s
+                ORDER BY principal DESC, nombre_contacto
+                LIMIT 10
+            """
+            contactos = db_query(query, (cliente_id,))
+        
+        resultados = []
+        for c in contactos:
+            resultados.append({
+                'id': c['id'],
+                'nombre_contacto': c['nombre_contacto'],
+                'email': c.get('email', ''),
+                'telefono': c.get('telefono', ''),
+                'cargo': c.get('cargo', ''),
+                'principal': c.get('principal', False)
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': resultados
+        })
+        
+    except Exception as e:
+        print(f"Error en /api/clientes/{cliente_id}/contactos: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@cotizaciones_bp.route("/api/productos/buscar", methods=["GET"])
+def buscar_productos():
+    """Buscar productos por código o descripción"""
+    try:
+        q = request.args.get('q', '')
+        
+        if q and q.strip():
+            query = """
+                SELECT id, codigo, descripcion, marca, modelo, unidad,
+                       precio_costo as ultimo_costo
+                FROM productos 
+                WHERE codigo ILIKE %s OR descripcion ILIKE %s
+                LIMIT 20
+            """
+            productos = db_query(query, (f'%{q}%', f'%{q}%'))
+        else:
+            query = """
+                SELECT id, codigo, descripcion, marca, modelo, unidad,
+                       precio_costo as ultimo_costo
+                FROM productos 
+                LIMIT 20
+            """
+            productos = db_query(query)
+        
+        return jsonify({
+            'success': True,
+            'data': productos
+        })
+        
+    except Exception as e:
+        print(f"Error en /api/productos/buscar: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+# ==========================================
+# 🔥 NUEVO ENDPOINT: CREAR CLIENTE
+# ==========================================
+
+@cotizaciones_bp.route("/api/clientes/crear", methods=["POST"])
+def crear_cliente():
+    """Crear un nuevo cliente desde el formulario de cotización"""
+    try:
+        data = request.json
+        
+        tipo_documento = data.get('tipo_documento', 'RUC')
+        numero_documento = data.get('numero_documento')
+        razon_social = data.get('razon_social')
+        nombre_comercial = data.get('nombre_comercial', '')
+        direccion_fiscal = data.get('direccion_fiscal', '')
+        telefono_contacto = data.get('telefono_contacto', '')
+        email_contacto = data.get('email_contacto', '')
+        nombre_contacto = data.get('nombre_contacto', '')
+        
+        # Validaciones
+        if not numero_documento:
+            return jsonify({'success': False, 'error': 'Número de documento requerido'}), 400
+        
+        if not razon_social:
+            return jsonify({'success': False, 'error': 'Razón social requerida'}), 400
+        
+        # Verificar si ya existe un cliente con ese documento
+        existente = db_query("""
+            SELECT id FROM clientes WHERE numero_documento = %s
+        """, (numero_documento,))
+        
+        if existente:
+            return jsonify({
+                'success': False, 
+                'error': f'Ya existe un cliente con el documento {numero_documento}'
+            }), 400
+        
+        with db_tx() as conn:
+            cur = conn.cursor()
+            
+            cur.execute("""
+                INSERT INTO clientes 
+                (tipo_documento, numero_documento, razon_social, nombre_comercial, 
+                 direccion_fiscal, telefono_contacto, email_contacto, nombre_contacto, activo)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, TRUE)
+                RETURNING id
+            """, (tipo_documento, numero_documento, razon_social, nombre_comercial,
+                  direccion_fiscal, telefono_contacto, email_contacto, nombre_contacto))
+            
+            cliente_id = cur.fetchone()[0]
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': cliente_id, 
+                'razon_social': razon_social,
+                'numero_documento': numero_documento
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error en /api/clientes/crear: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ==========================================
+# GUARDAR COTIZACIÓN (MODIFICADO)
+# ==========================================
+
+@cotizaciones_bp.route("/api/cotizacion/guardar", methods=["POST"])
+def guardar_cotizacion():
+    data = request.json
+
+    try:
+        cliente_id = data.get("cliente_id")
+        subtotal = data.get("subtotal", 0)
+        estado = data.get("estado", "En Proceso")
+        igv = data.get("igv", 0)
+        total = data.get("total", 0)
+        notas = data.get("notas")
+        usuario_id = data.get("usuario_id")
+        forma_pago = data.get("forma_pago")
+        tiempo_entrega = data.get("tiempo_entrega")
+        almacen = data.get("almacen", "Almacen Breña")
+        validez_oferta = data.get("validez_oferta")
+        
+        # 🔥 NUEVOS CAMPOS
+        codigo_cotizacion = data.get("codigo_cotizacion")
+        correlativo = data.get("correlativo")
+        es_borrador = data.get("es_borrador", False)
+
+        print("DATA:", data)
+        print("CLIENTE:", cliente_id)
+        print("CÓDIGO COTIZACIÓN:", codigo_cotizacion)
+        print("CORRELATIVO:", correlativo)
+        print("ES BORRADOR:", es_borrador)
+
+        # 🔥 Si no viene código personalizado, generar uno automático (fallback)
+        if not codigo_cotizacion:
+            if es_borrador:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                codigo_vendedor = "TMP"
+                codigo_cotizacion = f"TMP-{codigo_vendedor}-{timestamp}"
+                correlativo = 0
+            else:
+                usuario_query = "SELECT codigo_vendedor FROM usuarios WHERE id = %s"
+                usuario = db_query(usuario_query, (usuario_id,))
+                codigo_vendedor = usuario[0]['codigo_vendedor'] if usuario else f"V{str(usuario_id).zfill(3)}"
+                
+                corr_query = "SELECT MAX(correlativo) as ultimo FROM cotizaciones WHERE usuario_id = %s"
+                ultimo_corr = db_query(corr_query, (usuario_id,))
+                nuevo_corr = (ultimo_corr[0]['ultimo'] or 0) + 1
+                
+                fecha = datetime.now()
+                codigo_cotizacion = f"COT-{codigo_vendedor}-{fecha.year}{str(fecha.month).zfill(2)}{str(fecha.day).zfill(2)}-{str(nuevo_corr).zfill(4)}"
+                correlativo = nuevo_corr
+
+        # Generar número de cotización (legacy)
+        row = db_query("""
+            SELECT numero_cotizacion 
+            FROM cotizaciones 
+            ORDER BY id DESC 
+            LIMIT 1
+        """)
+        if row:
+            ultimo = row[0]["numero_cotizacion"]
+            numero_int = int(ultimo.split("-")[1]) + 1
+        else:
+            numero_int = 1
+        numero = f"COT-{str(numero_int).zfill(5)}"
+       
+        with db_tx() as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
+                INSERT INTO cotizaciones (
+                    numero_cotizacion,
+                    cliente_id,
+                    fecha_creacion,
+                    estado,
+                    subtotal,
+                    igv,
+                    total,
+                    forma_pago,
+                    tiempo_entrega,
+                    almacen,
+                    validez_oferta,
+                    usuario_id,
+                    notas,
+                    codigo_cotizacion,
+                    correlativo
+                )
+                VALUES (%s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (
+                numero,
+                cliente_id,
+                estado,
+                subtotal,
+                igv,
+                total,
+                forma_pago,
+                tiempo_entrega,
+                almacen,
+                validez_oferta,
+                usuario_id,
+                notas,
+                codigo_cotizacion,
+                correlativo
+            ))
+
+            cotizacion_id = cur.fetchone()[0]
+
+            # Insertar detalle
+            for p in data.get("productos", []):
+                cur.execute("""
+                    INSERT INTO cotizacion_detalle (
+                        cotizacion_id,
+                        producto_id,
+                        cantidad,
+                        costo_unitario,
+                        subtotal_costo,
+                        margen_porcentaje,
+                        precio_venta_unitario,
+                        subtotal_venta,
+                        descuento_porcentaje,
+                        precio_venta_con_descuento,
+                        subtotal_venta_con_descuento,
+                        descuento_total,
+                        margen_final
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (
+                    cotizacion_id,
+                    p["producto_id"],
+                    p["cantidad"],
+                    p["costo_unitario"],
+                    p["subtotal_costo"],
+                    p["margen_porcentaje"],
+                    p["precio_venta_unitario"],
+                    p["subtotal_venta"],
+                    p["descuento_porcentaje"],
+                    p["precio_venta_con_descuento"],
+                    p["subtotal_venta_con_descuento"],
+                    p["descuento_total"],
+                    p["margen_final"]
+                ))
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "id": cotizacion_id,
+                "numero": numero,
+                "codigo_cotizacion": codigo_cotizacion,
+                "correlativo": correlativo
+            }
+        })
+
+    except Exception as e:
+        print("🔥 ERROR:", e)
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+# ==========================================
+# OBTENER COTIZACIÓN (MODIFICADO)
+# ==========================================
+
+logging.basicConfig(filename='app.log', level=logging.ERROR)
+
+@cotizaciones_bp.route("/api/cotizacion/<int:cotizacion_id>")
+def api_get_cotizacion(cotizacion_id):
+    try:
+        if cotizacion_id <= 0:
+            return jsonify({
+                "success": False,
+                "error": "ID de cotización inválido"
+            }), 400
+
+        data = obtener_cotizacion_completa(cotizacion_id)
+
+        if not data:
+            return jsonify({
+                "success": False,
+                "error": "Cotización no encontrada"
+            }), 404
+
+        cabecera = data.get("cabecera", {})
+        detalle = data.get("detalle", [])
+
+        # Determinar si es borrador
+        es_borrador = cabecera.get("codigo_cotizacion", "").startswith("TMP-")
+
+        return jsonify({
+            "success": True,
+            "data": {
+                **cabecera,
+                "cliente": cabecera.get("razon_social") or cabecera.get("nombre_empresa"),
+                "cliente_ruc": cabecera.get("ruc") or cabecera.get("cliente_ruc") or "",
+                "codigo_cotizacion": cabecera.get("codigo_cotizacion"),
+                "correlativo": cabecera.get("correlativo"),
+                "es_borrador": es_borrador,
+                "detalle": detalle
+            }
+        })
+
+    except Exception as e:
+        print("🔥 ERROR REAL:", e)
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+# ==========================================
+# LISTAR COTIZACIONES (MODIFICADO)
+# ==========================================
+
+@cotizaciones_bp.route("/api/cotizacion_comercial")
+def listar_cotizaciones():
+    try:
+        rows = db_query("""
+            SELECT 
+                c.id,
+                c.numero_cotizacion,
+                c.codigo_cotizacion,
+                c.correlativo,
+                c.fecha_creacion,
+                c.estado,   
+                c.subtotal,
+                c.igv,
+                c.total,
+                c.usuario_id,
+                c.notas,
+                COALESCE(cl.razon_social, 'Sin cliente') AS cliente,
+                u.nombre_completo as vendedor
+            FROM cotizaciones c
+            LEFT JOIN clientes cl ON c.cliente_id = cl.id
+            LEFT JOIN usuarios u ON c.usuario_id = u.id
+            ORDER BY c.id DESC
+        """)
+
+        return jsonify({"success": True, "data": rows})
+    except Exception as e:
+        print("🔥 ERROR LISTAR:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ==========================================
+# ELIMINAR COTIZACION
+# ==========================================
+
+@cotizaciones_bp.route("/api/cotizacion_comercial/<int:id>", methods=["DELETE"])
+def eliminar_cotizacion(id):
+    try:
+        with db_tx() as conn:
+            cur = conn.cursor()
+
+            cur.execute("""
+                DELETE FROM cotizacion_detalle 
+                WHERE cotizacion_id = %s
+            """, (id,))
+
+            cur.execute("""
+                DELETE FROM cotizaciones 
+                WHERE id = %s
+            """, (id,))
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print("🔥 ERROR ELIMINAR:", e)
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+# ==========================================
+# GENERAR PDF
+# ==========================================
+
+@cotizaciones_bp.route("/api/cotizacion/pdf/<int:cotizacion_id>")
+def generar_pdf(cotizacion_id):
+    data = obtener_cotizacion_completa(cotizacion_id)
+    if not data:
+        return jsonify({"success": False, "error": "No encontrada"}), 404
+
+    cabecera = data.get("cabecera", {})
+    detalle = data.get("detalle", [])
+
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ruta_logo = os.path.join(BASE_DIR, "templates", "pdf", "logo-kcf.png")
+
+    with open(ruta_logo, "rb") as img:
+        logo_base64 = base64.b64encode(img.read()).decode('utf-8')
+
+    productos = []
+    total_subtotal_venta = 0
+    total_descuento_subtotal = 0
+    total_subtotal_venta_desc = 0
+
+    for i, p in enumerate(detalle, start=1):
+        subtotal = p.get("subtotal_venta", 0)
+        descuento = p.get("descuento_total", 0)
+        subtotal_desc = p.get("subtotal_venta_con_descuento", subtotal)
+
+        productos.append({
+            "item": i,
+            "descripcion": p.get("descripcion", ""),
+            "marca": p.get("marca", ""),
+            "modelo": p.get("modelo", ""),
+            "cantidad": p.get("cantidad", 0),
+            "precio_venta_unitario": p.get("precio_venta_unitario", 0),
+            "subtotal_venta": subtotal,
+            "porcentaje_descuento": p.get("descuento_porcentaje", 0),
+            "descuento_subtotal": descuento,
+            "subtotal_venta_desc": subtotal_desc
+        })
+
+        total_subtotal_venta += subtotal
+        total_descuento_subtotal += descuento
+        total_subtotal_venta_desc += subtotal_desc
+
+    hay_descuentos = total_descuento_subtotal > 0
+
+    html = render_template(
+        "pdf/cotizacion_kcf.html",
+        logo_base64=logo_base64,
+        numero_cotizacion=cabecera.get("codigo_cotizacion") or cabecera.get("numero_cotizacion"),
+        fecha_actual=cabecera.get("fecha_creacion") or datetime.now().strftime("%d/%m/%Y"),
+        cliente_razon_social=cabecera.get("nombre_empresa") or cabecera.get("razon_social") or "",
+        cliente_ruc=cabecera.get("ruc") or cabecera.get("cliente_ruc") or "",
+        cliente_direccion=cabecera.get("direccion") or "",
+        cliente_contacto=cabecera.get("nombre_contacto") or "",
+        cliente_telefono=cabecera.get("telefono_contacto") or "",
+        numero_requerimiento="REQ-001",
+        asesor_comercial=cabecera.get("nombre_completo") or "Himer Castillo",
+        email_contacto=cabecera.get("email") or "ventas@kcf.com",
+        telefono_contacto=cabecera.get("telefono"),
+        forma_pago=cabecera.get("forma_pago") or "Contado",
+        tiempo_entrega=cabecera.get("tiempo_entrega") or "Inmediato",
+        lugar_entrega="Lima",
+        validez_oferta=cabecera.get("validez_oferta") or "15 días",
+        productos=productos,
+        total_subtotal_venta=total_subtotal_venta,
+        total_descuento_subtotal=total_descuento_subtotal,
+        total_subtotal_venta_desc=total_subtotal_venta_desc,
+        hay_descuentos=hay_descuentos,
+        summary_igv=cabecera.get("igv", 0),
+        summary_total_venta=cabecera.get("total", 0),
+        nota_cotizacion=cabecera.get("notas", "")
+    )
+
+    try:
+        options = {
+            'enable-local-file-access': None,
+            'quiet': ''
+        }
+        pdf = pdfkit.from_string(html, False, configuration=config, options=options)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+    return Response(
+        pdf,
+        content_type='application/pdf',
+        headers={"Content-Disposition": f"inline; filename=cotizacion_{cotizacion_id}.pdf"}
+    )

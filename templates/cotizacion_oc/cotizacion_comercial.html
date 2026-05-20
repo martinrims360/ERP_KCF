@@ -488,41 +488,50 @@
             </div>
 
             <!-- Condiciones Comerciales -->
-            <div class="seccion-condiciones">
-                <div class="seccion-titulo">📋 CONDICIONES COMERCIALES KCF</div>
-                <div class="condicion-item">
-                    <strong>Asesor Comercial:</strong>
-                    <input type="text" id="asesor_comercial" value="Daniel Castillo">
-                </div>
-                <div class="condicion-item">
-                    <strong>E-mail:</strong>
-                    <input type="text" id="email_contacto" value="ventas@kcfcorporacion.com">
-                </div>
-                <div class="condicion-item">
-                    <strong>Teléfono:</strong>
-                    <input type="text" id="telefono_contacto" value="999932051">
-                </div>
-                <div class="condicion-item">
-                    <strong>Forma de pago:</strong>
-                    <input type="text" id="forma_pago" value="Contado">
-                </div>
-                <div class="condicion-item">
-                    <strong>Tiempo de Entrega:</strong>
-                    <input type="text" id="tiempo_entrega" value="02 días hábiles">
-                </div>
-                <div class="condicion-item">
-                    <strong>Lugar de Entrega:</strong>
-                    <input type="text" id="lugar_entrega" value="Almacén del cliente">
-                </div>
-                <div class="condicion-item">
-                    <strong>Validez oferta:</strong>
-                    <input type="text" id="validez_oferta" value="07 días">
-                </div>
-                <div style="margin-top: 8px;">
-                    <strong>Nota:</strong>
-                    <textarea class="nota-textarea" id="nota_cotizacion" placeholder="Notas adicionales para esta cotización..."></textarea>
-                </div>
-            </div>
+<div class="seccion-condiciones">
+    <div class="seccion-titulo">📋 CONDICIONES COMERCIALES KCF</div>
+
+    <div class="condicion-item">
+        <strong>Asesor Comercial:</strong>
+        <input type="text" id="asesor_comercial" placeholder="Buscar asesor..." onkeyup="buscarAsesor()">
+        <input type="hidden" id="id_usuario">
+        <div id="lista_asesores" class="lista-sugerencias"></div>
+    </div>
+
+    <div class="condicion-item">
+        <strong>E-mail:</strong>
+        <input type="text" id="email_contacto">
+    </div>
+
+    <div class="condicion-item">
+        <strong>Teléfono:</strong>
+        <input type="text" id="telefono_contacto">
+    </div>
+
+    <div class="condicion-item">
+        <strong>Forma de pago:</strong>
+        <input type="text" id="forma_pago" value="Contado">
+    </div>
+
+    <div class="condicion-item">
+        <strong>Tiempo de Entrega:</strong>
+        <input type="text" id="tiempo_entrega" value="02 días hábiles">
+    </div>
+
+    <div class="condicion-item">
+        <strong>Lugar de Entrega:</strong>
+        <input type="text" id="lugar_entrega" value="Almacén del cliente">
+    </div>
+
+    <div class="condicion-item">
+        <strong>Validez oferta:</strong>
+        <input type="text" id="validez_oferta" value="07 días">
+    </div>
+
+    <div style="margin-top: 8px;">
+        <strong>Nota:</strong>
+        <textarea class="nota-textarea" id="nota_cotizacion" placeholder="Notas adicionales..."></textarea>
+    </div>
         </div>
 
         <!-- Descuento Comercial -->
@@ -611,457 +620,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // ========== VARIABLES GLOBALES Y CONFIGURACIÓN ==========
-        let estadoCotizacion = 'En Proceso';
-        let cotizacionBloqueada = false;
-        let datosModificados = false;
-        let itemCounter = 0;
-        const tableBody = document.querySelector("#table-body");
-        const descuentoInput = document.getElementById('descuento_comercial');
-
-        // Base de datos simulada de precios comerciales
-        const preciosComerciales = {
-            "ELEC-001": {
-                "descripcion": "Cable Eléctrico THHN 2.5mm² 600V",
-                "marca": "Indurama",
-                "unidad": "Rollo",
-                "precio_venta": 45.80
-            },
-            "HERR-002": {
-                "descripcion": "Taladro Percutor 1/2\" 800W Profesional",
-                "marca": "Bosch",
-                "unidad": "Unidad",
-                "precio_venta": 320.00
-            },
-            "SEG-003": {
-                "descripcion": "Caso de Seguridad Industrial con Arnés",
-                "marca": "3M",
-                "unidad": "Unidad",
-                "precio_venta": 28.50
-            },
-            "ILUM-004": {
-                "descripcion": "Foco LED 18W E27 Luz Día 6500K",
-                "marca": "Philips",
-                "unidad": "Unidad",
-                "precio_venta": 12.90
-            },
-            "FERR-005": {
-                "descripcion": "Kit Tornillería Assortment 200 piezas",
-                "marca": "Truper",
-                "unidad": "Set",
-                "precio_venta": 85.40
-            },
-            "PINT-006": {
-                "descripcion": "Pintura Latex Acrílico 1 Galón Blanco",
-                "marca": "Comex",
-                "unidad": "Galón",
-                "precio_venta": 67.30
-            },
-            "P001": {
-                "descripcion": "Laptop Dell Inspiron 15",
-                "marca": "Dell",
-                "unidad": "Unidad",
-                "precio_venta": 1950.00
-            },
-            "P002": {
-                "descripcion": "Mouse Inalámbrico Logitech",
-                "marca": "Logitech",
-                "unidad": "Unidad",
-                "precio_venta": 35.75
-            }
-        };
-
-        // ========== INICIALIZACIÓN ==========
-        document.addEventListener("DOMContentLoaded", function() {
-            actualizarEstadoVisual();
-            
-            // Detectar cambios en los campos para marcar como modificados
-            const camposEditables = document.querySelectorAll('input, select, textarea');
-            camposEditables.forEach(campo => {
-                campo.addEventListener('input', function() {
-                    if (!datosModificados) {
-                        datosModificados = true;
-                    }
-                });
-            });
-            
-            // Agregar primer item automáticamente
-            addItem();
-        });
-
-        // ========== GESTIÓN DE ESTADOS ==========
-        function actualizarEstadoVisual() {
-            const estadoElement = document.getElementById('estado_fixed');
-            const estadoTexto = document.getElementById('estado_texto');
-            
-            estadoTexto.textContent = estadoCotizacion.toUpperCase();
-            
-            // Cambiar color según estado
-            estadoElement.className = 'estado-fixed ';
-            if (estadoCotizacion === 'En Proceso') {
-                estadoElement.classList.add('estado-en-proceso');
-            } else if (estadoCotizacion === 'Generada') {
-                estadoElement.classList.add('estado-generada');
-            } else if (estadoCotizacion === 'Aceptada por Cliente') {
-                estadoElement.classList.add('estado-aceptada');
-            }
-            
-            actualizarBotones();
-        }
-
-        function actualizarBotones() {
-            const btnPdf = document.getElementById('btn-pdf');
-            const btnModificar = document.getElementById('btn-modificar');
-            const btnAceptada = document.getElementById('btn-aceptada');
-            
-            if (estadoCotizacion === 'En Proceso') {
-                btnPdf.disabled = false;
-                btnModificar.disabled = true;
-                btnAceptada.disabled = false;
-                cotizacionBloqueada = false;
-            } else if (estadoCotizacion === 'Generada') {
-                btnPdf.disabled = true;
-                btnModificar.disabled = false;
-                btnAceptada.disabled = false;
-                cotizacionBloqueada = true;
-            } else if (estadoCotizacion === 'Aceptada por Cliente') {
-                btnPdf.disabled = true;
-                btnModificar.disabled = true;
-                btnAceptada.disabled = true;
-                cotizacionBloqueada = true;
-            }
-        }
-
-        // ========== GESTIÓN DE COTIZACIÓN ==========
-        function saveQuotation() {
-            if (!datosModificados) {
-                alert("ℹ️ No hay cambios para guardar");
-                return;
-            }
-            
-            if (cotizacionBloqueada) {
-                alert("⚠️ La cotización está bloqueada. Use 'Modificar Cotización' para editarla.");
-                return;
-            }
-            
-            // Simular guardado en base de datos
-            console.log("Guardando cotización comercial en estado: " + estadoCotizacion);
-            alert("💾 Cotización comercial guardada exitosamente con estado 'En Proceso'");
-            datosModificados = false;
-        }
-
-        function generatePdf() {
-            if (!validarDatosRequeridos()) {
-                alert("⚠️ Complete todos los campos requeridos antes de generar el PDF");
-                return;
-            }
-            
-            if (tableBody.children.length === 0) {
-                alert("⚠️ Por favor agregue productos antes de generar el PDF");
-                return;
-            }
-            
-            // Recolectar datos para el PDF - CORREGIDO PARA INCLUIR VALOR DESCUENTO
-            const datosPDF = {
-                numero_cotizacion: document.getElementById('numero_cotizacion').textContent,
-                fecha_actual: new Date().toLocaleDateString('es-PE', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }),
-                
-                // Información del cliente
-                cliente_razon_social: document.getElementById('cliente_razon_social').value,
-                cliente_ruc: document.getElementById('cliente_ruc').value,
-                cliente_direccion: document.getElementById('cliente_direccion').value,
-                cliente_telefono: document.getElementById('cliente_telefono').value,
-                cliente_contacto: document.getElementById('cliente_contacto').value,
-                numero_requerimiento: document.getElementById('numero_requerimiento').value,
-                
-                // Condiciones comerciales
-                asesor_comercial: document.getElementById('asesor_comercial').value,
-                email_contacto: document.getElementById('email_contacto').value,
-                telefono_contacto: document.getElementById('telefono_contacto').value,
-                forma_pago: document.getElementById('forma_pago').value,
-                tiempo_entrega: document.getElementById('tiempo_entrega').value,
-                lugar_entrega: document.getElementById('lugar_entrega').value,
-                validez_oferta: document.getElementById('validez_oferta').value,
-                descuento_comercial: document.getElementById('descuento_comercial').value,
-                nota_cotizacion: document.getElementById('nota_cotizacion').value,
-                
-                // Productos
-                productos: [],
-                
-                // Totales - CORREGIDO PARA INCLUIR TOTAL DESCUENTO
-                total_subtotal_venta: parseFloat(document.getElementById('total_subtotal_venta').textContent) || 0,
-                total_subtotal_venta_desc: parseFloat(document.getElementById('total_subtotal_venta_desc').textContent) || 0,
-                total_descuento_subtotal: parseFloat(document.getElementById('total_valor_descuento').textContent) || 0,
-                summary_igv: parseFloat(document.getElementById('summary_igv').textContent) || 0,
-                summary_total_venta: parseFloat(document.getElementById('summary_total_venta').textContent) || 0
-            };
-
-            // Recolectar productos - CORREGIDO PARA INCLUIR VALOR DESCUENTO
-            const rows = document.querySelectorAll("#table-body tr");
-            rows.forEach((row, index) => {
-                const producto = {
-                    item: index + 1,
-                    descripcion: row.querySelector('.descripcion').value,
-                    marca: row.querySelector('.marca').value,
-                    unidad: row.querySelector('.unidad').value,
-                    cantidad: row.querySelector('.cantidad').value,
-                    precio_venta_unitario: row.querySelector('.precio_venta').textContent,
-                    subtotal_venta: row.querySelector('.subtotal_venta_item').textContent,
-                    porcentaje_descuento: parseFloat(row.querySelector('.porcentaje_descuento').value) || 0,
-                    precio_unitario_venta_desc: row.querySelector('.precio_unitario_venta_desc').textContent,
-                    subtotal_venta_desc: row.querySelector('.subtotal_venta_desc').textContent,
-                    // CORRECCIÓN CRÍTICA: Incluir el valor del descuento
-                    descuento_subtotal: row.querySelector('.valor_descuento').textContent
-                };
-                datosPDF.productos.push(producto);
-            });
-
-            // Verificar si hay descuentos aplicados
-            const hayDescuentos = datosPDF.productos.some(producto => 
-                parseFloat(producto.porcentaje_descuento) > 0
-            );
-            datosPDF.hay_descuentos = hayDescuentos;
-
-            console.log("Datos enviados al PDF:", datosPDF); // Para debugging
-
-            // Enviar datos al backend para generar PDF
-            fetch('/generar-pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(datosPDF)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("📄 PDF generado exitosamente con formato KCF\n\n" +
-                          "Número: " + datosPDF.numero_cotizacion + "\n" +
-                          "Cliente: " + datosPDF.cliente_razon_social + "\n" +
-                          "Productos: " + datosPDF.productos.length + " items\n" +
-                          "Total: S/ " + datosPDF.summary_total_venta);
-                    estadoCotizacion = 'Generada';
-                    cotizacionBloqueada = true;
-                    actualizarEstadoVisual();
-                } else {
-                    alert("❌ Error al generar PDF: " + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("❌ Error al generar PDF");
-            });
-        }
-
-        function validarDatosRequeridos() {
-            const razonSocial = document.getElementById('cliente_razon_social').value.trim();
-            const ruc = document.getElementById('cliente_ruc').value.trim();
-            const direccion = document.getElementById('cliente_direccion').value.trim();
-            
-            return !(!razonSocial || !ruc || !direccion);
-        }
-
-        // ========== GESTIÓN DE ITEMS SIMPLIFICADA ==========
-        function addItem() {
-            if (cotizacionBloqueada) {
-                alert("⚠️ La cotización está bloqueada. Use 'Modificar Cotización' para editarla.");
-                return;
-            }
-            
-            itemCounter++;
-            datosModificados = true;
-            
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${itemCounter}</td>
-                <td><input type="text" class="codigo_producto" placeholder="Código" onchange="loadProduct(this)"></td>
-                <td><input type="text" class="descripcion" placeholder="Descripción"></td>
-                <td><input type="text" class="marca" placeholder="Marca"></td>
-                <td><input type="text" class="unidad" placeholder="Unidad"></td>
-                <td><input type="number" class="cantidad" value="1" min="1" oninput="calculateRow(this)"></td>
-                <td class="precio_venta precio-no-editable">0.00</td>
-                <td class="subtotal_venta_item">0.00</td>
-                <td><input type="number" class="porcentaje_descuento" value="0" min="0" max="100" oninput="calculateRow(this)"></td>
-                <td class="precio_unitario_venta_desc">0.00</td>
-                <td class="valor_descuento">0.00</td>
-                <td class="subtotal_venta_desc">0.00</td>
-                <td><button onclick="deleteItem(this)" style="background: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 2px; cursor: pointer; font-size: 10px;">🗑️</button></td>
-            `;
-            
-            tableBody.appendChild(row);
-            recalculateAll();
-        }
-
-        function loadProduct(input) {
-            if (cotizacionBloqueada) {
-                alert("⚠️ La cotización está bloqueada. Use 'Modificar Cotización' para editarla.");
-                return;
-            }
-            
-            datosModificados = true;
-            const row = input.closest('tr');
-            const codigo = input.value.toUpperCase();
-            
-            if (preciosComerciales[codigo]) {
-                const data = preciosComerciales[codigo];
-                row.querySelector('.descripcion').value = data.descripcion;
-                row.querySelector('.marca').value = data.marca;
-                row.querySelector('.unidad').value = data.unidad;
-                row.dataset.precioBase = data.precio_venta;
-                
-                // Actualizar precio de venta (NO EDITABLE)
-                row.querySelector('.precio_venta').textContent = data.precio_venta.toFixed(2);
-                calculateRow(input);
-            } else if (codigo.trim() !== '') {
-                alert("⚠️ Producto no encontrado en la lista de precios comerciales");
-            }
-        }
-
-        function calculateRow(input) {
-            if (cotizacionBloqueada) return;
-            
-            datosModificados = true;
-            const row = input.closest('tr');
-            const cantidad = parseFloat(row.querySelector('.cantidad').value) || 0;
-            const precioBase = parseFloat(row.dataset.precioBase) || 0;
-            const descuentoGlobal = parseFloat(descuentoInput.value) / 100 || 0;
-            const descuentoItem = parseFloat(row.querySelector('.porcentaje_descuento').value) / 100 || 0;
-            
-            const descuentoTotal = Math.min(descuentoGlobal + descuentoItem, 1);
-            const precioConDescuento = precioBase * (1 - descuentoTotal);
-            const subtotalVenta = cantidad * precioBase;
-            const subtotalVentaDesc = cantidad * precioConDescuento;
-            const valorDescuento = subtotalVenta - subtotalVentaDesc;
-            
-            // Actualizar campos
-            row.querySelector('.subtotal_venta_item').textContent = subtotalVenta.toFixed(2);
-            row.querySelector('.precio_unitario_venta_desc').textContent = precioConDescuento.toFixed(2);
-            row.querySelector('.valor_descuento').textContent = valorDescuento.toFixed(2);
-            row.querySelector('.subtotal_venta_desc').textContent = subtotalVentaDesc.toFixed(2);
-            
-            recalculateAll();
-        }
-
-        function recalculateAll() {
-            const rows = document.querySelectorAll("#table-body tr");
-            let totalSubtotalVenta = 0;
-            let totalSubtotalVentaDesc = 0;
-            let totalValorDescuento = 0;
-            
-            rows.forEach(row => {
-                totalSubtotalVenta += parseFloat(row.querySelector('.subtotal_venta_item').textContent) || 0;
-                totalSubtotalVentaDesc += parseFloat(row.querySelector('.subtotal_venta_desc').textContent) || 0;
-                totalValorDescuento += parseFloat(row.querySelector('.valor_descuento').textContent) || 0;
-            });
-            
-            // Actualizar totales
-            document.getElementById('total_subtotal_venta').textContent = totalSubtotalVenta.toFixed(2);
-            document.getElementById('total_subtotal_venta_desc').textContent = totalSubtotalVentaDesc.toFixed(2);
-            document.getElementById('total_valor_descuento').textContent = totalValorDescuento.toFixed(2);
-            
-            const igv = totalSubtotalVentaDesc * 0.18;
-            const totalVenta = totalSubtotalVentaDesc + igv;
-            
-            document.getElementById('summary_subtotal_venta').textContent = totalSubtotalVentaDesc.toFixed(2);
-            document.getElementById('summary_igv').textContent = igv.toFixed(2);
-            document.getElementById('summary_total_venta').textContent = totalVenta.toFixed(2);
-        }
-
-        function deleteItem(button) {
-            if (cotizacionBloqueada) {
-                alert("⚠️ La cotización está bloqueada. Use 'Modificar Cotización' para editarla.");
-                return;
-            }
-            
-            datosModificados = true;
-            button.closest('tr').remove();
-            
-            // Recalcular números de items
-            const filas = document.querySelectorAll('#table-body tr');
-            itemCounter = 0;
-            filas.forEach((fila, index) => {
-                itemCounter++;
-                fila.cells[0].textContent = itemCounter;
-            });
-            
-            recalculateAll();
-        }
-
-        // ========== GESTIÓN DE MODALES ==========
-        function showAceptadaModal() {
-            if (estadoCotizacion !== 'Generada') {
-                alert("⚠️ Solo se puede marcar como aceptada una cotización en estado 'Generada'");
-                return;
-            }
-            
-            document.getElementById('modalAceptada').style.display = 'block';
-            document.getElementById('fecha_confirmacion').valueAsDate = new Date();
-            validarFormularioAceptada();
-        }
-
-        function cerrarModalAceptada() {
-            document.getElementById('modalAceptada').style.display = 'none';
-            document.getElementById('pedido_cliente').value = '';
-            document.getElementById('fecha_confirmacion').value = '';
-        }
-
-        function validarFormularioAceptada() {
-            const pedido = document.getElementById('pedido_cliente').value.trim();
-            const fecha = document.getElementById('fecha_confirmacion').value;
-            const btnRegistrar = document.getElementById('btn-registrar');
-            
-            btnRegistrar.disabled = !(pedido && fecha);
-        }
-
-        function registrarAceptada() {
-            const pedido = document.getElementById('pedido_cliente').value.trim();
-            const fecha = document.getElementById('fecha_confirmacion').value;
-            
-            estadoCotizacion = 'Aceptada por Cliente';
-            actualizarEstadoVisual();
-            alert(`✅ Cotización registrada como aceptada por el cliente.\n\nPedido: ${pedido}\nFecha: ${fecha}`);
-            cerrarModalAceptada();
-        }
-
-        function showModificarModal() {
-            if (estadoCotizacion !== 'Generada') {
-                alert("⚠️ Solo se pueden modificar cotizaciones en estado 'Generada'");
-                return;
-            }
-            
-            document.getElementById('modalModificar').style.display = 'block';
-        }
-
-        function cerrarModalModificar() {
-            document.getElementById('modalModificar').style.display = 'none';
-        }
-
-        function habilitarModificacion() {
-            estadoCotizacion = 'En Proceso';
-            cotizacionBloqueada = false;
-            actualizarEstadoVisual();
-            alert("🔧 Cotización habilitada para modificación. Estado cambiado a 'En Proceso'");
-            cerrarModalModificar();
-        }
-
-        // ========== EVENT LISTENERS ==========
-        document.getElementById('pedido_cliente').addEventListener('input', validarFormularioAceptada);
-        document.getElementById('fecha_confirmacion').addEventListener('change', validarFormularioAceptada);
-        descuentoInput.addEventListener('input', recalculateAll);
-
-        window.onclick = function(event) {
-            const modalAceptada = document.getElementById('modalAceptada');
-            const modalModificar = document.getElementById('modalModificar');
-            
-            if (event.target === modalAceptada) cerrarModalAceptada();
-            if (event.target === modalModificar) cerrarModalModificar();
-        }
-    </script>
+ <script src="{{ url_for('static', filename='js/crear_cotizacion.js') }}"></script>
 </body>
 </html>
