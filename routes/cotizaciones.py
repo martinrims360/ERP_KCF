@@ -1,21 +1,20 @@
 from flask import Blueprint, render_template, jsonify, request, session, send_file, make_response, Response
 from psycopg2.extras import RealDictCursor, DictCursor
 from database import (obtener_cotizaciones_recientes, crear_cotizacion_transaccional, obtener_cotizacion_completa,
-                      db_query, db_execute, db_tx, get_connection)
+                    db_query, db_execute, db_tx, get_connection)
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
-import pdfkit 
+# 🛠️ Quitamos la importación de pdfkit para evitar conflictos en producción
+from weasyprint import HTML  
 import base64
 import logging
 import os
-
-config = pdfkit.configuration(
-    wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
-)
 from datetime import datetime
+
+# 🛠️ Eliminamos el bloque 'config = pdfkit.configuration(...)' que causaba el crash de Linux
 
 cotizaciones_bp = Blueprint("cotizaciones", __name__)
 
@@ -85,7 +84,7 @@ def obtener_cotizaciones_recientes(limit=100):
 
 
 # ==========================================
-# 🔥 ENDPOINTS PARA CÓDIGOS DE COTIZACIÓN PERSONALIZADOS
+# ENDPOINTS PARA CÓDIGOS DE COTIZACIÓN PERSONALIZADOS
 # ==========================================
 
 @cotizaciones_bp.route("/api/usuarios/actual", methods=["GET"])
@@ -251,7 +250,7 @@ def obtener_cliente(id):
         query = """
             SELECT id, razon_social, numero_documento, direccion_fiscal, 
                    telefono_contacto, nombre_contacto, tipo_documento
-            FROM clientes 
+        FROM clientes 
             WHERE id = %s
         """
         cliente = db_query(query, (id,))
@@ -371,7 +370,7 @@ def buscar_productos():
 
 
 # ==========================================
-# 🔥 NUEVO ENDPOINT: CREAR CLIENTE
+# ENDPOINT: CREAR CLIENTE
 # ==========================================
 
 @cotizaciones_bp.route("/api/clientes/crear", methods=["POST"])
@@ -436,7 +435,7 @@ def crear_cliente():
 
 
 # ==========================================
-# GUARDAR COTIZACIÓN (MODIFICADO)
+# GUARDAR COTIZACIÓN
 # ==========================================
 
 @cotizaciones_bp.route("/api/cotizacion/guardar", methods=["POST"])
@@ -456,18 +455,10 @@ def guardar_cotizacion():
         almacen = data.get("almacen", "Almacen Breña")
         validez_oferta = data.get("validez_oferta")
         
-        # 🔥 NUEVOS CAMPOS
         codigo_cotizacion = data.get("codigo_cotizacion")
         correlativo = data.get("correlativo")
         es_borrador = data.get("es_borrador", False)
 
-        print("DATA:", data)
-        print("CLIENTE:", cliente_id)
-        print("CÓDIGO COTIZACIÓN:", codigo_cotizacion)
-        print("CORRELATIVO:", correlativo)
-        print("ES BORRADOR:", es_borrador)
-
-        # 🔥 Si no viene código personalizado, generar uno automático (fallback)
         if not codigo_cotizacion:
             if es_borrador:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -487,7 +478,6 @@ def guardar_cotizacion():
                 codigo_cotizacion = f"COT-{codigo_vendedor}-{fecha.year}{str(fecha.month).zfill(2)}{str(fecha.day).zfill(2)}-{str(nuevo_corr).zfill(4)}"
                 correlativo = nuevo_corr
 
-        # Generar número de cotización (legacy)
         row = db_query("""
             SELECT numero_cotizacion 
             FROM cotizaciones 
@@ -543,7 +533,6 @@ def guardar_cotizacion():
 
             cotizacion_id = cur.fetchone()[0]
 
-            # Insertar detalle
             for p in data.get("productos", []):
                 cur.execute("""
                     INSERT INTO cotizacion_detalle (
@@ -597,7 +586,7 @@ def guardar_cotizacion():
 
 
 # ==========================================
-# OBTENER COTIZACIÓN (MODIFICADO)
+# OBTENER COTIZACIÓN
 # ==========================================
 
 logging.basicConfig(filename='app.log', level=logging.ERROR)
@@ -622,7 +611,6 @@ def api_get_cotizacion(cotizacion_id):
         cabecera = data.get("cabecera", {})
         detalle = data.get("detalle", [])
 
-        # Determinar si es borrador
         es_borrador = cabecera.get("codigo_cotizacion", "").startswith("TMP-")
 
         return jsonify({
@@ -647,7 +635,7 @@ def api_get_cotizacion(cotizacion_id):
 
 
 # ==========================================
-# LISTAR COTIZACIONES (MODIFICADO)
+# LISTAR COTIZACIONES
 # ==========================================
 
 @cotizaciones_bp.route("/api/cotizacion_comercial")
@@ -665,7 +653,7 @@ def listar_cotizaciones():
                 c.igv,
                 c.total,
                 c.usuario_id,
-                c.notas,
+                c.notes,
                 COALESCE(cl.razon_social, 'Sin cliente') AS cliente,
                 u.nombre_completo as vendedor
             FROM cotizaciones c
@@ -711,7 +699,7 @@ def eliminar_cotizacion(id):
 
 
 # ==========================================
-# GENERAR PDF
+# 🔥 GENERAR PDF (MIGRADO A WEASYPRINT)
 # ==========================================
 
 @cotizaciones_bp.route("/api/cotizacion/pdf/<int:cotizacion_id>")
@@ -726,8 +714,11 @@ def generar_pdf(cotizacion_id):
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ruta_logo = os.path.join(BASE_DIR, "templates", "pdf", "logo-kcf.png")
 
-    with open(ruta_logo, "rb") as img:
-        logo_base64 = base64.b64encode(img.read()).decode('utf-8')
+    try:
+        with open(ruta_logo, "rb") as img:
+            logo_base64 = base64.b64encode(img.read()).decode('utf-8')
+    except Exception:
+        logo_base64 = ""
 
     productos = []
     total_subtotal_venta = 0
@@ -786,14 +777,12 @@ def generar_pdf(cotizacion_id):
         nota_cotizacion=cabecera.get("notas", "")
     )
 
+    # 🛠️ Reemplazo de pdfkit por Weasyprint
     try:
-        options = {
-            'enable-local-file-access': None,
-            'quiet': ''
-        }
-        pdf = pdfkit.from_string(html, False, configuration=config, options=options)
+        pdf = HTML(string=html).write_pdf()
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        print("🔥 ERROR EN WEASYPRINT:", e)
+        return jsonify({"success": False, "error": f"Error al generar PDF: {str(e)}"}), 500
 
     return Response(
         pdf,
