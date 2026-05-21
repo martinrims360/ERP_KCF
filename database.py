@@ -1287,3 +1287,32 @@ def obtener_ultimo_codigo_proveedor():
     if rows:
         return rows[0]['codigo_proveedor']
     return 'PROV-000000'
+
+
+# =========================================
+# BUSCAR CLIENTE POR RUC EXACTO (NUEVO)
+# =========================================
+def buscar_cliente_por_ruc(ruc: str):
+    """Buscar cliente exactamente por número de RUC"""
+    if not ruc or len(ruc) < 3:
+        return None
+    
+    rows = db_query("""
+        SELECT 
+            id,
+            tipo_documento,
+            numero_documento,
+            razon_social,
+            nombre_comercial,
+            direccion_fiscal,
+            telefono_contacto,
+            email_contacto,
+            nombre_contacto,
+            codigo_cliente
+        FROM clientes
+        WHERE activo = TRUE
+        AND numero_documento = %s
+        LIMIT 1
+    """, (ruc,))
+    
+    return rows[0] if rows else None

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request, session, send_file, make_response, Response
 from psycopg2.extras import RealDictCursor, DictCursor
 from database import (obtener_cotizaciones_recientes, crear_cotizacion_transaccional, obtener_cotizacion_completa,
-                    db_query, db_execute, db_tx, get_connection)
+                    db_query, db_execute, db_tx, get_connection, buscar_cliente_por_ruc)
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -240,6 +240,46 @@ def buscar_clientes():
         return jsonify({
             'success': False,
             'error': str(e)
+        }), 500
+
+
+# ==========================================
+# NUEVO ENDPOINT: BUSCAR CLIENTE POR RUC EXACTO
+# ==========================================
+
+@cotizaciones_bp.route("/api/clientes/buscar-por-ruc", methods=["GET"])
+def buscar_cliente_por_ruc_api():
+    """Buscar cliente por RUC exacto en la base de datos"""
+    try:
+        ruc = request.args.get('ruc', '').strip()
+        
+        if not ruc:
+            return jsonify({"success": False, "error": "Debe ingresar un RUC"}), 400
+        
+        if len(ruc) != 11:
+            return jsonify({"success": False, "error": "El RUC debe tener 11 dígitos"}), 400
+        
+        # Buscar en la base de datos usando la función importada
+        cliente = buscar_cliente_por_ruc(ruc)
+        
+        if cliente:
+            return jsonify({
+                "success": True,
+                "found": True,
+                "data": cliente
+            })
+        else:
+            return jsonify({
+                "success": True,
+                "found": False,
+                "message": "Cliente no encontrado en la base de datos"
+            })
+        
+    except Exception as e:
+        print(f"🔥 Error al buscar cliente por RUC: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
         }), 500
 
 

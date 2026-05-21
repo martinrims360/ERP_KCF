@@ -95,6 +95,18 @@
             border: 1px solid #f59e0b;
         }
 
+        .estado-generada {
+            background: #3b82f620;
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        .estado-aceptada {
+            background: #10b98120;
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+
         /* HERO CARD */
         .hero-card {
             background: white;
@@ -135,6 +147,14 @@
         .badge-warning {
             background: #f59e0b20;
             color: #f59e0b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .badge-success {
+            background: #10b98120;
+            color: #10b981;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
@@ -337,6 +357,10 @@
         .btn-del:hover {
             background: #fecaca;
         }
+
+        .opacity-50 {
+            opacity: 0.5;
+        }
     </style>
 
 </head>
@@ -435,6 +459,21 @@
                     <div class="card-body-custom">
                         <input type="hidden" id="cliente_id" value="">
                         <div class="row g-3">
+                            <!-- BUSCADOR POR RUC CON BOTÓN -->
+                            <div class="col-md-12">
+                                <label class="form-label">Buscar por RUC</label>
+                                <div class="input-group">
+                                    <input type="text" 
+                                           class="form-control custom-input" 
+                                           id="buscar_ruc" 
+                                           placeholder="Ingrese RUC de 11 dígitos">
+                                    <button class="btn btn-primary" type="button" id="btnBuscarClientePorRuc">
+                                        <i class="bi bi-search"></i> Buscar Cliente
+                                    </button>
+                                </div>
+                                <small class="text-muted">Ingrese el RUC y presione buscar para autocompletar los datos del cliente</small>
+                            </div>
+                            
                             <div class="col-md-12">
                                 <label class="form-label">Señor(es) <span class="text-danger">*</span></label>
                                 <div class="search-container">
@@ -443,18 +482,27 @@
                                     <div id="clienteSuggestions" class="suggestions-dropdown"></div>
                                 </div>
                             </div>
+                            
                             <div class="col-md-6">
                                 <label class="form-label">RUC / DNI</label>
-                                <input type="text" class="form-control custom-input" id="cliente_doc" placeholder="Documento" readonly>
+                                <div class="input-group">
+                                    <input type="text" class="form-control custom-input" id="cliente_doc" placeholder="Documento" readonly>
+                                    <button class="btn btn-outline-secondary" type="button" id="btnLimpiarCliente" title="Limpiar cliente">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </div>
                             </div>
+                            
                             <div class="col-md-6">
                                 <label class="form-label">Teléfono</label>
                                 <input type="text" class="form-control custom-input" id="telefono_contacto">
                             </div>
+                            
                             <div class="col-12">
                                 <label class="form-label">Dirección Fiscal</label>
-                                <input type="text" class="form-control custom-input" id="cliente_direccion" readonly>
+                                <input type="text" class="form-control custom-input" id="cliente_direccion">
                             </div>
+                            
                             <div class="col-md-6">
                                 <label class="form-label">Estado</label>
                                 <select class="form-select custom-input" id="estado">
@@ -464,17 +512,20 @@
                                     <option value="Rechazada">Rechazada</option>
                                 </select>
                             </div>
+                            
                             <div class="col-md-6">
                                 <label class="form-label">Punto Entrega</label>
                                 <select class="form-select custom-input" id="punto_entrega">
                                     <option value="a_tratar">📝 A tratar (Negociación)</option>
                                 </select>
                             </div>
+                            
                             <div class="col-12">
                                 <label class="form-label">Dirección Entrega</label>
                                 <input type="text" class="form-control custom-input" id="direccion_entrega"
                                     placeholder="Dirección de entrega">
                             </div>
+                            
                             <div class="col-md-6">
                                 <label class="form-label">Atención</label>
                                 <div class="search-container">
@@ -483,6 +534,7 @@
                                     <div id="contactoSuggestions" class="suggestions-dropdown"></div>
                                 </div>
                             </div>
+                            
                             <div class="col-md-6">
                                 <label class="form-label">Requerimiento</label>
                                 <input type="text" class="form-control custom-input" id="numero_requerimiento"
@@ -541,10 +593,10 @@
                                     <option value="">Seleccionar</option>
                                 </select>
                             </div>
-                           
-                            </div>
-                            
-                            <!-- TIEMPO ENTREGA CON SELECTOR INTELIGENTE -->
+                        </div>
+                        
+                        <!-- TIEMPO ENTREGA CON SELECTOR INTELIGENTE -->
+                        <div class="row g-3 mt-3">
                             <div class="col-md-6">
                                 <label class="form-label">Tiempo Entrega</label>
                                 <div class="tiempo-entrega-wrapper">
