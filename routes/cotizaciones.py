@@ -635,13 +635,22 @@ def api_get_cotizacion(cotizacion_id):
 
 
 # ==========================================
-# LISTAR COTIZACIONES
+# LISTAR COTIZACIONES (CORREGIDO)
 # ==========================================
 
 @cotizaciones_bp.route("/api/cotizacion_comercial")
 def listar_cotizaciones():
     try:
-        rows = db_query("""
+        # 🔥 OBTENER PARÁMETRO DE BÚSQUEDA
+        buscar = request.args.get('buscar', '')
+        
+        # 🔥 LIMPIAR VALOR INVÁLIDO :1
+        if buscar == ':1' or buscar == ':' or buscar is None:
+            print(f"⚠️ Limpiando parámetro inválido: '{buscar}'")
+            buscar = ''
+        
+        # 🔥 CONSTRUIR QUERY BASE
+        query = """
             SELECT 
                 c.id,
                 c.numero_cotizacion,
@@ -653,18 +662,44 @@ def listar_cotizaciones():
                 c.igv,
                 c.total,
                 c.usuario_id,
-                c.notes,
+                c.notas,
                 COALESCE(cl.razon_social, 'Sin cliente') AS cliente,
                 u.nombre_completo as vendedor
             FROM cotizaciones c
             LEFT JOIN clientes cl ON c.cliente_id = cl.id
             LEFT JOIN usuarios u ON c.usuario_id = u.id
-            ORDER BY c.id DESC
-        """)
-
+        """
+        
+        params = []
+        
+        # 🔥 AGREGAR FILTRO SI HAY BÚSQUEDA
+        if buscar and buscar.strip():
+            query += """
+                WHERE (
+                    c.numero_cotizacion ILIKE %s OR
+                    c.codigo_cotizacion ILIKE %s OR
+                    cl.razon_social ILIKE %s OR
+                    u.nombre_completo ILIKE %s
+                )
+            """
+            like_param = f"%{buscar}%"
+            params = [like_param, like_param, like_param, like_param]
+            print(f"🔍 Filtrando por: '{buscar}'")
+        
+        # 🔥 ORDENAR
+        query += " ORDER BY c.id DESC"
+        
+        # 🔥 EJECUTAR QUERY
+        rows = db_query(query, tuple(params) if params else None)
+        
+        print(f"✅ Encontradas {len(rows)} cotizaciones")
+        
         return jsonify({"success": True, "data": rows})
+        
     except Exception as e:
-        print("🔥 ERROR LISTAR:", e)
+        print(f"🔥 ERROR LISTAR: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
 

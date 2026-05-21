@@ -11,6 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     buscador = document.getElementById("buscador");
     const btnRefrescar = document.getElementById("btnRefrescar");
 
+    // 🔥 Limpiar valor inválido del buscador al inicio
+    if (buscador && (buscador.value === ':1' || buscador.value === ':')) {
+        console.warn("⚠️ Limpiando valor inválido del buscador:", buscador.value);
+        buscador.value = '';
+    }
+
     cargarCotizaciones();
 
     // 🔽 filtro
@@ -140,7 +146,7 @@ async function autocompletarConSunatListado() {
 }
 
 // ===========================
-// CARGAR COTIZACIONES
+// CARGAR COTIZACIONES (CORREGIDO)
 // ===========================
 async function cargarCotizaciones() {
     const tbody = document.getElementById('tbodyCotizaciones');
@@ -156,14 +162,34 @@ async function cargarCotizaciones() {
     }
 
     try {
-        const buscar = buscador ? buscador.value : "";
-        const response = await fetch(`/api/cotizacion_comercial?buscar=${buscar}`);
+        let buscar = buscador ? buscador.value : "";
+        
+        // 🔥 VALIDACIÓN CRÍTICA: Limpiar valor :1 si aparece
+        if (buscar === ':1' || buscar === ':' || buscar === null) {
+            console.warn("⚠️ Limpiando valor inválido del buscador:", buscar);
+            buscar = "";
+            if (buscador) buscador.value = "";
+        }
+        
+        // 🔥 Construir URL correctamente
+        const url = buscar ? `/api/cotizacion_comercial?buscar=${encodeURIComponent(buscar)}` : '/api/cotizacion_comercial';
+        console.log("🌐 Fetching URL:", url);
+        
+        const response = await fetch(url);
+        
+        // 🔥 Verificar si la respuesta es OK
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("❌ Error response:", response.status, errorText.substring(0, 200));
+            throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+        }
+        
         const result = await response.json();
 
         console.log("🔥 DATA:", result);
 
         if (!result.success) {
-            mostrarNotificacion('Error al cargar cotizaciones', 'danger');
+            mostrarNotificacion('Error al cargar cotizaciones: ' + (result.error || 'Error desconocido'), 'danger');
             return;
         }
 
@@ -173,13 +199,14 @@ async function cargarCotizaciones() {
 
     } catch (e) {
         console.error("🔥 ERROR:", e);
-        mostrarNotificacion('Error de conexión con el servidor', 'danger');
+        mostrarNotificacion('Error de conexión con el servidor: ' + e.message, 'danger');
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="7" class="text-center py-5 text-danger">
                         <i class="bi bi-wifi-off fs-1"></i>
-                        <div class="mt-2">Error de conexión</div>
+                        <div class="mt-2">Error de conexión: ${e.message}</div>
+                        <div class="mt-2 small">Recargue la página o contacte al administrador</div>
                     </td>
                 </tr>
             `;
@@ -277,13 +304,13 @@ function renderizarTabla(cotizaciones) {
         return `
             <tr data-id="${c.id}" data-codigo="${codigoMostrar}">
                 <td class="codigo-cell">
-                    <strong>${codigoMostrar || '-'}</strong>
+                    <strong>${escapeHtml(codigoMostrar || '-')}</strong>
                     ${c.correlativo ? `<br><small class="text-muted">Correl: ${c.correlativo}</small>` : ''}
                 </td>
                 <td class="fecha-cell">${fecha}</td>
                 <td class="cliente-cell">
-                    <strong>${c.cliente || 'Sin cliente'}</strong>
-                    ${c.vendedor ? `<br><small class="text-muted"><i class="bi bi-person"></i> ${c.vendedor}</small>` : ''}
+                    <strong>${escapeHtml(c.cliente || 'Sin cliente')}</strong>
+                    ${c.vendedor ? `<br><small class="text-muted"><i class="bi bi-person"></i> ${escapeHtml(c.vendedor)}</small>` : ''}
                 </td>
                 <td class="estado-cell">${estadoHtml}</td>
                 <td class="monto text-end">S/ ${Number(total).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
@@ -294,13 +321,26 @@ function renderizarTabla(cotizaciones) {
                     <button class="btn-mini btn-editar" onclick="editar(${c.id})" title="Editar">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn-mini btn-eliminar" onclick="mostrarModalEliminar(${c.id}, '${codigoMostrar}')" title="Eliminar">
+                    <button class="btn-mini btn-eliminar" onclick="mostrarModalEliminar(${c.id}, '${escapeHtml(codigoMostrar)}')" title="Eliminar">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+// ===========================
+// ESCAPE HTML (seguridad)
+// ===========================
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // ===========================
@@ -321,9 +361,9 @@ async function verDetalle(id) {
             
             const productosHtml = (data.detalle || []).map(p => `
                 <tr>
-                    <td>${p.codigo || '-'}</td>
-                    <td>${p.descripcion || '-'}</td>
-                    <td>${p.marca || '-'}</td>
+                    <td>${escapeHtml(p.codigo || '-')}</td>
+                    <td>${escapeHtml(p.descripcion || '-')}</td>
+                    <td>${escapeHtml(p.marca || '-')}</td>
                     <td class="text-center">${p.cantidad || 0}</td>
                     <td class="text-end">S/ ${Number(p.precio_venta_unitario || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
                     <td class="text-end">S/ ${Number(p.subtotal_venta_con_descuento || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
@@ -336,7 +376,7 @@ async function verDetalle(id) {
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <div class="text-muted small">NÚMERO</div>
-                            <strong>${data.codigo_cotizacion || data.numero_cotizacion}</strong>
+                            <strong>${escapeHtml(data.codigo_cotizacion || data.numero_cotizacion)}</strong>
                             ${data.correlativo ? `<br><small class="text-muted">Correlativo: ${data.correlativo}</small>` : ''}
                         </div>
                         <div class="col-md-6">
@@ -357,10 +397,10 @@ async function verDetalle(id) {
                     <hr>
                     <div class="mb-3">
                         <div class="text-muted small">CLIENTE</div>
-                        <strong>${data.cliente || 'Sin cliente'}</strong>
-                        ${data.cliente_ruc ? `<br><small>RUC: ${data.cliente_ruc}</small>` : ''}
+                        <strong>${escapeHtml(data.cliente || 'Sin cliente')}</strong>
+                        ${data.cliente_ruc ? `<br><small>RUC: ${escapeHtml(data.cliente_ruc)}</small>` : ''}
                     </div>
-                    ${data.direccion_fiscal ? `<div class="mb-3"><div class="text-muted small">DIRECCIÓN FISCAL</div>${data.direccion_fiscal}</div>` : ''}
+                    ${data.direccion_fiscal ? `<div class="mb-3"><div class="text-muted small">DIRECCIÓN FISCAL</div>${escapeHtml(data.direccion_fiscal)}</div>` : ''}
                     <hr>
                     <div class="mb-3">
                         <div class="text-muted small">PRODUCTOS</div>
@@ -372,15 +412,15 @@ async function verDetalle(id) {
                                         <th class="text-center">Cant</th><th class="text-end">P.Unit</th><th class="text-end">Subtotal</th>
                                     </tr>
                                 </thead>
-                                <tbody>${productosHtml || '<tr><td colspan="6" class="text-center">Sin productos</td>'}</tbody>
+                                <tbody>${productosHtml || '<tr><td colspan="6" class="text-center">Sin productos</td></tr>'}</tbody>
                             </table>
                         </div>
                     </div>
-                    ${data.forma_pago ? `<div class="row mb-2"><div class="col-4 text-muted small">Forma Pago:</div><div class="col-8">${data.forma_pago}</div></div>` : ''}
-                    ${data.tiempo_entrega ? `<div class="row mb-2"><div class="col-4 text-muted small">Tiempo Entrega:</div><div class="col-8">${data.tiempo_entrega}</div></div>` : ''}
-                    ${data.almacen ? `<div class="row mb-2"><div class="col-4 text-muted small">Almacén:</div><div class="col-8">${data.almacen}</div></div>` : ''}
-                    ${data.validez_oferta ? `<div class="row mb-2"><div class="col-4 text-muted small">Validez Oferta:</div><div class="col-8">${data.validez_oferta}</div></div>` : ''}
-                    ${data.notas ? `<hr><div class="mb-2"><div class="text-muted small">NOTAS</div>${data.notas}</div>` : ''}
+                    ${data.forma_pago ? `<div class="row mb-2"><div class="col-4 text-muted small">Forma Pago:</div><div class="col-8">${escapeHtml(data.forma_pago)}</div></div>` : ''}
+                    ${data.tiempo_entrega ? `<div class="row mb-2"><div class="col-4 text-muted small">Tiempo Entrega:</div><div class="col-8">${escapeHtml(data.tiempo_entrega)}</div></div>` : ''}
+                    ${data.almacen ? `<div class="row mb-2"><div class="col-4 text-muted small">Almacén:</div><div class="col-8">${escapeHtml(data.almacen)}</div></div>` : ''}
+                    ${data.validez_oferta ? `<div class="row mb-2"><div class="col-4 text-muted small">Validez Oferta:</div><div class="col-8">${escapeHtml(data.validez_oferta)}</div></div>` : ''}
+                    ${data.notas ? `<hr><div class="mb-2"><div class="text-muted small">NOTAS</div>${escapeHtml(data.notas)}</div>` : ''}
                 `;
             }
             
@@ -409,7 +449,7 @@ function mostrarModalEliminar(id, codigo) {
     cotizacionAEliminar = id;
     const infoSpan = document.getElementById('eliminarInfo');
     if (infoSpan) {
-        infoSpan.innerHTML = `Cotización: <strong>${codigo}</strong><br>Esta acción no se puede deshacer.`;
+        infoSpan.innerHTML = `Cotización: <strong>${escapeHtml(codigo)}</strong><br>Esta acción no se puede deshacer.`;
     }
     const modal = new bootstrap.Modal(document.getElementById('modalEliminar'));
     modal.show();
@@ -433,7 +473,7 @@ async function eliminarCotizacionConfirmado() {
             mostrarNotificacion('✅ Cotización eliminada correctamente', 'success');
             await cargarCotizaciones();
         } else {
-            mostrarNotificacion('❌ Error al eliminar: ' + result.error, 'danger');
+            mostrarNotificacion('❌ Error al eliminar: ' + (result.error || 'Error desconocido'), 'danger');
         }
     } catch (error) {
         console.error('Error:', error);
@@ -493,7 +533,7 @@ function mostrarNotificacion(mensaje, tipo) {
     notificacion.style.minWidth = '300px';
     notificacion.style.animation = 'slideIn 0.3s ease';
     let icono = tipo === 'success' ? 'check-circle' : (tipo === 'danger' ? 'exclamation-triangle' : 'info-circle');
-    notificacion.innerHTML = `<i class="bi bi-${icono} me-2"></i>${mensaje}`;
+    notificacion.innerHTML = `<i class="bi bi-${icono} me-2"></i>${escapeHtml(mensaje)}`;
     document.body.appendChild(notificacion);
     setTimeout(() => {
         notificacion.style.animation = 'slideOut 0.3s ease';
