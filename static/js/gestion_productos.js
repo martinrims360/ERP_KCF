@@ -1,4 +1,4 @@
-// gestion_productos.js - VERSIÓN COMPLETA Y FUNCIONAL
+// gestion_productos.js - VERSIÓN COMPLETA Y FUNCIONAL CON KÁRDEX
 
 const filtroFamilia = document.getElementById('filtro-familia');
 const filtroBusqueda = document.getElementById('filtro-busqueda');
@@ -69,10 +69,12 @@ function inicializarCalculoMargen() {
 }
 
 // =====================================================
-// KÁRDEx - FUNCIONES
+// KÁRDEX - FUNCIONES CORREGIDAS
 // =====================================================
 
+// Cargar productos en el select del kárdex
 async function cargarProductosKardex() {
+    console.log("🟢 Cargando productos para kárdex...");
     const selects = [
         document.getElementById('kardex_producto_id'),
         document.getElementById('mov_kardex_producto_id')
@@ -80,20 +82,41 @@ async function cargarProductosKardex() {
 
     try {
         const res = await fetch('/api/productos');
+        console.log("📡 Respuesta del servidor:", res.status);
+        
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        
         const productos = await res.json();
+        console.log("📦 Productos recibidos:", productos.length);
 
         selects.forEach(select => {
             if (!select) return;
-            select.innerHTML = '<option value="">Todos los productos</option>';
-            productos.forEach(p => {
-                select.innerHTML += `<option value="${p.id}">${p.codigo || ''} - ${p.descripcion}</option>`;
-            });
+            select.innerHTML = '<option value="">Seleccione un producto</option>';
+            if (productos.length === 0) {
+                select.innerHTML += '<option value="" disabled>No hay productos disponibles</option>';
+            } else {
+                productos.forEach(p => {
+                    select.innerHTML += `<option value="${p.id}">${p.codigo || 'Sin código'} - ${p.descripcion.substring(0, 50)}</option>`;
+                });
+            }
         });
+        
+        console.log("✅ Productos cargados exitosamente");
     } catch (e) {
-        console.error("Error cargando productos para Kárdex", e);
+        console.error("❌ Error cargando productos para Kárdex", e);
+        mostrarNotificacion("Error al cargar productos para kárdex", "danger");
+        
+        selects.forEach(select => {
+            if (select) {
+                select.innerHTML = '<option value="">Error al cargar productos</option>';
+            }
+        });
     }
 }
 
+// Cargar movimientos del kárdex
 async function cargarKardex(productoId = '') {
     const tbody = document.getElementById('tbody-kardex');
     if (!tbody) return;
@@ -105,21 +128,36 @@ async function cargarKardex(productoId = '') {
         if (productoId) url += `?producto_id=${productoId}`;
 
         const res = await fetch(url);
+        console.log("📊 Respuesta movimientos:", res.status);
+        
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        
         const movimientos = await res.json();
+        console.log("📊 Movimientos recibidos:", movimientos.length);
 
         tbody.innerHTML = '';
         let saldo = 0;
 
+        if (movimientos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4">No hay movimientos para este producto</td></tr>`;
+        }
+
         movimientos.forEach(mov => {
-            if (mov.tipo === 'ENTRADA' || mov.tipo === 'AJUSTE') {
+            if (mov.tipo === 'ENTRADA') {
                 saldo += parseInt(mov.cantidad);
             } else if (mov.tipo === 'SALIDA') {
                 saldo -= parseInt(mov.cantidad);
+            } else if (mov.tipo === 'AJUSTE') {
+                saldo = parseInt(mov.cantidad);
             }
 
+            const fecha = mov.created_at ? new Date(mov.created_at).toLocaleDateString('es-PE') : '-';
+            
             const fila = `
                 <tr>
-                    <td>${new Date(mov.created_at).toLocaleDateString('es-PE')}</td>
+                    <td>${fecha}</td>
                     <td>
                         <span class="badge ${mov.tipo === 'ENTRADA' ? 'bg-success' : mov.tipo === 'SALIDA' ? 'bg-danger' : 'bg-warning'}">
                             ${mov.tipo}
@@ -127,36 +165,68 @@ async function cargarKardex(productoId = '') {
                     </td>
                     <td>${mov.referencia || '-'}</td>
                     <td>${mov.motivo || '-'}</td>
-                    <td class="text-end text-success fw-bold">${(mov.tipo === 'ENTRADA' || mov.tipo === 'AJUSTE') ? mov.cantidad : ''}</td>
-                    <td class="text-end text-danger fw-bold">${mov.tipo === 'SALIDA' ? mov.cantidad : ''}</td>
+                    <td class="text-end text-success fw-bold">${mov.tipo === 'ENTRADA' ? mov.cantidad : '-'}</td>
+                    <td class="text-end text-danger fw-bold">${mov.tipo === 'SALIDA' ? mov.cantidad : '-'}</td>
                     <td class="text-end fw-bold">${saldo}</td>
-                    <td class="text-end">S/ ${parseFloat(mov.costo_unitario || 0).toFixed(2)}</td>
+                    <td class="text-end">${mov.costo_unitario ? 'S/ ' + parseFloat(mov.costo_unitario).toFixed(2) : '-'}</td>
                 </tr>`;
             tbody.innerHTML += fila;
         });
 
+        // Actualizar stock actual
         document.getElementById('kardex_stock_actual').textContent = saldo;
+        
+        // Actualizar valor total (si hay costo unitario)
+        if (movimientos.length > 0 && movimientos[0].costo_unitario) {
+            const valorTotal = saldo * movimientos[0].costo_unitario;
+            document.getElementById('kardex_valor_total').textContent = `S/ ${valorTotal.toFixed(2)}`;
+        } else {
+            document.getElementById('kardex_valor_total').textContent = 'S/ 0.00';
+        }
 
     } catch (error) {
-        console.error(error);
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar el Kárdex</td></tr>`;
+        console.error("❌ Error cargando kárdex:", error);
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar el Kárdex: ${error.message}</td></tr>`;
+        mostrarNotificacion("Error al cargar el kárdex", "danger");
     }
 }
 
+// Guardar nuevo movimiento
 async function guardarMovimientoKardex() {
-    const datos = {
-        producto_id: document.getElementById('mov_kardex_producto_id').value,
-        tipo: document.getElementById('mov_kardex_tipo').value,
-        cantidad: parseInt(document.getElementById('mov_kardex_cantidad').value),
-        costo_unitario: parseFloat(document.getElementById('mov_kardex_costo').value) || null,
-        referencia: document.getElementById('mov_kardex_referencia').value,
-        motivo: document.getElementById('mov_kardex_motivo').value
-    };
+    console.log("🟢 Guardando movimiento...");
+    
+    const productoId = document.getElementById('mov_kardex_producto_id').value;
+    const tipo = document.getElementById('mov_kardex_tipo').value;
+    const cantidad = document.getElementById('mov_kardex_cantidad').value;
+    const costo = document.getElementById('mov_kardex_costo').value;
+    const referencia = document.getElementById('mov_kardex_referencia').value;
+    const motivo = document.getElementById('mov_kardex_motivo').value;
 
-    if (!datos.producto_id || !datos.cantidad) {
-        mostrarNotificacion("❌ Producto y cantidad son obligatorios", "danger");
+    if (!productoId) {
+        mostrarNotificacion("❌ Seleccione un producto", "danger");
         return;
     }
+    
+    if (!cantidad || parseInt(cantidad) <= 0) {
+        mostrarNotificacion("❌ Ingrese una cantidad válida", "danger");
+        return;
+    }
+    
+    if (!tipo) {
+        mostrarNotificacion("❌ Seleccione un tipo de movimiento", "danger");
+        return;
+    }
+
+    const datos = {
+        producto_id: parseInt(productoId),
+        tipo: tipo,
+        cantidad: parseInt(cantidad),
+        costo_unitario: costo ? parseFloat(costo) : null,
+        referencia: referencia || null,
+        motivo: motivo || null
+    };
+
+    console.log("📝 Datos a enviar:", datos);
 
     try {
         const res = await fetch('/api/movimientos_stock', {
@@ -165,16 +235,39 @@ async function guardarMovimientoKardex() {
             body: JSON.stringify(datos)
         });
 
-        if (res.ok) {
+        console.log("📡 Respuesta del servidor:", res.status);
+        const result = await res.json();
+        console.log("📦 Respuesta:", result);
+
+        if (res.ok && result.success) {
             mostrarNotificacion("✅ Movimiento registrado correctamente", "success");
-            bootstrap.Modal.getInstance(document.getElementById('modalNuevoMovimientoKardex')).hide();
-            cargarKardex(document.getElementById('kardex_producto_id').value);
+            
+            // Cerrar modal de nuevo movimiento
+            const modalMovimiento = bootstrap.Modal.getInstance(document.getElementById('modalNuevoMovimientoKardex'));
+            if (modalMovimiento) modalMovimiento.hide();
+            
+            // Recargar el kárdex
+            const productoSelect = document.getElementById('kardex_producto_id');
+            if (productoSelect && productoSelect.value) {
+                await cargarKardex(productoSelect.value);
+            } else {
+                await cargarKardex();
+            }
+            
+            // Limpiar formulario
+            document.getElementById('mov_kardex_cantidad').value = '';
+            document.getElementById('mov_kardex_costo').value = '';
+            document.getElementById('mov_kardex_referencia').value = '';
+            document.getElementById('mov_kardex_motivo').value = '';
+            
+            // Recargar productos para actualizar stock en tabla principal
+            setTimeout(() => location.reload(), 1500);
         } else {
-            mostrarNotificacion("❌ Error al registrar el movimiento", "danger");
+            mostrarNotificacion("❌ " + (result.error || "Error al registrar el movimiento"), "danger");
         }
     } catch (error) {
-        console.error(error);
-        mostrarNotificacion("❌ Error de conexión", "danger");
+        console.error("❌ Error:", error);
+        mostrarNotificacion("❌ Error de conexión al registrar movimiento", "danger");
     }
 }
 
@@ -182,6 +275,7 @@ async function guardarMovimientoKardex() {
 // INICIALIZACIÓN
 // =====================================================
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("🟢 DOM cargado, inicializando...");
     inicializarCalculoMargen();
 
     const modalNuevo = document.getElementById('modalNuevoProducto');
@@ -256,27 +350,48 @@ document.addEventListener('DOMContentLoaded', () => {
         btnConfirmarEliminar.addEventListener('click', confirmarEliminarProducto);
     }
 
-    // ==================== KÁRDEx ====================
+    // ==================== KÁRDEX ====================
+    console.log("🟢 Inicializando kárdex...");
+    
+    // Cargar productos al iniciar
     cargarProductosKardex();
 
+    // Cuando se abre el modal del kárdex, cargar movimientos
     const modalKardex = document.getElementById('modalKardex');
     if (modalKardex) {
         modalKardex.addEventListener('shown.bs.modal', () => {
-            cargarKardex();
+            console.log("🟢 Modal kárdex abierto");
+            const productoSelect = document.getElementById('kardex_producto_id');
+            if (productoSelect && productoSelect.value) {
+                cargarKardex(productoSelect.value);
+            } else {
+                cargarKardex();
+            }
         });
     }
 
+    // Filtro por producto
     const filtroKardex = document.getElementById('kardex_producto_id');
     if (filtroKardex) {
         filtroKardex.addEventListener('change', () => {
+            console.log("🟢 Filtro cambiado a:", filtroKardex.value);
             cargarKardex(filtroKardex.value);
         });
     }
 
+    // Botón guardar movimiento
     const btnGuardarKardex = document.getElementById('btnGuardarMovimientoKardex');
     if (btnGuardarKardex) {
         btnGuardarKardex.addEventListener('click', guardarMovimientoKardex);
     }
+    
+    // Fecha por defecto en el modal de nuevo movimiento
+    const fechaInput = document.getElementById('mov_kardex_fecha');
+    if (fechaInput) {
+        fechaInput.value = new Date().toISOString().split('T')[0];
+    }
+    
+    console.log("✅ Inicialización completa");
 });
 
 // =====================================================
@@ -409,6 +524,7 @@ function mostrarNotificacion(mensaje, tipo) {
     notificacion.style.zIndex = '10000';
     notificacion.style.minWidth = '300px';
     notificacion.style.animation = 'slideIn 0.3s ease';
+    notificacion.style.zIndex = '9999';
     
     const icono = tipo === 'success' ? 'check-circle' : (tipo === 'danger' ? 'exclamation-triangle' : 'info-circle');
     notificacion.innerHTML = `<i class="bi bi-${icono} me-2"></i>${mensaje}`;
