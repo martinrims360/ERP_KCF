@@ -733,6 +733,111 @@ def eliminar_cotizacion(id):
         }), 500
 
 
+# =====================================================
+# API PARA PRODUCTOS - EDITAR Y ELIMINAR (NUEVO)
+# =====================================================
+
+@cotizaciones_bp.route("/api/productos/<int:id>", methods=["PUT"])
+def actualizar_producto(id):
+    """Actualizar un producto existente"""
+    try:
+        data = request.json
+        
+        # Validar datos requeridos
+        if not data.get('familia'):
+            return jsonify({"success": False, "error": "La familia es requerida"}), 400
+        
+        if not data.get('descripcion'):
+            return jsonify({"success": False, "error": "La descripción es requerida"}), 400
+        
+        # Verificar si el producto existe
+        existe = db_query("SELECT id FROM productos WHERE id = %s", (id,))
+        if not existe:
+            return jsonify({"success": False, "error": "Producto no encontrado"}), 404
+        
+        # Actualizar producto
+        query = """
+            UPDATE productos 
+            SET familia = %s,
+                marca = %s,
+                descripcion = %s,
+                modelo = %s,
+                unidad = %s,
+                volumen = %s,
+                transporte = %s,
+                observaciones = %s,
+                descripcion_larga = %s,
+                costo_unitario = %s,
+                precio_unitario = %s,
+                stock = %s,
+                updated_at = NOW()
+            WHERE id = %s
+        """
+        
+        params = (
+            data.get('familia'),
+            data.get('marca'),
+            data.get('descripcion'),
+            data.get('modelo'),
+            data.get('unidad'),
+            data.get('volumen'),
+            data.get('transporte'),
+            data.get('observaciones'),
+            data.get('descripcion_larga'),
+            data.get('costo_unitario', 0),
+            data.get('precio_unitario', 0),
+            data.get('stock', 0),
+            id
+        )
+        
+        db_execute(query, params)
+        
+        return jsonify({
+            "success": True,
+            "message": "Producto actualizado correctamente"
+        })
+        
+    except Exception as e:
+        print(f"🔥 Error al actualizar producto {id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@cotizaciones_bp.route("/api/productos/<int:id>", methods=["DELETE"])
+def eliminar_producto_api(id):
+    """Eliminar un producto"""
+    try:
+        # Verificar si el producto existe
+        existe = db_query("SELECT id, descripcion FROM productos WHERE id = %s", (id,))
+        if not existe:
+            return jsonify({"success": False, "error": "Producto no encontrado"}), 404
+        
+        # Verificar si el producto está en alguna cotización
+        en_cotizacion = db_query("SELECT id FROM cotizacion_detalle WHERE producto_id = %s LIMIT 1", (id,))
+        if en_cotizacion:
+            return jsonify({
+                "success": False, 
+                "error": "No se puede eliminar el producto porque está asociado a una o más cotizaciones"
+            }), 400
+        
+        # Eliminar producto
+        db_execute("DELETE FROM productos WHERE id = %s", (id,))
+        
+        return jsonify({
+            "success": True,
+            "message": "Producto eliminado correctamente"
+        })
+        
+    except Exception as e:
+        print(f"🔥 Error al eliminar producto {id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
 # ==========================================
 # 🔥 GENERAR PDF (MIGRADO A WEASYPRINT)
 # ==========================================
@@ -771,6 +876,7 @@ def generar_pdf(cotizacion_id):
             "marca": p.get("marca", ""),
             "modelo": p.get("modelo", ""),
             "cantidad": p.get("cantidad", 0),
+            "unidad": p.get("unidad", "Unid"),
             "precio_venta_unitario": p.get("precio_venta_unitario", 0),
             "subtotal_venta": subtotal,
             "porcentaje_descuento": p.get("descuento_porcentaje", 0),
