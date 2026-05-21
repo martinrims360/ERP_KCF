@@ -458,10 +458,11 @@
                     </div>
                     <div class="card-body-custom">
                         <input type="hidden" id="cliente_id" value="">
-                        <div class="row g-3">
-                            <!-- BUSCADOR POR RUC CON BOTÓN -->
+                        
+                        <!-- 🔥 BUSCADOR POR RUC -->
+                        <div class="row g-3 mb-3">
                             <div class="col-md-12">
-                                <label class="form-label">Buscar por RUC</label>
+                                <label class="form-label">Buscar Cliente por RUC</label>
                                 <div class="input-group">
                                     <input type="text" 
                                            class="form-control custom-input" 
@@ -470,10 +471,15 @@
                                     <button class="btn btn-primary" type="button" id="btnBuscarClientePorRuc">
                                         <i class="bi bi-search"></i> Buscar Cliente
                                     </button>
+                                    <button class="btn btn-outline-secondary" type="button" id="btnLimpiarCliente" title="Limpiar cliente">
+                                        <i class="bi bi-x-circle"></i> Limpiar
+                                    </button>
                                 </div>
                                 <small class="text-muted">Ingrese el RUC y presione buscar para autocompletar los datos del cliente</small>
                             </div>
-                            
+                        </div>
+                        
+                        <div class="row g-3">
                             <div class="col-md-12">
                                 <label class="form-label">Señor(es) <span class="text-danger">*</span></label>
                                 <div class="search-container">
@@ -485,12 +491,7 @@
                             
                             <div class="col-md-6">
                                 <label class="form-label">RUC / DNI</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control custom-input" id="cliente_doc" placeholder="Documento" readonly>
-                                    <button class="btn btn-outline-secondary" type="button" id="btnLimpiarCliente" title="Limpiar cliente">
-                                        <i class="bi bi-x-circle"></i>
-                                    </button>
-                                </div>
+                                <input type="text" class="form-control custom-input" id="cliente_doc" placeholder="Documento" readonly>
                             </div>
                             
                             <div class="col-md-6">
@@ -675,8 +676,7 @@
                                 <td id="total_subtotal_costo">0.00</td>
                                 <td id="total_transporte_prorrateo">0.00</td>
                                 <td id="total_costo_general">0.00</td>
-                                <td></td><td></td>
-                                <td id="total_subtotal_venta">0.00</td>
+                                <td>\n                                <td id="total_subtotal_venta">0.00</td>
                                 <td></td>
                                 <td id="total_subtotal_venta_desc">0.00</td>
                                 <td></td>
