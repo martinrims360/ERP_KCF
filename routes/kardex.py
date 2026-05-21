@@ -148,3 +148,8 @@ def crear_movimiento():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 print("🟢 [9] ¡kardex.py se ha cargado COMPLETAMENTE sin errores!")
+
+# routes/kardex.py - Agrega esto al final
+@kardex_bp.route('/test', methods=['GET'])
+def test_kardex():
+    return jsonify({'message': 'Kardex funciona correctamente', 'status': 'ok'})
