@@ -1,21 +1,28 @@
+import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 # =========================
 # SUPABASE DATABASE URL
 # =========================
-DATABASE_URL = "postgresql+psycopg2://postgres.tkfmwvsenvgpyexvdcat:admin3561967kcf@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+# 1. Primero intenta leer la URL limpia que configuraste en Render
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
+# 2. Si estás en local y no existe la variable de Render, usa esta por defecto (sin +psycopg2)
+if not DATABASE_URL:
+    DATABASE_URL = "postgresql://postgres.tkfmwvsenvgpyexvdcat:admin3561967kcf@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+
+# 3. Por si acaso se te pasa un +psycopg2 en algún lado, esto lo limpia automáticamente:
+if DATABASE_URL.startswith("postgresql+psycopg2://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql+psycopg2://", "postgresql://", 1)
 
 # =========================
 # CONEXIÓN
 # =========================
 def get_connection():
-
     return psycopg2.connect(
         DATABASE_URL,
         client_encoding="UTF8"
