@@ -582,7 +582,7 @@ def buscar_clientes(q: str, limit: int = 10):
         return []
 
     return db_query("""
-        SELECT id, tipo_documento, numero_documento, razon_social, direccion_fiscal,codigo_cliente,nombre_comercial
+        SELECT id, tipo_documento, numero_documento, razon_social, direccion_fiscal, codigo_cliente, nombre_comercial
         FROM clientes
         WHERE activo = TRUE
         AND (numero_documento ILIKE %s OR razon_social ILIKE %s)
@@ -1290,7 +1290,7 @@ def obtener_ultimo_codigo_proveedor():
 
 
 # =========================================
-# BUSCAR CLIENTE POR RUC EXACTO (NUEVO)
+# BUSCAR CLIENTE POR RUC EXACTO (CORREGIDO)
 # =========================================
 def buscar_cliente_por_ruc(ruc: str):
     """Buscar cliente exactamente por número de RUC"""
@@ -1305,9 +1305,6 @@ def buscar_cliente_por_ruc(ruc: str):
             razon_social,
             nombre_comercial,
             direccion_fiscal,
-            telefono_contacto,
-            email_contacto,
-            nombre_contacto,
             codigo_cliente
         FROM clientes
         WHERE activo = TRUE

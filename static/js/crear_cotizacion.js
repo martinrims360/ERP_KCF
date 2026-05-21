@@ -283,59 +283,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // NUEVA FUNCIÓN: BUSCAR CLIENTE POR RUC EN BD
-    // =========================
-    async function buscarClientePorRucEnBD(ruc) {
-        try {
-            const response = await fetch(`/api/clientes/buscar-por-ruc?ruc=${ruc}`);
-            const data = await response.json();
-            console.log('📡 Respuesta del servidor:', data);
-            return data;
-        } catch (error) {
-            console.error('Error buscando cliente por RUC:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // Función para cargar cliente en el formulario
-    function cargarClienteEnFormulario(cliente) {
-        console.log('📝 Cargando cliente en formulario:', cliente);
-        document.getElementById('cliente_id').value = cliente.id;
-        document.getElementById('cliente_razon_social').value = cliente.razon_social;
-        document.getElementById('cliente_doc').value = cliente.numero_documento || '';
-        document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
-        document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';
-        document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
-        
-        // Cargar puntos de entrega
-        if (cliente.id) {
-            cargarPuntosEntrega(cliente.id);
-        }
-        
-        mostrarNotificacion('✅ Cliente cargado correctamente', 'success');
-    }
-
-    // =========================
-    // BOTÓN BUSCAR CLIENTE POR RUC
+    // BOTÓN BUSCAR CLIENTE POR RUC - CONSULTA DIRECTA A SUNAT
     // =========================
     const btnBuscarClientePorRuc = document.getElementById('btnBuscarClientePorRuc');
     const buscarRucInput = document.getElementById('buscar_ruc');
     const btnLimpiarCliente = document.getElementById('btnLimpiarCliente');
 
-    console.log('🔍 Diagnóstico de elementos:');
-    console.log('- btnBuscarClientePorRuc:', btnBuscarClientePorRuc);
-    console.log('- buscarRucInput:', buscarRucInput);
-    console.log('- btnLimpiarCliente:', btnLimpiarCliente);
-
     if (btnBuscarClientePorRuc) {
-        console.log('✅ Botón de búsqueda encontrado, agregando evento...');
+        console.log('✅ Botón de búsqueda encontrado, consultando SUNAT directamente');
         
         btnBuscarClientePorRuc.addEventListener('click', async function(e) {
             e.preventDefault();
-            console.log('🔴 CLICK EN BOTÓN BUSCAR CLIENTE');
             
             const ruc = buscarRucInput?.value.trim();
-            console.log('RUC ingresado:', ruc);
             
             if (!ruc) {
                 mostrarNotificacion('⚠️ Ingrese un RUC para buscar', 'warning');
@@ -347,39 +307,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            mostrarNotificacion('🔍 Buscando cliente con RUC: ' + ruc, 'info');
+            mostrarNotificacion('🔍 Consultando SUNAT para RUC: ' + ruc, 'info');
             
             // Mostrar loading en el botón
             const textoOriginal = btnBuscarClientePorRuc.innerHTML;
-            btnBuscarClientePorRuc.innerHTML = '<i class="bi bi-hourglass-split"></i> Buscando...';
+            btnBuscarClientePorRuc.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando SUNAT...';
             btnBuscarClientePorRuc.disabled = true;
             
             try {
-                const resultado = await buscarClientePorRucEnBD(ruc);
-                console.log('Resultado de búsqueda:', resultado);
+                // 🔥 CONSULTAR DIRECTAMENTE A LA API DE SUNAT
+                const resultado = await consultarSunat(ruc);
                 
-                if (resultado.success && resultado.found && resultado.data) {
-                    cargarClienteEnFormulario(resultado.data);
+                if (resultado.success) {
+                    // Autocompletar el formulario principal
+                    document.getElementById('cliente_razon_social').value = resultado.razon_social || '';
+                    document.getElementById('cliente_doc').value = ruc;
+                    document.getElementById('cliente_direccion').value = resultado.direccion || '';
+                    
+                    // También autocompletar el modal de nuevo cliente
+                    document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
+                    document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
+                    document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
+                    document.getElementById('nuevo_numero_documento').value = ruc;
+                    
+                    mostrarNotificacion('✅ Datos cargados desde SUNAT correctamente', 'success');
                 } else {
-                    mostrarNotificacion('⚠️ Cliente no encontrado en la base de datos. Puede crearlo con el botón "Crear nuevo cliente"', 'warning');
+                    mostrarNotificacion('❌ ' + (resultado.error || 'No se encontraron datos para este RUC en SUNAT'), 'danger');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                mostrarNotificacion('❌ Error al buscar el cliente: ' + error.message, 'danger');
+                mostrarNotificacion('❌ Error al consultar SUNAT: ' + error.message, 'danger');
             } finally {
                 btnBuscarClientePorRuc.innerHTML = textoOriginal;
                 btnBuscarClientePorRuc.disabled = false;
             }
         });
     } else {
-        console.error('❌ ERROR: Botón con ID "btnBuscarClientePorRuc" NO ENCONTRADO en el DOM');
-        console.log('IDs de botones disponibles:', Array.from(document.querySelectorAll('button')).map(b => b.id));
+        console.error('❌ ERROR: Botón con ID "btnBuscarClientePorRuc" NO ENCONTRADO');
     }
 
     // Botón para limpiar cliente
     if (btnLimpiarCliente) {
         btnLimpiarCliente.addEventListener('click', function() {
-            console.log('🧹 Limpiando cliente');
             document.getElementById('cliente_id').value = '';
             document.getElementById('cliente_razon_social').value = '';
             document.getElementById('cliente_doc').value = '';

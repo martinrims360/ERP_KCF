@@ -488,7 +488,145 @@
         </div>
     </div>
 </div>
+<!-- ===================================================== -->
+<!-- MODAL KÁRDEx - MOVIMIENTOS DE INVENTARIO -->
+<!-- ===================================================== -->
+<div class="modal fade" id="modalKardex" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
 
+            <!-- HEADER -->
+            <div class="modal-header bg-primary text-white">
+                <div>
+                    <h4 class="modal-title fw-bold">
+                        <i class="bi bi-journal-text"></i> Kárdex de Inventario
+                    </h4>
+                    <small>Entradas, Salidas y Ajustes de Stock</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+
+                <!-- Filtros rápidos -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Producto</label>
+                        <select id="kardex_producto_id" class="form-select"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Desde</label>
+                        <input type="date" id="kardex_fecha_desde" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Hasta</label>
+                        <input type="date" id="kardex_fecha_hasta" class="form-control">
+                    </div>
+                </div>
+
+                <!-- Resumen -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light text-center p-3">
+                            <small class="text-muted">Stock Actual</small>
+                            <h3 id="kardex_stock_actual" class="text-success mb-0">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light text-center p-3">
+                            <small class="text-muted">Valor Total</small>
+                            <h3 id="kardex_valor_total" class="text-primary mb-0">S/ 0.00</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center">
+                        <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#modalNuevoMovimientoKardex">
+                            <i class="bi bi-plus-circle"></i> Nuevo Movimiento
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla de Movimientos -->
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered" id="tabla-kardex">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Referencia</th>
+                                <th>Motivo</th>
+                                <th class="text-end">Entrada</th>
+                                <th class="text-end">Salida</th>
+                                <th class="text-end">Saldo</th>
+                                <th class="text-end">Costo Unit.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-kardex"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Nuevo Movimiento desde Kárdex -->
+<div class="modal fade" id="modalNuevoMovimientoKardex" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Nuevo Movimiento de Stock</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formMovimientoKardex">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label>Producto *</label>
+                            <select id="mov_kardex_producto_id" class="form-select" required></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Tipo *</label>
+                            <select id="mov_kardex_tipo" class="form-select" required>
+                                <option value="ENTRADA">ENTRADA</option>
+                                <option value="SALIDA">SALIDA</option>
+                                <option value="AJUSTE">AJUSTE</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Fecha</label>
+                            <input type="date" id="mov_kardex_fecha" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label>Cantidad *</label>
+                            <input type="number" id="mov_kardex_cantidad" class="form-control" min="1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Costo Unitario (S/)</label>
+                            <input type="number" id="mov_kardex_costo" step="0.01" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label>Referencia</label>
+                            <input type="text" id="mov_kardex_referencia" class="form-control" placeholder="Factura, Guía...">
+                        </div>
+
+                        <div class="col-12">
+                            <label>Motivo / Observación</label>
+                            <textarea id="mov_kardex_motivo" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnGuardarMovimientoKardex" class="btn btn-success">Registrar Movimiento</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- ===================================================== -->
 <!-- MODAL EDITAR PRODUCTO -->
 <!-- ===================================================== -->
