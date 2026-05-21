@@ -89,6 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             codigoCotizacionActual = codigo;
         }
+        
+        // Actualizar estado del botón PDF después de cambiar el código
+        actualizarEstadoBotonPDF();
     }
 
     // Generar código oficial
@@ -119,6 +122,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const codigoTemporal = generarCodigoTemporal();
         actualizarNumeroCotizacionUI(codigoTemporal, true);
         return codigoTemporal;
+    }
+
+    // =========================
+    // HABILITAR/DESHABILITAR BOTÓN PDF
+    // =========================
+    function actualizarEstadoBotonPDF() {
+        const btnPdf = document.getElementById('btnPdf');
+        const cotizacionId = document.getElementById('cotizacion_id')?.value;
+        const tipoDocumento = document.getElementById('tipo_documento_actual')?.value;
+        
+        if (btnPdf) {
+            // Habilitar PDF si hay ID y NO es borrador
+            if (cotizacionId && cotizacionId !== '' && cotizacionId !== 'None' && esBorrador === false) {
+                btnPdf.disabled = false;
+                btnPdf.classList.remove('opacity-50');
+                console.log('✅ Botón PDF habilitado');
+            } else {
+                btnPdf.disabled = true;
+                btnPdf.classList.add('opacity-50');
+                console.log('❌ Botón PDF deshabilitado - Motivo:', { cotizacionId, esBorrador });
+            }
+        }
     }
 
     // =========================
@@ -602,6 +627,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             document.getElementById('cotizacion_id').value = json.data.id;
             if (!esBorrador) correlativoActual++;
+            
+            // ✅ Habilitar botón PDF después de guardar
+            actualizarEstadoBotonPDF();
+            
             mostrarModalConfirmacion({ id: json.data.id, numero: json.data.codigo_cotizacion, tipo: esBorrador ? 'BORRADOR' : 'OFICIAL' });
         } catch (err) { console.error(err); mostrarNotificacion("❌ Error servidor", "danger"); }
     }
@@ -620,6 +649,33 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('estado').value = 'Generada';
             mostrarNotificacion(`✅ Cotización convertida a OFICIAL\nNúmero: ${nuevoCodigo}`, "success");
             await guardarCotizacion();
+        }
+    }
+
+    // =========================
+    // GENERAR PDF
+    // =========================
+    function generatePdf() {
+        const cotId = document.getElementById('cotizacion_id')?.value;
+        const tipoDocumento = document.getElementById('tipo_documento_actual')?.value;
+        
+        if (!cotId || cotId === '' || cotId === 'None') {
+            mostrarNotificacion("⚠️ Debe guardar la cotización primero", "warning");
+            return;
+        }
+        
+        if (esBorrador) {
+            mostrarNotificacion("⚠️ Debe convertir la cotización a OFICIAL antes de generar PDF", "warning");
+            return;
+        }
+        
+        try {
+            mostrarNotificacion("📄 Generando PDF, espere...", "info");
+            const pdfUrl = `/api/cotizacion/pdf/${cotId}`;
+            window.open(pdfUrl, '_blank');
+        } catch (error) {
+            console.error('Error al generar PDF:', error);
+            mostrarNotificacion("❌ Error al generar el PDF", "danger");
         }
     }
 
@@ -907,12 +963,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('#table-body .btn-del').forEach(b => b.disabled = disabled);
     }
 
-    function generatePdf() {
-        const cotId = document.getElementById('cotizacion_id')?.value;
-        if (!cotId) { mostrarNotificacion("⚠️ Guarda primero la cotización", "warning"); return; }
-        window.open(`/api/cotizacion/pdf/${cotId}`, '_blank');
-    }
-
     function showModificarModal() {
         const modal = document.getElementById('modalModificar');
         if (modal) modal.style.display = 'block';
@@ -978,6 +1028,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             recalculateAll();
             configurarTiempoEntrega();
+            
+            // ✅ Actualizar estado del botón PDF después de cargar
+            actualizarEstadoBotonPDF();
         } catch (err) { console.error(err); mostrarNotificacion("Error cargando cotización", "danger"); }
     }
 
