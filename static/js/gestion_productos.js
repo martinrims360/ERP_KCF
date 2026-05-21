@@ -69,6 +69,116 @@ function inicializarCalculoMargen() {
 }
 
 // =====================================================
+// KÁRDEx - FUNCIONES
+// =====================================================
+
+async function cargarProductosKardex() {
+    const selects = [
+        document.getElementById('kardex_producto_id'),
+        document.getElementById('mov_kardex_producto_id')
+    ];
+
+    try {
+        const res = await fetch('/api/productos');
+        const productos = await res.json();
+
+        selects.forEach(select => {
+            if (!select) return;
+            select.innerHTML = '<option value="">Todos los productos</option>';
+            productos.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.codigo || ''} - ${p.descripcion}</option>`;
+            });
+        });
+    } catch (e) {
+        console.error("Error cargando productos para Kárdex", e);
+    }
+}
+
+async function cargarKardex(productoId = '') {
+    const tbody = document.getElementById('tbody-kardex');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando movimientos...</td></tr>`;
+
+    try {
+        let url = '/api/movimientos_stock';
+        if (productoId) url += `?producto_id=${productoId}`;
+
+        const res = await fetch(url);
+        const movimientos = await res.json();
+
+        tbody.innerHTML = '';
+        let saldo = 0;
+
+        movimientos.forEach(mov => {
+            if (mov.tipo === 'ENTRADA' || mov.tipo === 'AJUSTE') {
+                saldo += parseInt(mov.cantidad);
+            } else if (mov.tipo === 'SALIDA') {
+                saldo -= parseInt(mov.cantidad);
+            }
+
+            const fila = `
+                <tr>
+                    <td>${new Date(mov.created_at).toLocaleDateString('es-PE')}</td>
+                    <td>
+                        <span class="badge ${mov.tipo === 'ENTRADA' ? 'bg-success' : mov.tipo === 'SALIDA' ? 'bg-danger' : 'bg-warning'}">
+                            ${mov.tipo}
+                        </span>
+                    </td>
+                    <td>${mov.referencia || '-'}</td>
+                    <td>${mov.motivo || '-'}</td>
+                    <td class="text-end text-success fw-bold">${(mov.tipo === 'ENTRADA' || mov.tipo === 'AJUSTE') ? mov.cantidad : ''}</td>
+                    <td class="text-end text-danger fw-bold">${mov.tipo === 'SALIDA' ? mov.cantidad : ''}</td>
+                    <td class="text-end fw-bold">${saldo}</td>
+                    <td class="text-end">S/ ${parseFloat(mov.costo_unitario || 0).toFixed(2)}</td>
+                </tr>`;
+            tbody.innerHTML += fila;
+        });
+
+        document.getElementById('kardex_stock_actual').textContent = saldo;
+
+    } catch (error) {
+        console.error(error);
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar el Kárdex</td></tr>`;
+    }
+}
+
+async function guardarMovimientoKardex() {
+    const datos = {
+        producto_id: document.getElementById('mov_kardex_producto_id').value,
+        tipo: document.getElementById('mov_kardex_tipo').value,
+        cantidad: parseInt(document.getElementById('mov_kardex_cantidad').value),
+        costo_unitario: parseFloat(document.getElementById('mov_kardex_costo').value) || null,
+        referencia: document.getElementById('mov_kardex_referencia').value,
+        motivo: document.getElementById('mov_kardex_motivo').value
+    };
+
+    if (!datos.producto_id || !datos.cantidad) {
+        mostrarNotificacion("❌ Producto y cantidad son obligatorios", "danger");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/movimientos_stock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+
+        if (res.ok) {
+            mostrarNotificacion("✅ Movimiento registrado correctamente", "success");
+            bootstrap.Modal.getInstance(document.getElementById('modalNuevoMovimientoKardex')).hide();
+            cargarKardex(document.getElementById('kardex_producto_id').value);
+        } else {
+            mostrarNotificacion("❌ Error al registrar el movimiento", "danger");
+        }
+    } catch (error) {
+        console.error(error);
+        mostrarNotificacion("❌ Error de conexión", "danger");
+    }
+}
+
+// =====================================================
 // INICIALIZACIÓN
 // =====================================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -140,10 +250,32 @@ document.addEventListener('DOMContentLoaded', () => {
         btnGuardar.addEventListener('click', guardarEdicionProducto);
     }
 
-    // ✅ BOTÓN CONFIRMAR ELIMINACIÓN - ESTO ES LO QUE TE FALTABA
+    // BOTÓN CONFIRMAR ELIMINACIÓN
     const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminarProducto');
     if (btnConfirmarEliminar) {
         btnConfirmarEliminar.addEventListener('click', confirmarEliminarProducto);
+    }
+
+    // ==================== KÁRDEx ====================
+    cargarProductosKardex();
+
+    const modalKardex = document.getElementById('modalKardex');
+    if (modalKardex) {
+        modalKardex.addEventListener('shown.bs.modal', () => {
+            cargarKardex();
+        });
+    }
+
+    const filtroKardex = document.getElementById('kardex_producto_id');
+    if (filtroKardex) {
+        filtroKardex.addEventListener('change', () => {
+            cargarKardex(filtroKardex.value);
+        });
+    }
+
+    const btnGuardarKardex = document.getElementById('btnGuardarMovimientoKardex');
+    if (btnGuardarKardex) {
+        btnGuardarKardex.addEventListener('click', guardarMovimientoKardex);
     }
 });
 
@@ -179,7 +311,7 @@ function editarProducto(btn) {
 }
 
 // =====================================================
-// GUARDAR EDICIÓN - CORREGIDO
+// GUARDAR EDICIÓN
 // =====================================================
 async function guardarEdicionProducto() {
     const id = document.getElementById('edit_id').value;
@@ -215,7 +347,6 @@ async function guardarEdicionProducto() {
         if (result.success) {
             mostrarNotificacion("✅ Producto actualizado correctamente", "success");
             bootstrap.Modal.getInstance(document.getElementById('modalEditarProducto')).hide();
-            // ✅ RECARGAR LA PÁGINA PARA VER LOS CAMBIOS
             setTimeout(() => location.reload(), 800);
         } else {
             mostrarNotificacion("❌ Error: " + (result.error || "Error desconocido"), "danger");
@@ -227,7 +358,7 @@ async function guardarEdicionProducto() {
 }
 
 // =====================================================
-// ELIMINAR PRODUCTO - ABRIR MODAL
+// ELIMINAR PRODUCTO
 // =====================================================
 function eliminarProducto(btn) {
     const id = btn.dataset.id;
@@ -240,9 +371,6 @@ function eliminarProducto(btn) {
     modal.show();
 }
 
-// =====================================================
-// ✅ CONFIRMAR ELIMINAR PRODUCTO - ESTA FUNCIÓN ES LA QUE TE FALTABA
-// =====================================================
 async function confirmarEliminarProducto() {
     const id = document.getElementById('eliminar_id_producto').value;
 
@@ -262,7 +390,6 @@ async function confirmarEliminarProducto() {
         if (result.success) {
             mostrarNotificacion("✅ Producto eliminado correctamente", "success");
             bootstrap.Modal.getInstance(document.getElementById('modalEliminarProducto')).hide();
-            // ✅ RECARGAR LA PÁGINA PARA VER LOS CAMBIOS
             setTimeout(() => location.reload(), 800);
         } else {
             mostrarNotificacion("❌ Error al eliminar: " + (result.error || "Error desconocido"), "danger");
