@@ -370,6 +370,34 @@ def buscar_productos():
 
 
 # ==========================================
+# ENDPOINT: VERIFICAR CÓDIGO DE COTIZACIÓN
+# ==========================================
+
+@cotizaciones_bp.route("/api/cotizacion/verificar-codigo", methods=["GET"])
+def verificar_codigo_cotizacion():
+    """Verificar si un código de cotización ya existe"""
+    try:
+        codigo = request.args.get('codigo', '')
+        
+        if not codigo:
+            return jsonify({"exists": False, "error": "No se proporcionó código"}), 400
+        
+        # Verificar si el código existe
+        resultado = db_query("SELECT id FROM cotizaciones WHERE codigo_cotizacion = %s", (codigo,))
+        
+        existe = len(resultado) > 0
+        
+        return jsonify({
+            "exists": existe,
+            "codigo": codigo
+        })
+        
+    except Exception as e:
+        print(f"🔥 Error verificando código: {str(e)}")
+        return jsonify({"exists": False, "error": str(e)}), 500
+
+
+# ==========================================
 # ENDPOINT: CREAR CLIENTE
 # ==========================================
 
@@ -734,7 +762,7 @@ def eliminar_cotizacion(id):
 
 
 # =====================================================
-# API PARA PRODUCTOS - EDITAR Y ELIMINAR (NUEVO)
+# API PARA PRODUCTOS - EDITAR Y ELIMINAR
 # =====================================================
 
 @cotizaciones_bp.route("/api/productos/<int:id>", methods=["PUT"])

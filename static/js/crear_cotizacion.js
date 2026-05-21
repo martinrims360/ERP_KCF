@@ -66,6 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Verificar si un código ya existe en la base de datos
+    async function verificarCodigoExiste(codigo) {
+        try {
+            const response = await fetch(`/api/cotizacion/verificar-codigo?codigo=${encodeURIComponent(codigo)}`);
+            const data = await response.json();
+            return data.exists === true;
+        } catch (error) {
+            console.error('Error verificando código:', error);
+            return false;
+        }
+    }
+
     // Generar código temporal para borrador
     function generarCodigoTemporal() {
         const fecha = new Date();
@@ -94,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         actualizarEstadoBotonPDF();
     }
 
-    // Generar código oficial
+    // Generar código oficial (con verificación de unicidad)
     async function generarCodigoOficial() {
         if (!usuarioActual) {
             await obtenerUsuarioActual();
@@ -102,15 +114,40 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (usuarioActual) {
             await obtenerUltimoCorrelativo(usuarioActual.id);
-            const nuevoCorrelativo = correlativoActual + 1;
-            const codigoVendedor = usuarioActual.codigo_vendedor || `V${String(usuarioActual.id).padStart(3, '0')}`;
-            const fecha = new Date();
-            const año = fecha.getFullYear();
-            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-            const dia = String(fecha.getDate()).padStart(2, '0');
+            let nuevoCorrelativo = correlativoActual + 1;
+            let codigoGenerado = null;
+            let intentos = 0;
+            const maxIntentos = 10;
             
-            const codigo = `COT-${codigoVendedor}-${año}${mes}${dia}-${String(nuevoCorrelativo).padStart(4, '0')}`;
-            return codigo;
+            while (!codigoGenerado && intentos < maxIntentos) {
+                const codigoVendedor = usuarioActual.codigo_vendedor || `V${String(usuarioActual.id).padStart(3, '0')}`;
+                const fecha = new Date();
+                const año = fecha.getFullYear();
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                
+                const codigo = `COT-${codigoVendedor}-${año}${mes}${dia}-${String(nuevoCorrelativo).padStart(4, '0')}`;
+                
+                // Verificar si el código ya existe
+                const existe = await verificarCodigoExiste(codigo);
+                
+                if (!existe) {
+                    codigoGenerado = codigo;
+                    correlativoActual = nuevoCorrelativo;
+                } else {
+                    console.warn(`⚠️ Código ${codigo} ya existe, intentando con correlativo ${nuevoCorrelativo + 1}`);
+                    nuevoCorrelativo++;
+                }
+                intentos++;
+            }
+            
+            if (!codigoGenerado) {
+                console.error('❌ No se pudo generar un código único después de varios intentos');
+                mostrarNotificacion('Error: No se pudo generar un código único. Contacte al administrador.', 'danger');
+                return null;
+            }
+            
+            return codigoGenerado;
         }
         return null;
     }
@@ -130,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function actualizarEstadoBotonPDF() {
         const btnPdf = document.getElementById('btnPdf');
         const cotizacionId = document.getElementById('cotizacion_id')?.value;
-        const tipoDocumento = document.getElementById('tipo_documento_actual')?.value;
         
         if (btnPdf) {
             // Habilitar PDF si hay ID y NO es borrador
@@ -167,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             mostrarNotificacion(`🔍 Consultando RUC ${ruc} en SUNAT...`, 'info');
             
-            // Opción 1: Usar una API gratuita (ejemplo con apis.net.pe)
             const response = await fetch(`https://api.apis.net.pe/v2/sunat/ruc?numero=${ruc}`);
             
             if (!response.ok) {
@@ -190,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error consultando SUNAT:', error);
             
-            // Opción 2: Usar backend propio como proxy
             try {
                 const proxyResponse = await fetch(`/api/sunat/consulta?ruc=${ruc}`);
                 const proxyData = await proxyResponse.json();
@@ -205,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Función para autocompletar el formulario con datos de SUNAT
     async function autocompletarConSunat() {
         const tipoDocumento = document.getElementById('nuevo_tipo_documento')?.value;
         const numeroDocumento = document.getElementById('nuevo_numero_documento')?.value.trim();
@@ -231,14 +264,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const resultado = await consultarSunat(numeroDocumento);
             
             if (resultado.success) {
-                // Autocompletar campos
                 document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
                 document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
                 document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
                 
                 mostrarNotificacion('✅ Datos cargados desde SUNAT correctamente', 'success');
             } else {
-                mostrarNotificacion('❌ No se encontraron datos para este RUC', 'danger');
+                mostrarNotificacion('❌ ' + (resultado.error || 'No se encontraron datos para este RUC'), 'danger');
             }
         } catch (error) {
             console.error('Error:', error);
@@ -262,8 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('⚠️ Elementos de tiempo de entrega no encontrados');
             return;
         }
-        
-        console.log('✅ Configurando tiempo de entrega');
         
         select.addEventListener('change', function() {
             const valor = this.value;
@@ -456,8 +486,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('btnDescargarPDFModal').onclick = () => {
             const cotId = document.getElementById('cotizacion_id')?.value;
-            if (cotId) window.open(`/api/cotizacion/pdf/${cotId}`, '_blank');
-            else alert('⚠️ Guarde primero la cotización');
+            if (cotId && !esBorrador) {
+                window.open(`/api/cotizacion/pdf/${cotId}`, '_blank');
+            } else {
+                mostrarNotificacion('⚠️ Debe convertir a oficial antes de generar PDF', 'warning');
+            }
         };
         
         document.getElementById('btnNuevaCotizacionModal').onclick = () => {
@@ -612,10 +645,18 @@ document.addEventListener('DOMContentLoaded', () => {
             notas: document.getElementById('notas')?.value || "",
             productos: listaProductos,
             codigo_cotizacion: codigoCotizacionActual,
-            correlativo: esBorrador ? 0 : correlativoActual + 1,
+            correlativo: esBorrador ? 0 : correlativoActual,
             es_borrador: esBorrador
         };
 
+        // Mostrar loading
+        const btnGuardar = esBorrador ? document.getElementById('btnGuardarBorrador') : document.getElementById('btnGuardarOficial');
+        const textoOriginal = btnGuardar?.innerHTML;
+        if (btnGuardar) {
+            btnGuardar.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+            btnGuardar.disabled = true;
+        }
+        
         try {
             const res = await fetch('/api/cotizacion/guardar', {
                 method: 'POST',
@@ -623,24 +664,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(payload)
             });
             const json = await res.json();
-            if (!json.success) { mostrarNotificacion("❌ Error: " + json.error, "danger"); return; }
+            
+            if (!json.success) { 
+                mostrarNotificacion("❌ Error: " + (json.error || "Error desconocido"), "danger");
+                return; 
+            }
             
             document.getElementById('cotizacion_id').value = json.data.id;
-            if (!esBorrador) correlativoActual++;
             
-            // ✅ Habilitar botón PDF después de guardar
-            actualizarEstadoBotonPDF();
+            // Si es oficial, actualizar correlativo
+            if (!esBorrador) {
+                correlativoActual++;
+            }
             
-            mostrarModalConfirmacion({ id: json.data.id, numero: json.data.codigo_cotizacion, tipo: esBorrador ? 'BORRADOR' : 'OFICIAL' });
-        } catch (err) { console.error(err); mostrarNotificacion("❌ Error servidor", "danger"); }
+            // Si es oficial y se guardó correctamente, habilitar PDF
+            if (!esBorrador) {
+                actualizarEstadoBotonPDF();
+            }
+            
+            mostrarModalConfirmacion({ 
+                id: json.data.id, 
+                numero: json.data.codigo_cotizacion, 
+                tipo: esBorrador ? 'BORRADOR' : 'OFICIAL' 
+            });
+            
+        } catch (err) { 
+            console.error(err); 
+            mostrarNotificacion("❌ Error de conexión con el servidor", "danger");
+        } finally {
+            if (btnGuardar) {
+                btnGuardar.innerHTML = textoOriginal;
+                btnGuardar.disabled = false;
+            }
+        }
     }
 
     // =========================
     // CONVERTIR A OFICIAL
     // =========================
     async function convertirAOficial() {
-        if (!esBorrador) { mostrarNotificacion("⚠️ Esta cotización ya es oficial", "warning"); return; }
-        if (!confirm("¿Convertir este borrador a cotización oficial?")) return;
+        if (!esBorrador) { 
+            mostrarNotificacion("⚠️ Esta cotización ya es oficial", "warning"); 
+            return; 
+        }
+        
+        // Verificar que haya cliente seleccionado
+        const cliente_id = Number(document.getElementById('cliente_id')?.value || 0);
+        if (!cliente_id) {
+            mostrarNotificacion("⚠️ Debe seleccionar un cliente antes de convertir a oficial", "warning");
+            return;
+        }
+        
+        // Verificar que haya productos
+        const listaProductos = obtenerListaProductos();
+        if (listaProductos.length === 0) {
+            mostrarNotificacion("⚠️ Debe agregar al menos un producto antes de convertir a oficial", "warning");
+            return;
+        }
+        
+        if (!confirm("¿Convertir este borrador a cotización oficial?\n\nEsta acción generará un código único y definitivo.")) return;
         
         const nuevoCodigo = await generarCodigoOficial();
         if (nuevoCodigo) {
@@ -649,6 +731,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('estado').value = 'Generada';
             mostrarNotificacion(`✅ Cotización convertida a OFICIAL\nNúmero: ${nuevoCodigo}`, "success");
             await guardarCotizacion();
+        } else {
+            mostrarNotificacion("❌ Error al generar código oficial. Intente nuevamente.", "danger");
         }
     }
 
@@ -657,7 +741,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================
     function generatePdf() {
         const cotId = document.getElementById('cotizacion_id')?.value;
-        const tipoDocumento = document.getElementById('tipo_documento_actual')?.value;
         
         if (!cotId || cotId === '' || cotId === 'None') {
             mostrarNotificacion("⚠️ Debe guardar la cotización primero", "warning");
@@ -1029,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             recalculateAll();
             configurarTiempoEntrega();
             
-            // ✅ Actualizar estado del botón PDF después de cargar
+            // Actualizar estado del botón PDF después de cargar
             actualizarEstadoBotonPDF();
         } catch (err) { console.error(err); mostrarNotificacion("Error cargando cotización", "danger"); }
     }
