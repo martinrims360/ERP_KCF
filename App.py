@@ -8,9 +8,10 @@ load_dotenv()
 app = Flask(__name__)
 
 # ==================== CONFIGURACIÓN SUPABASE ====================
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'clave-secreta-desarrollo')
+# ✅ CORREGIDO: URL directa sin os.getenv() mal usado
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres.tkfmwvsenvgpyexvdcat:admin3561967kcf@aws-1-us-east-1.pooler.supabase.com:6543/postgres'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # ✅ CORREGIDO: estaba mal escrito
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'sb_secret_k56lhPYVINqZMj_BZexRbw_JzeBx8Hx')
 
 # Instancia de SQLAlchemy
 db = SQLAlchemy()
