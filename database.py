@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # =========================
 # SUPABASE DATABASE URL
 # =========================
-DATABASE_URL = "postgresql://postgres.tkfmwvsenvgpyexvdcat:Kcf_10.2%40kcf.com@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
+DATABASE_URL = "postgresql+psycopg2://postgres.tkfmwvsenvgpyexvdcat:admin3561967kcf@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
 
 
 # =========================
