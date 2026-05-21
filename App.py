@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify  # ✅ AGREGAR jsonify
 from flask_sqlalchemy import SQLAlchemy
 import base64
 
@@ -19,21 +19,28 @@ from routes.cotizaciones import cotizaciones_bp
 from routes.mantenedor_productos import productos_bp
 from routes.kardex import kardex_bp
 
-# Registrar blueprints
+# Registrar blueprints - ✅ SIN url_prefix porque las rutas ya tienen /api
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(cotizaciones_bp)
 app.register_blueprint(productos_bp)
-app.register_blueprint(kardex_bp, url_prefix='/api')  # ✅ CAMBIO IMPORTANTE
+app.register_blueprint(kardex_bp)  # ✅ QUITAR url_prefix='/api'
 
 # ✅ Verificar blueprints activos
-print("Blueprints registrados:", app.blueprints.keys())
+print("🔵 Blueprints registrados:", list(app.blueprints.keys()))
 
-# ✅ Ruta de prueba para verificar que el servidor funciona
+# ✅ Ruta de prueba
 @app.route('/')
 def home():
-    return jsonify({'message': 'Servidor funcionando'})
+    return jsonify({'message': 'Servidor funcionando', 'status': 'ok'})
+
+# ✅ Ruta de prueba para kardex
+@app.route('/test')
+def test():
+    return jsonify({'message': 'Servidor OK'})
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        print("✅ Base de datos inicializada")
+    print("🚀 Servidor corriendo en http://localhost:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
