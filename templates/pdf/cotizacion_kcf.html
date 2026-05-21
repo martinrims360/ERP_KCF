@@ -11,27 +11,25 @@
 
         * {
             text-rendering: optimizeLegibility;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-            font-size: 12px;
-            color: #000;
-            -webkit-font-smoothing: antialiased;
-        }
-        table {
-              page-break-inside: auto;
-        }
-        tr {
-            page-break-inside: avoid;
+            font-family: 'Cambria', Cochin, Georgia, Times, 'Times New Roman', serif;
+            font-size: 11px;
+            color: #1a1a1a;
+            line-height: 1.4;
         }
 
+        /* HEADER */
         .header {
             position: relative;
             display: flex;
             align-items: flex-start;
-            height: 120px;
-            margin-bottom: 15px;
+            min-height: 100px;
+            margin-bottom: 20px;
             border-bottom: 3px solid #D32F2F;
             padding-bottom: 10px;
         }
@@ -40,8 +38,7 @@
             position: absolute;
             left: 0;
             top: 0;
-            width: 200px;
-            background: #000;
+            width: 180px;
         }
 
         .logo img {
@@ -50,192 +47,272 @@
         }
 
         .empresa-info {
-            padding-left: 220px;
+            padding-left: 200px;
+            flex: 1;
         }
 
         .empresa-info h1 {
             color: #D32F2F;
             margin: 0 0 5px 0;
             font-size: 18px;
+            font-weight: bold;
         }
 
         .empresa-info p {
             margin: 2px 0;
-            font-size: 10px;
+            font-size: 9px;
         }
 
         .cotizacion-info {
-            position: absolute;
-            right: 0;
-            top: 0;
             text-align: right;
+            min-width: 200px;
         }
 
         .numero-cotizacion {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: #D32F2F;
         }
 
         .fecha {
-            font-size: 12px;
+            font-size: 10px;
+            margin-top: 4px;
         }
 
-.layout-principal {
-    width: 100%;
-    overflow: hidden;
-    margin-bottom: 15px;
-}
+        /* LAYOUT PRINCIPAL */
+        .layout-principal {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
 
-.seccion-cliente {
-    width: 48%;
-    float: left;
-}
+        .seccion-cliente, .seccion-condiciones {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 6px;
+            border: 1px solid #D32F2F;
+        }
 
-.seccion-condiciones {
-    width: 48%;
-    float: right;
-}
-
-.seccion-cliente {
-    background: #f8f9fa;
-    padding: 20px 15px;
-    border-radius: 6px;
-    border: 1px solid #D32F2F;
-    box-sizing: border-box;
-    font-size: small;
-} 
-.seccion-condiciones {
-    background: #f8f9fa;
-    padding: 12px 15px;
-    border-radius: 6px;
-    border: 1px solid #D32F2F;
-    box-sizing: border-box;
-    font-size: small;
-    
-}
-
-.seccion-cliente h3, 
-.seccion-condiciones h3 {   
-     color: #D32F2F;
-    border-bottom: 1px solid #D32F2F;
-    padding-bottom: 4px;
-    font-size: 12px;
-    margin-top: 0;
-    margin-bottom: 8px;
-    letter-spacing: 0.3px; /* 👈 detalle pro */
-}
+        .seccion-cliente h3, .seccion-condiciones h3 {
+            color: #D32F2F;
+            border-bottom: 1px solid #D32F2F;
+            padding-bottom: 4px;
+            font-size: 11px;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
 
         .info-line, .condicion-line {
             display: flex;
-    margin-bottom: 4px;
-    align-items: flex-start;
+            margin-bottom: 5px;
+            font-size: 10px;
         }
 
         .info-label, .condicion-label {
-              width: 130px;
-              font-weight: bold;
+            width: 100px;
+            font-weight: bold;
         }
-        .info-value, .condicion-value {
-    flex: 1;
-}
 
+        .info-value, .condicion-value {
+            flex: 1;
+        }
+
+        /* TEXTO INTRODUCTORIO */
+        .texto-introductorio {
+            margin: 15px 0;
+            padding: 8px 12px;
+            background: #FFF3E0;
+            border-left: 4px solid #D32F2F;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* TABLA DE PRODUCTOS */
         .tabla-productos {
             width: 100%;
             border-collapse: collapse;
             margin: 15px 0;
-            font-size: 10px; /* 🔥 MÁS NÍTIDO */
-            border: 2px solid #D32F2F;
+            font-size: 9px;
         }
 
         .tabla-productos th {
             background: #D32F2F;
-            color: #FFFFFF;
-            padding: 6px;
+            color: white;
+            padding: 8px 6px;
             border: 1px solid #B71C1C;
+            font-weight: bold;
+            text-align: center;
         }
 
         .tabla-productos td {
             padding: 6px;
-            border: 1px solid #D32F2F;
+            border: 1px solid #ddd;
+            vertical-align: top;
         }
 
-        .texto-introductorio {
-            margin: 10px 0;
-            padding: 8px;
-            border: 1px solid #D32F2F;
-            border-radius: 5px;
-            font-size: 11px;
+        .tabla-productos tr:hover {
+            background: #f5f5f5;
         }
 
+        /* ALINEACIÓN DE COLUMNAS */
+        .col-item {
+            text-align: center;
+            width: 35px;
+        }
+        .col-descripcion {
+            text-align: left;
+        }
+        .col-modelo {
+            text-align: left;
+            width: 80px;
+        }
+        .col-marca {
+            text-align: left;
+            width: 70px;
+        }
+        .col-cantidad {
+            text-align: center;
+            width: 45px;
+        }
+        .col-unidad {
+            text-align: center;
+            width: 60px;
+        }
+        .col-valor-unitario {
+            text-align: right;
+            width: 85px;
+        }
+        .col-valor-total {
+            text-align: right;
+            width: 85px;
+        }
+        .col-valor-final {
+            text-align: right;
+            width: 85px;
+        }
+        .col-total-pagar {
+            text-align: right;
+            width: 85px;
+            background: #FFF8E1;
+            font-weight: bold;
+        }
+
+        /* NÚMEROS A LA DERECHA */
+        .numero-formateado {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /* SECCIÓN DE TOTALES */
         .seccion-totales {
-           width:auto;
-           margin-top: 10px;
-           border: 1px solid #D32F2F;
-           padding: 10px;
-           border-radius: 5px;
-            
+            width: 320px;
+            margin-left: auto;
+            margin-top: 15px;
+            border: 1px solid #D32F2F;
+            padding: 12px 15px;
+            border-radius: 6px;
+            background: #f8f9fa;
         }
-        
 
         .total-line {
-             display: flex;
-             justify-content: space-between;
-    font-size: 12px;
-    margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 11px;
         }
 
         .total-final {
             border-top: 2px solid #D32F2F;
-            font-weight: bold;
-            color: #D32F2F;
-            text-align:right; /* 👉 mueve todo a la derecha */
+            padding-top: 8px;
+            margin-top: 8px;
             font-weight: bold;
             font-size: 13px;
-            margin-top: 8px;
+            color: #D32F2F;
         }
 
+        /* NOTAS */
         .seccion-notas {
-            margin-top: 15px;
+            margin-top: 20px;
             border: 1px solid #D32F2F;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 10px;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 9px;
+            background: #f8f9fa;
         }
 
+        .seccion-notas h3 {
+            color: #D32F2F;
+            border-bottom: 1px solid #D32F2F;
+            padding-bottom: 4px;
+            font-size: 11px;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .nota-item {
+            margin-bottom: 5px;
+        }
+
+        .separador-final {
+            border-top: 1px dashed #D32F2F;
+            margin: 10px 0;
+        }
+
+        /* CONTACTO */
         .seccion-contacto {
             margin-top: 20px;
             border-top: 2px solid #D32F2F;
-            padding-top: 10px;
-            font-size: 10px;
+            padding-top: 12px;
+            text-align: center;
+            font-size: 9px;
         }
 
-        .numero-formateado {
-            font-family: 'Courier New', monospace;
-            text-align:right;
+        .contacto-line {
+            margin-bottom: 3px;
+        }
+
+        /* UTILIDADES */
+        .fw-bold {
+            font-weight: bold;
+        }
+        
+        .bg-warning {
+            background: #FFF3E0;
         }
     </style>
 </head>
 <body>
-    <!-- Encabezado KCF con logo -->
+
+    <!-- HEADER -->
     <div class="header">
         <div class="logo">
             {% if logo_base64 %}
-            <img src="data:image/png;base64,{{ logo_base64 }}">
+            <img src="data:image/png;base64,{{ logo_base64 }}" alt="KCF Logo">
             {% endif %}
         </div>
         <div class="empresa-info">
             <h1>KCF CORPORACION</h1>
             <p><strong>RUC:</strong> 20602095704</p>
-            <p>Lima, Perú</p>
+            <p>Lima - Perú</p>
         </div>
         <div class="cotizacion-info">
-            <div class="numero-cotizacion">Cotización Nro: {{ numero_cotizacion }}</div>
-            <div class="fecha"><strong>Fecha:</strong> {{ fecha_actual }}</div>
+            <div class="numero-cotizacion">COTIZACIÓN N°: {{ numero_cotizacion }}</div>
+            <div class="fecha"><strong>Fecha de Emisión:</strong> {{ fecha_actual }}</div>
         </div>
     </div>
 
-    <!-- Layout principal: Cliente + Condiciones - MISMO ANCHO -->
+    <!-- CLIENTE Y CONDICIONES -->
     <div class="layout-principal">
         <div class="seccion-cliente">
             <h3>INFORMACIÓN DEL CLIENTE</h3>
@@ -244,7 +321,7 @@
                 <span class="info-value">{{ cliente_razon_social }}</span>
             </div>
             <div class="info-line">
-                <span class="info-label">RUC:</span>
+                <span class="info-label">RUC / DNI:</span>
                 <span class="info-value">{{ cliente_ruc }}</span>
             </div>
             <div class="info-line">
@@ -260,7 +337,7 @@
                 <span class="info-value">{{ cliente_contacto }}</span>
             </div>
             <div class="info-line">
-                <span class="info-label">Requerimiento:</span>
+                <span class="info-label">N° Requerimiento:</span>
                 <span class="info-value">{{ numero_requerimiento }}</span>
             </div>
         </div>
@@ -280,7 +357,7 @@
                 <span class="condicion-value">{{ telefono_contacto }}</span>
             </div>
             <div class="condicion-line">
-                <span class="condicion-label">Forma de pago:</span>
+                <span class="condicion-label">Forma de Pago:</span>
                 <span class="condicion-value">{{ forma_pago }}</span>
             </div>
             <div class="condicion-line">
@@ -292,130 +369,117 @@
                 <span class="condicion-value">{{ lugar_entrega }}</span>
             </div>
             <div class="condicion-line">
-                <span class="condicion-label">Validez oferta:</span>
+                <span class="condicion-label">Validez de Oferta:</span>
                 <span class="condicion-value">{{ validez_oferta }}</span>
             </div>
         </div>
     </div>
 
-    <!-- Texto introductorio -->
+    <!-- TEXTO INTRODUCTORIO -->
     <div class="texto-introductorio">
-        <strong>Mediante la presente y de acuerdo a lo solicitado, ponemos a su consideración nuestra oferta por lo siguiente:</strong>
+        Mediante la presente y de acuerdo a lo solicitado, ponemos a su consideración nuestra oferta por lo siguiente:
     </div>
 
-    <!-- TABLA DE PRODUCTOS CON FILTRO SEGURO -->
+    <!-- TABLA DE PRODUCTOS - NUEVO ORDEN -->
     <table class="tabla-productos">
         <thead>
             <tr>
-                <th class="col-item-pdf">Items</th>
-                <th class="col-desc-pdf">Descripción</th>
-                <th class="col-marca-pdf">Marca</th>
-                <th class="col-modelo-pdf">Modelo</th>
-                <th class="col-cantidad-pdf">Cant.</th>
-                <th class="col-punit-pdf">Valor Venta Unit S/.</th>
-                <th class="col-ptotal-pdf">Valor Venta Total S/.</th>
-                <th class="col-descuento-pdf">Desc. %</th>
-                <th class="col-valor-desc-pdf">Valor Descuento S/.</th>
-                <th class="col-valor-final-pdf">Valor Venta Final S/.</th>
+                <th class="col-item">#</th>
+                <th class="col-descripcion">DESCRIPCIÓN</th>
+                <th class="col-modelo">MODELO</th>
+                <th class="col-marca">MARCA</th>
+                <th class="col-cantidad">CANT</th>
+                <th class="col-unidad">UNIDAD</th>
+                <th class="col-valor-unitario">VALOR UNITARIO<br>S/.</th>
+                <th class="col-valor-total">VALOR VENTA<br>TOTAL S/.</th>
+                <th class="col-valor-final">VALOR VENTA<br>FINAL S/.</th>
+                <th class="col-total-pagar">TOTAL A<br>PAGAR S/.</th>
             </tr>
         </thead>
         <tbody>
-{% if productos %}
-    {% for producto in productos %}
-    <tr class="{{ 'fila-con-descuento' if producto.porcentaje_descuento > 0 else '' }}">
-        <td>{{ producto.item }}</td>
-        <td class="descripcion">{{ producto.descripcion }}</td>
-        <td class="marca">{{ producto.marca }}</td>
-        <td>{{ producto.modelo }}</td>
-        <td>{{ producto.cantidad }}</td>
-        <td class="numero-formateado">S/ {{ producto.precio_venta_unitario|default(0)|formato_soles }}</td>
-        <td class="numero-formateado">S/ {{ producto.subtotal_venta|default(0)|formato_soles }}</td>
-        <td>
-            {% if producto.porcentaje_descuento > 0 %}
-            {{ producto.porcentaje_descuento }}%
-            {% else %}-{% endif %}
-        </td>
-        <td class="numero-formateado">
-            {% if producto.porcentaje_descuento > 0 %}
-            S/ {{ producto.descuento_subtotal|default(0)|formato_soles }}
-            {% else %}-{% endif %}
-        </td>
-        <td class="numero-formateado">
-            {% if producto.porcentaje_descuento > 0 %}
-            S/ {{ producto.subtotal_venta_desc|default(0)|formato_soles }}
+            {% if productos %}
+                {% for producto in productos %}
+                <tr>
+                    <td class="text-center">{{ producto.item }}</td>
+                    <td class="descripcion">{{ producto.descripcion }}</td>
+                    <td>{{ producto.modelo|default('-') }}</td>
+                    <td>{{ producto.marca|default('-') }}</td>
+                    <td class="text-center">{{ producto.cantidad }}</td>
+                    <td class="text-center">{{ producto.unidad|default('Unid') }}</td>
+                    <td class="numero-formateado">{{ "%.2f"|format(producto.precio_venta_unitario|default(0)) }}</td>
+                    <td class="numero-formateado">{{ "%.2f"|format(producto.subtotal_venta|default(0)) }}</td>
+                    <td class="numero-formateado">
+                        {% if producto.porcentaje_descuento > 0 %}
+                            {{ "%.2f"|format(producto.subtotal_venta_desc|default(0)) }}
+                        {% else %}
+                            {{ "%.2f"|format(producto.subtotal_venta|default(0)) }}
+                        {% endif %}
+                    </td>
+                    <td class="numero-formateado fw-bold bg-warning">
+                        {{ "%.2f"|format(producto.subtotal_venta_desc|default(producto.subtotal_venta|default(0))) }}
+                    </td>
+                </tr>
+                {% endfor %}
             {% else %}
-            S/ {{ producto.subtotal_venta|default(0)|formato_soles }}
+                <tr>
+                    <td colspan="10" class="text-center" style="padding: 20px;">
+                        No hay productos registrados en esta cotización
+                    </td>
+                </tr>
             {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
-{% else %}
-    <tr>
-        <td colspan="10" style="text-align:center; padding:10px;">
-            No hay productos en esta cotización
-        </td>
-    </tr>
-{% endif %}
-</tbody>
-        <tfoot>
-            <tr style="background: #FFCDD2; font-weight: bold;">
-                <td colspan="6" style="text-align: right; border-top: 2px solid #D32F2F;">TOTAL GENERAL S/.</td>
-                <td style="text-align: center; border-top: 2px solid #D32F2F;" class="numero-formateado">S/ {{ total_subtotal_venta|default(0)|formato_soles }}</td>
-                <td style="text-align: center; border-top: 2px solid #D32F2F;">-</td>
-                <td style="text-align: center; border-top: 2px solid #D32F2F;" class="numero-formateado">
-                    {% if hay_descuentos %}
-                    S/ {{ total_descuento_subtotal|default(0)|formato_soles }}
-                    {% else %}
-                    -
-                    {% endif %}
-                </td>
-                <td style="text-align: center; border-top: 2px solid #D32F2F;" class="numero-formateado">S/ {{ total_subtotal_venta_desc|default(0)|formato_soles }}</td>
-            </tr>
-        </tfoot>
+        </tbody>
     </table>
 
-    <!-- Totales CON NOMBRES MODIFICADOS SEGÚN CLIENTE -->
+    <!-- TOTALES -->
     <div class="seccion-totales">
         <div class="total-line">
-            <span>Subtotal S/.:</span>
-            <span class="numero-formateado">S/ {{ total_subtotal_venta_desc|default(0)|formato_soles }}</span>
+            <span>Subtotal (sin descuentos):</span>
+            <span class="numero-formateado">S/ {{ "%.2f"|format(total_subtotal_venta|default(0)) }}</span>
+        </div>
+        {% if hay_descuentos %}
+        <div class="total-line">
+            <span>Descuentos aplicados:</span>
+            <span class="numero-formateado">- S/ {{ "%.2f"|format(total_descuento_subtotal|default(0)) }}</span>
+        </div>
+        {% endif %}
+        <div class="total-line">
+            <span>Subtotal después de descuentos:</span>
+            <span class="numero-formateado">S/ {{ "%.2f"|format(total_subtotal_venta_desc|default(0)) }}</span>
         </div>
         <div class="total-line">
             <span>IGV (18%):</span>
-            <span class="numero-formateado">S/ {{ summary_igv|default(0)|formato_soles }}</span>
+            <span class="numero-formateado">S/ {{ "%.2f"|format(summary_igv|default(0)) }}</span>
         </div>
         <div class="total-line total-final">
-            <span>Total :</span>
-            <span class="numero-formateado">S/{{ summary_total_venta|default(0)|formato_soles }}</span>
+            <span><strong>TOTAL A PAGAR:</strong></span>
+            <span class="numero-formateado"><strong>S/ {{ "%.2f"|format(summary_total_venta|default(0)) }}</strong></span>
         </div>
     </div>
 
-    <!-- Notas comerciales MODIFICADAS SEGÚN CLIENTE -->
+    <!-- NOTAS COMERCIALES -->
     <div class="seccion-notas">
         <h3>NOTAS COMERCIALES</h3>
         {% if nota_cotizacion and nota_cotizacion.strip() %}
-        <div class="nota-item nota-principal"><strong>Nota:</strong> {{ nota_cotizacion }}</div>
+        <div class="nota-item"><strong>• Nota del documento:</strong> {{ nota_cotizacion }}</div>
         {% endif %}
-        <div class="espacio-notas"></div>
-        <div class="nota-item">* Los precios SI incluyen IGV.</div>
-        <div class="nota-item">* No se aceptan devoluciones.</div>
-        <div class="nota-item">Les agradecemos la oportunidad de presentarles nuestra oferta quedamos a la espera de sus siempre gratas órdenes.</div>
-        
-        <!-- Separador antes del texto final -->
+        <div class="nota-item">• Los precios incluyen IGV (18%).</div>
+        <div class="nota-item">• No se aceptan devoluciones después de 7 días de recibida la mercadería.</div>
+        <div class="nota-item">• Los precios son válidos por {{ validez_oferta }} días a partir de la fecha de emisión.</div>
         <div class="separador-final"></div>
-        
-        <div class="nota-item">Sin otro particular, quedamos a su entera disposición.</div>
+        <div class="nota-item">Les agradecemos la oportunidad de presentarles nuestra oferta. Quedamos a la espera de sus gratas órdenes de compra.</div>
+        <div class="nota-item">Sin otro particular, quedamos a su entera disposición para cualquier consulta adicional.</div>
     </div>
 
-    <!-- Información de contacto -->
+    <!-- PIE DE PÁGINA - CONTACTO -->
     <div class="seccion-contacto">
         <div class="contacto-line"><strong>Atentamente,</strong></div>
         <div class="contacto-line">Himer Castillo</div>
+        <div class="contacto-line">Gerente Comercial</div>
         <div class="contacto-line">KCF CORPORACIÓN</div>
-        <div class="contacto-line">Celular: (+51)999932051</div>
-        <div class="contacto-line">E-mail:ventas@kcf.com</div>
-        <div class="contacto-line">www.kcfcorporacion.com</div>
+        <div class="contacto-line">📞 Celular: (+51) 999932051</div>
+        <div class="contacto-line">✉ Email: ventas@kcfcorporacion.com</div>
+        <div class="contacto-line">🌐 www.kcfcorporacion.com</div>
     </div>
+
 </body>
 </html>
-
