@@ -169,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const cotizacionId = document.getElementById('cotizacion_id')?.value;
         
         if (btnPdf) {
-            // Habilitar PDF si hay ID y NO es borrador
             if (cotizacionId && cotizacionId !== '' && cotizacionId !== 'None' && esBorrador === false) {
                 btnPdf.disabled = false;
                 btnPdf.classList.remove('opacity-50');
@@ -177,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 btnPdf.disabled = true;
                 btnPdf.classList.add('opacity-50');
-                console.log('❌ Botón PDF deshabilitado - Motivo:', { cotizacionId, esBorrador });
+                console.log('❌ Botón PDF deshabilitado');
             }
         }
     }
@@ -281,6 +280,115 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnBuscar.disabled = false;
             }
         }
+    }
+
+    // =========================
+    // NUEVA FUNCIÓN: BUSCAR CLIENTE POR RUC EN BD
+    // =========================
+    async function buscarClientePorRucEnBD(ruc) {
+        try {
+            const response = await fetch(`/api/clientes/buscar-por-ruc?ruc=${ruc}`);
+            const data = await response.json();
+            console.log('📡 Respuesta del servidor:', data);
+            return data;
+        } catch (error) {
+            console.error('Error buscando cliente por RUC:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Función para cargar cliente en el formulario
+    function cargarClienteEnFormulario(cliente) {
+        console.log('📝 Cargando cliente en formulario:', cliente);
+        document.getElementById('cliente_id').value = cliente.id;
+        document.getElementById('cliente_razon_social').value = cliente.razon_social;
+        document.getElementById('cliente_doc').value = cliente.numero_documento || '';
+        document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
+        document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';
+        document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
+        
+        // Cargar puntos de entrega
+        if (cliente.id) {
+            cargarPuntosEntrega(cliente.id);
+        }
+        
+        mostrarNotificacion('✅ Cliente cargado correctamente', 'success');
+    }
+
+    // =========================
+    // BOTÓN BUSCAR CLIENTE POR RUC
+    // =========================
+    const btnBuscarClientePorRuc = document.getElementById('btnBuscarClientePorRuc');
+    const buscarRucInput = document.getElementById('buscar_ruc');
+    const btnLimpiarCliente = document.getElementById('btnLimpiarCliente');
+
+    console.log('🔍 Diagnóstico de elementos:');
+    console.log('- btnBuscarClientePorRuc:', btnBuscarClientePorRuc);
+    console.log('- buscarRucInput:', buscarRucInput);
+    console.log('- btnLimpiarCliente:', btnLimpiarCliente);
+
+    if (btnBuscarClientePorRuc) {
+        console.log('✅ Botón de búsqueda encontrado, agregando evento...');
+        
+        btnBuscarClientePorRuc.addEventListener('click', async function(e) {
+            e.preventDefault();
+            console.log('🔴 CLICK EN BOTÓN BUSCAR CLIENTE');
+            
+            const ruc = buscarRucInput?.value.trim();
+            console.log('RUC ingresado:', ruc);
+            
+            if (!ruc) {
+                mostrarNotificacion('⚠️ Ingrese un RUC para buscar', 'warning');
+                return;
+            }
+            
+            if (ruc.length !== 11) {
+                mostrarNotificacion('⚠️ El RUC debe tener 11 dígitos', 'warning');
+                return;
+            }
+            
+            mostrarNotificacion('🔍 Buscando cliente con RUC: ' + ruc, 'info');
+            
+            // Mostrar loading en el botón
+            const textoOriginal = btnBuscarClientePorRuc.innerHTML;
+            btnBuscarClientePorRuc.innerHTML = '<i class="bi bi-hourglass-split"></i> Buscando...';
+            btnBuscarClientePorRuc.disabled = true;
+            
+            try {
+                const resultado = await buscarClientePorRucEnBD(ruc);
+                console.log('Resultado de búsqueda:', resultado);
+                
+                if (resultado.success && resultado.found && resultado.data) {
+                    cargarClienteEnFormulario(resultado.data);
+                } else {
+                    mostrarNotificacion('⚠️ Cliente no encontrado en la base de datos. Puede crearlo con el botón "Crear nuevo cliente"', 'warning');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarNotificacion('❌ Error al buscar el cliente: ' + error.message, 'danger');
+            } finally {
+                btnBuscarClientePorRuc.innerHTML = textoOriginal;
+                btnBuscarClientePorRuc.disabled = false;
+            }
+        });
+    } else {
+        console.error('❌ ERROR: Botón con ID "btnBuscarClientePorRuc" NO ENCONTRADO en el DOM');
+        console.log('IDs de botones disponibles:', Array.from(document.querySelectorAll('button')).map(b => b.id));
+    }
+
+    // Botón para limpiar cliente
+    if (btnLimpiarCliente) {
+        btnLimpiarCliente.addEventListener('click', function() {
+            console.log('🧹 Limpiando cliente');
+            document.getElementById('cliente_id').value = '';
+            document.getElementById('cliente_razon_social').value = '';
+            document.getElementById('cliente_doc').value = '';
+            document.getElementById('cliente_direccion').value = '';
+            document.getElementById('telefono_contacto').value = '';
+            document.getElementById('cliente_contacto').value = '';
+            if (buscarRucInput) buscarRucInput.value = '';
+            mostrarNotificacion('🧹 Cliente limpiado', 'info');
+        });
     }
 
     // =========================
@@ -649,7 +757,6 @@ document.addEventListener('DOMContentLoaded', () => {
             es_borrador: esBorrador
         };
 
-        // Mostrar loading
         const btnGuardar = esBorrador ? document.getElementById('btnGuardarBorrador') : document.getElementById('btnGuardarOficial');
         const textoOriginal = btnGuardar?.innerHTML;
         if (btnGuardar) {
@@ -672,12 +779,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             document.getElementById('cotizacion_id').value = json.data.id;
             
-            // Si es oficial, actualizar correlativo
             if (!esBorrador) {
                 correlativoActual++;
             }
             
-            // Si es oficial y se guardó correctamente, habilitar PDF
             if (!esBorrador) {
                 actualizarEstadoBotonPDF();
             }
@@ -708,14 +813,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return; 
         }
         
-        // Verificar que haya cliente seleccionado
         const cliente_id = Number(document.getElementById('cliente_id')?.value || 0);
         if (!cliente_id) {
             mostrarNotificacion("⚠️ Debe seleccionar un cliente antes de convertir a oficial", "warning");
             return;
         }
         
-        // Verificar que haya productos
         const listaProductos = obtenerListaProductos();
         if (listaProductos.length === 0) {
             mostrarNotificacion("⚠️ Debe agregar al menos un producto antes de convertir a oficial", "warning");
@@ -1112,7 +1215,6 @@ document.addEventListener('DOMContentLoaded', () => {
             recalculateAll();
             configurarTiempoEntrega();
             
-            // Actualizar estado del botón PDF después de cargar
             actualizarEstadoBotonPDF();
         } catch (err) { console.error(err); mostrarNotificacion("Error cargando cotización", "danger"); }
     }
@@ -1132,7 +1234,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('btnGuardarNuevoCliente')?.addEventListener('click', guardarNuevoCliente);
     
-    // Botón de búsqueda SUNAT
     const btnBuscarSunat = document.getElementById('btnBuscarSunat');
     if (btnBuscarSunat) {
         btnBuscarSunat.addEventListener('click', autocompletarConSunat);
