@@ -21,18 +21,23 @@ from models.movimiento_stock import MovimientoStock
 from routes.usuarios import usuarios_bp
 from routes.cotizaciones import cotizaciones_bp
 from routes.mantenedor_productos import productos_bp
-from routes.kardex import kardex_bp  # IMPORTAR EL BLUEPRINT DEL KÁRDEX
+from routes.kardex import kardex_bp  # ← IMPORTANTE: Debe estar importado
 
 # ==================== REGISTRAR BLUEPRINTS ====================
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(cotizaciones_bp)
 app.register_blueprint(productos_bp)
-app.register_blueprint(kardex_bp)  # REGISTRAR EL BLUEPRINT DEL KÁRDEX
+app.register_blueprint(kardex_bp)  # ← IMPORTANTE: Debe estar registrado
 
 # ==================== RUTA DE PRUEBA ====================
 @app.route('/')
 def home():
     return jsonify({'message': 'Servidor funcionando', 'status': 'ok'})
+
+# ==================== RUTA DE PRUEBA PARA KÁRDEX ====================
+@app.route('/test-kardex')
+def test_kardex():
+    return jsonify({'message': 'Kardex route test', 'status': 'ok'})
 
 # ==================== RUTAS PARA PLANTILLAS PRINCIPALES ====================
 @app.route('/mantenedor')
@@ -50,9 +55,6 @@ def gestion_productos():
 def guardar_producto():
     """Guardar nuevo producto"""
     try:
-        from models.producto import Producto
-        from datetime import datetime
-        
         # Obtener datos del formulario
         familia = request.form.get('familia')
         marca = request.form.get('marca')
@@ -74,7 +76,7 @@ def guardar_producto():
         else:
             peso = request.form.get('peso_rango')
         
-        # Generar código automático
+        # Generar código automático (necesitas tener esta función en models/producto.py)
         from models.producto import generar_codigo_producto
         codigo = generar_codigo_producto(familia)
         
