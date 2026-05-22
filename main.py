@@ -484,7 +484,7 @@ def api_consulta_sunat():
 
 
 # =========================
-# ENDPOINTS PRODUCTOS API
+# ENDPOINTS PRODUCTOS API - CORREGIDO
 # =========================
 
 @app.route("/api/productos/buscar", methods=["GET"])
@@ -504,9 +504,9 @@ def api_buscar_productos():
         engine = create_engine(_a)
         
         with engine.connect() as conn:
-            # Buscar en la tabla productos
+            # Consulta sin la columna que no existe (precio_costo)
             query = text("""
-                SELECT id, codigo, descripcion, marca, modelo, stock, costo_unitario, unidad
+                SELECT id, codigo, descripcion, marca, modelo, stock
                 FROM productos 
                 WHERE codigo ILIKE :q OR descripcion ILIKE :q
                 ORDER BY codigo
@@ -523,8 +523,8 @@ def api_buscar_productos():
                     'marca': row[3] or '',
                     'modelo': row[4] or '',
                     'stock': row[5] or 0,
-                    'costo_unitario': float(row[6]) if row[6] else 0,
-                    'unidad': row[7] or 'und'
+                    'costo_unitario': 0,  # Valor por defecto
+                    'unidad': 'und'
                 })
         
         print(f"✅ Encontrados {len(productos)} productos")
@@ -549,7 +549,7 @@ def api_listar_productos():
         
         with engine.connect() as conn:
             query = text("""
-                SELECT id, codigo, descripcion, marca, modelo, stock, costo_unitario
+                SELECT id, codigo, descripcion, marca, modelo, stock
                 FROM productos 
                 ORDER BY codigo
                 LIMIT 100
@@ -565,7 +565,7 @@ def api_listar_productos():
                     'marca': row[3] or '',
                     'modelo': row[4] or '',
                     'stock': row[5] or 0,
-                    'costo_unitario': float(row[6]) if row[6] else 0
+                    'costo_unitario': 0
                 })
         
         return jsonify({'success': True, 'data': productos})
