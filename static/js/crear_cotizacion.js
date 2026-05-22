@@ -659,8 +659,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function buscarProductos(q) {
         try {
+            console.log('🔎 Buscando productos con:', q);
             const res = await fetch(`/api/productos/buscar?q=${encodeURIComponent(q)}`);
             const json = await res.json();
+            console.log('📦 Productos encontrados:', json);
             return json.data || [];
         } catch (error) {
             console.error('Error buscando productos:', error);
@@ -838,11 +840,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // SET PRODUCTO EN FILA
     // =========================
     function setProductoEnFila(row, p) {  
-        row.querySelector('.producto_id').value = p.id;
-        row.querySelector('.codigo_producto').value = p.codigo || "";
-        row.querySelector('.descripcion').value = p.descripcion || "";
-        row.querySelector('.marca').value = p.marca || "";
-        row.querySelector('.modelo').value = p.modelo || "";
+        const productoIdInput = row.querySelector('.producto_id');
+        const codigoInput = row.querySelector('.codigo_producto');
+        const descripcionInput = row.querySelector('.descripcion');
+        const marcaInput = row.querySelector('.marca');
+        const modeloInput = row.querySelector('.modelo');
+        
+        if (productoIdInput) productoIdInput.value = p.id;
+        if (codigoInput) codigoInput.value = p.codigo || "";
+        if (descripcionInput) descripcionInput.value = p.descripcion || "";
+        if (marcaInput) marcaInput.value = p.marca || "";
+        if (modeloInput) modeloInput.value = p.modelo || "";
+        
+        console.log('✅ Producto seleccionado:', p.codigo, p.descripcion);
     }
 
     // =========================
@@ -884,25 +894,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function attachProductoAutocomplete(row) {
         const input = row.querySelector('.codigo_producto');
-        if (!input) return;
+        
+        if (!input) {
+            console.error('❌ No se encontró input .codigo_producto en la fila');
+            return;
+        }
+        
+        console.log('✅ Autocomplete de producto inicializado para fila');
         let timeoutId = null;
 
         input.addEventListener('input', async () => {
             const q = input.value.trim();
+            console.log('📝 Escribiendo en producto:', q);
+            
             if (timeoutId) clearTimeout(timeoutId);
-            if (q.length < 2) { portalHide(); return; }
+            if (q.length < 2) { 
+                portalHide(); 
+                return; 
+            }
             
             timeoutId = setTimeout(async () => {
+                console.log('🔎 Buscando producto:', q);
                 const productos = await buscarProductos(q);
-                if (!productos.length) { portalShow(input, `<div class="empty">No encontrado</div>`); return; }
+                console.log('📦 Productos encontrados:', productos.length);
+                
+                if (!productos.length) { 
+                    portalShow(input, `<div class="empty">❌ No se encontraron productos</div>`); 
+                    return; 
+                }
 
                 const html = productos.map(p => `<div class="item" data-id="${p.id}" data-codigo="${p.codigo}" data-descripcion="${p.descripcion}" data-marca="${p.marca || ''}" data-modelo="${p.modelo || ''}">
-                    <strong>📦 ${p.codigo}</strong> - ${p.descripcion}<div class="meta">${p.marca || ''} • ${p.unidad || ''}</div></div>`).join('');
+                    <strong>📦 ${p.codigo}</strong> - ${p.descripcion}<div class="meta">${p.marca || ''} • Stock: ${p.stock || 0}</div></div>`).join('');
                 portalShow(input, html);
 
                 portal.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', () => {
-                        setProductoEnFila(row, { id: el.dataset.id, codigo: el.dataset.codigo, descripcion: el.dataset.descripcion, marca: el.dataset.marca, modelo: el.dataset.modelo });
+                        const productoData = {
+                            id: el.dataset.id,
+                            codigo: el.dataset.codigo,
+                            descripcion: el.dataset.descripcion,
+                            marca: el.dataset.marca,
+                            modelo: el.dataset.modelo
+                        };
+                        setProductoEnFila(row, productoData);
                         portalHide();
                         recalculateAll();
                     });
@@ -1024,40 +1058,101 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('summary_subtotal_venta_desc').textContent = totalVentaDesc.toFixed(2);
         document.getElementById('summary_igv').textContent = igv.toFixed(2);
         document.getElementById('summary_total_venta').textContent = totalFinal.toFixed(2);
+        
+        // Actualizar totales del footer
+        const totalSubtotalCostoElem = document.getElementById('total_subtotal_costo');
+        const totalTransporteProrrateo = document.getElementById('total_transporte_prorrateo');
+        const totalCostoGeneral = document.getElementById('total_costo_general');
+        const totalSubtotalVenta = document.getElementById('total_subtotal_venta');
+        const totalSubtotalVentaDesc = document.getElementById('total_subtotal_venta_desc');
+        
+        if (totalSubtotalCostoElem) {
+            let sumSubtotalCosto = 0;
+            rows.forEach(r => { sumSubtotalCosto += Number(r.querySelector('.subtotal_costo')?.textContent || 0); });
+            totalSubtotalCostoElem.textContent = sumSubtotalCosto.toFixed(2);
+        }
+        
+        if (totalTransporteProrrateo) {
+            let sumTransporte = 0;
+            rows.forEach(r => { sumTransporte += Number(r.querySelector('.transporte_prorrateo')?.textContent || 0); });
+            totalTransporteProrrateo.textContent = sumTransporte.toFixed(2);
+        }
+        
+        if (totalCostoGeneral) {
+            let sumCosto = 0;
+            rows.forEach(r => { sumCosto += Number(r.querySelector('.total_costo')?.textContent || 0); });
+            totalCostoGeneral.textContent = sumCosto.toFixed(2);
+        }
+        
+        if (totalSubtotalVenta) {
+            let sumVenta = 0;
+            rows.forEach(r => { sumVenta += Number(r.querySelector('.subtotal_venta_item')?.textContent || 0); });
+            totalSubtotalVenta.textContent = sumVenta.toFixed(2);
+        }
+        
+        if (totalSubtotalVentaDesc) {
+            totalSubtotalVentaDesc.textContent = totalVentaDesc.toFixed(2);
+        }
     }
 
     // =========================
-    // AGREGAR ITEMS
+    // AGREGAR ITEMS - VERSIÓN CORREGIDA
     // =========================
     function addItem() {
-        if (cotizacionBloqueada) { mostrarNotificacion("⚠️ La cotización está bloqueada.", "warning"); return; }
+        if (cotizacionBloqueada) { 
+            mostrarNotificacion("⚠️ La cotización está bloqueada.", "warning"); 
+            return; 
+        }
         itemCounter++;
         const row = document.createElement("tr");
-        row.innerHTML = `<td class="col-item">${itemCounter}</td>
-            <td class="col-codigo"><input type="text" class="codigo_producto" placeholder="Código"><input type="hidden" class="producto_id"></td>
-            <td class="col-desc"><input type="text" class="descripcion"></td>
-            <td class="col-marca"><input type="text" class="marca"></td>
-            <td class="col-modelo"><input type="text" class="modelo"></td>
-            <td class="col-cantidad"><input type="number" class="cantidad" value="1" step="0.01"></td>
-            <td class="col-monto"><input type="number" class="precio_costo_unitario" value="0" step="0.01"></td>
-            <td class="subtotal_costo">0.00</td><td class="transporte_prorrateo">0.00</td><td class="total_costo">0.00</td>
+        row.innerHTML = `
+            <td class="col-item">${itemCounter}</td>
+            <td class="col-codigo">
+                <input type="text" class="codigo_producto" placeholder="Buscar producto..." style="width:100%; min-width:120px;">
+                <input type="hidden" class="producto_id">
+            </td>
+            <td class="col-desc"><input type="text" class="descripcion" readonly style="width:100%;"></td>
+            <td class="col-marca"><input type="text" class="marca" readonly style="width:100%;"></td>
+            <td class="col-modelo"><input type="text" class="modelo" readonly style="width:100%;"></td>
+            <td class="col-cantidad"><input type="number" class="cantidad" value="1" step="0.01" style="width:100%;"></td>
+            <td class="col-monto"><input type="number" class="precio_costo_unitario" value="0" step="0.01" style="width:100%;"></td>
+            <td class="subtotal_costo">0.00</td>
+            <td class="transporte_prorrateo">0.00</td>
+            <td class="total_costo">0.00</td>
             <td class="precio_unitario_costo_total">0.00</td>
-            <td><input type="number" class="margen_venta" value="20" step="0.01"></td>
-            <td><input type="number" class="precio_venta_unitario_input" value="0" step="0.01"></td>
-            <td class="precio_venta_unitario_calc">0.00</td><td class="subtotal_venta_item">0.00</td>
-            <td><input type="number" class="descuento_porcentaje" value="0" step="0.01"></td>
-            <td class="precio_unitario_venta_desc">0.00</td><td class="subtotal_venta_desc">0.00</td>
-            <td><button class="btn-del">🗑</button></td>`;
+            <td><input type="number" class="margen_venta" value="20" step="0.01" style="width:100%;"></td>
+            <td><input type="number" class="precio_venta_unitario_input" value="0" step="0.01" style="width:100%;"></td>
+            <td class="precio_venta_unitario_calc">0.00</td>
+            <td class="subtotal_venta_item">0.00</td>
+            <td><input type="number" class="descuento_porcentaje" value="0" step="0.01" style="width:100%;"></td>
+            <td class="precio_unitario_venta_desc">0.00</td>
+            <td class="subtotal_venta_desc">0.00</td>
+            <td><button class="btn-del">🗑</button></td>
+        `;
+        
         if (tableBody) tableBody.appendChild(row);
+        
+        // Inicializar autocomplete para esta fila
         attachProductoAutocomplete(row);
         
-        const rec = () => { if (!modoConsulta) { recalculateAll(); datosModificados = true; } };
+        // Configurar eventos de recálculo
+        const rec = () => { 
+            if (!modoConsulta) { 
+                recalculateAll(); 
+                datosModificados = true; 
+            } 
+        };
+        
         row.querySelector('.cantidad')?.addEventListener('input', rec);
         row.querySelector('.precio_costo_unitario')?.addEventListener('input', rec);
         row.querySelector('.margen_venta')?.addEventListener('input', rec);
         row.querySelector('.precio_venta_unitario_input')?.addEventListener('input', rec);
         row.querySelector('.descuento_porcentaje')?.addEventListener('input', rec);
-        row.querySelector('.btn-del')?.addEventListener('click', () => { row.remove(); recalculateAll(); });
+        row.querySelector('.btn-del')?.addEventListener('click', () => { 
+            row.remove(); 
+            recalculateAll(); 
+        });
+        
         setTimeout(recalculateAll, 50);
     }
 
@@ -1105,11 +1200,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function aplicarBloqueoUI() {
         const disabled = cotizacionBloqueada;
         document.querySelectorAll('#table-body input').forEach(i => i.disabled = disabled);
-        ['cliente_razon_social', 'cliente_doc', 'cliente_telefono', 'cliente_contacto', 'numero_requerimiento', 'direccion_entrega', 'punto_entrega', 'estado'].forEach(id => {
+        ['cliente_razon_social', 'cliente_doc', 'telefono_contacto', 'cliente_contacto', 'numero_requerimiento', 'direccion_entrega', 'punto_entrega', 'estado'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = disabled;
         });
-        ['asesor_comercial', 'email_contacto', 'telefono_contacto', 'forma_pago', 'tiempo_entrega', 'validez_oferta', 'descuento_porcentaje', 'nota_cotizacion', 'notas', 'monto_transporte'].forEach(id => {
+        ['asesor_comercial', 'email_contacto', 'telefono_contacto_user', 'forma_pago', 'tiempo_entrega', 'validez_oferta', 'nota_cotizacion', 'notas', 'monto_transporte'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = disabled;
         });
@@ -1189,6 +1284,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
+    // DIAGNÓSTICO
+    // =========================
+    function diagnosticar() {
+        console.log('=== DIAGNÓSTICO ===');
+        console.log('Estado cotización:', estadoCotizacion);
+        console.log('Bloqueada:', cotizacionBloqueada);
+        console.log('Modo consulta:', modoConsulta);
+        console.log('Es borrador:', esBorrador);
+        console.log('Item counter:', itemCounter);
+        
+        const filas = document.querySelectorAll("#table-body tr");
+        console.log('Filas en tabla:', filas.length);
+        
+        filas.forEach((fila, idx) => {
+            const codigoInput = fila.querySelector('.codigo_producto');
+            console.log(`Fila ${idx + 1} - Input código:`, codigoInput ? '✅ Encontrado' : '❌ NO ENCONTRADO');
+            if (codigoInput) {
+                console.log(`  - Value: ${codigoInput.value}`);
+                console.log(`  - Placeholder: ${codigoInput.placeholder}`);
+            }
+        });
+        
+        mostrarNotificacion('Diagnóstico completo. Revisa la consola (F12)', 'info');
+    }
+    
+    // =========================
     // EVENTOS
     // =========================
     document.getElementById('btnGuardarBorrador')?.addEventListener('click', guardarCotizacion);
@@ -1197,6 +1318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnModificar')?.addEventListener('click', showModificarModal);
     document.getElementById('btnAceptada')?.addEventListener('click', showAceptadaModal);
     document.getElementById('btnAgregarItem')?.addEventListener('click', addItem);
+    document.getElementById('btnDiagnostico')?.addEventListener('click', diagnosticar);
     document.getElementById('btnCrearCliente')?.addEventListener('click', () => {
         document.getElementById('formNuevoCliente')?.reset();
         new bootstrap.Modal(document.getElementById('modalNuevoCliente')).show();
@@ -1222,8 +1344,12 @@ document.addEventListener('DOMContentLoaded', () => {
     inicializarCodigo();
 
     const cotId = document.getElementById('cotizacion_id')?.value;
-    if (cotId) { cargarCotizacion(cotId); } 
-    else { esBorrador = true; document.getElementById('estado').value = 'En Proceso'; }
+    if (cotId && cotId !== 'None') { 
+        cargarCotizacion(cotId); 
+    } else { 
+        esBorrador = true; 
+        document.getElementById('estado').value = 'En Proceso'; 
+    }
 
     // =========================
     // METODO DE PAGO
@@ -1241,7 +1367,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 formaPago.innerHTML += '<option value="Transferencia">Transferencia</option>';
                 formaPago.value = "Transferencia";
                 formaPago.disabled = true;
-            } else { formaPago.disabled = false; }
+            } else { 
+                formaPago.disabled = false; 
+            }
         });
     }
 });
