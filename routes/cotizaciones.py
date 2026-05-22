@@ -372,6 +372,10 @@ def buscar_contactos_cliente(cliente_id):
         }), 500
 
 
+# ==========================================
+# 🔥 CORREGIDO: CAMBIADO precio_costo por costo_unitario
+# ==========================================
+
 @cotizaciones_bp.route("/api/productos/buscar", methods=["GET"])
 def buscar_productos():
     """Buscar productos por código o descripción"""
@@ -381,7 +385,7 @@ def buscar_productos():
         if q and q.strip():
             query = """
                 SELECT id, codigo, descripcion, marca, modelo, unidad,
-                       precio_costo as ultimo_costo
+                       costo_unitario as ultimo_costo
                 FROM productos 
                 WHERE codigo ILIKE %s OR descripcion ILIKE %s
                 LIMIT 20
@@ -390,7 +394,7 @@ def buscar_productos():
         else:
             query = """
                 SELECT id, codigo, descripcion, marca, modelo, unidad,
-                       precio_costo as ultimo_costo
+                       costo_unitario as ultimo_costo
                 FROM productos 
                 LIMIT 20
             """
