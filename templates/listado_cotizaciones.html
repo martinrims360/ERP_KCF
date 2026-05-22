@@ -3,141 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KCF CORPORACIÓN | Dashboard Ejecutivo</title>
+    <title>Gestor de Cotizaciones - KCF CORPORACION</title>
     
-    <!-- Bootstrap 5 + Icons + Fuentes -->
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cotizaciones.css') }}">
+    
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-        body {
-            background: #f0f2f6;
-            margin: 0;
-            overflow-x: hidden;
-        }
-
-        /* ========= SIDEBAR CORPORATIVO LATERAL ========= */
-        .kcf-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            width: 280px;
-            background: linear-gradient(180deg, #0a2540 0%, #051e2f 100%);
-            color: #e6f0fa;
-            z-index: 1040;
-            transition: all 0.25s ease;
-            box-shadow: 8px 0 24px rgba(0,0,0,0.06);
-        }
-        .sidebar-brand {
-            padding: 1.8rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            margin-bottom: 1.5rem;
-        }
-        .sidebar-brand h2 {
-            font-weight: 800;
-            font-size: 1.7rem;
-            letter-spacing: -0.5px;
-            margin: 0;
-            color: white;
-        }
-        .sidebar-brand span {
-            font-size: 0.7rem;
-            opacity: 0.7;
-            display: block;
-            margin-top: 6px;
-        }
-        .nav-sidebar {
-            list-style: none;
-            padding: 0 1rem;
-        }
-        .nav-sidebar li {
-            margin-bottom: 0.4rem;
-        }
-        .nav-sidebar a {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 0.75rem 1rem;
-            border-radius: 14px;
-            color: #cbd5e6;
-            text-decoration: none;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-        .nav-sidebar a i {
-            font-size: 1.3rem;
-            width: 28px;
-        }
-        .nav-sidebar a:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .nav-sidebar .active-link {
-            background: #2c7da0;
-            color: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        .sidebar-footer {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            padding: 1rem 1.6rem;
-            border-top: 1px solid rgba(255,255,255,0.07);
-            font-size: 0.8rem;
-        }
-
-        /* MAIN CONTENT */
-        .main-dashboard {
-            margin-left: 280px;
-            padding: 1.8rem 2rem;
-            transition: 0.2s;
-        }
-
-        /* Tarjetas elegantes */
-        .card-elegant {
-            background: white;
+        /* Estilos adicionales específicos para listado */
+        .card-custom {
+            border-radius: 20px;
             border: none;
-            border-radius: 28px;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.05);
-            transition: transform 0.1s;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            overflow: hidden;
         }
         
-        /* Stats cards */
-        .stat-card {
-            background: white;
-            border-radius: 24px;
-            padding: 1rem 0.8rem;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            border: 1px solid #eff3f8;
-        }
-        .stat-number {
-            font-size: 32px;
+        .page-title {
+            font-size: 28px;
             font-weight: 800;
-            color: #0a2540;
+            color: #111827;
         }
         
-        /* Tablas corporativas */
-        .table-corporate thead th {
-            background: #f8fafd;
-            color: #1e2f3e;
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #e4e9f0;
-            padding: 1rem;
+        .subtitle {
+            color: #6b7280;
+            font-size: 14px;
         }
-        .table-corporate td {
-            padding: 1rem;
+        
+        .btn-custom {
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+        
+        .search-input {
+            border-radius: 40px;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+        
+        .search-input:focus {
+            border-color: #d90429;
+            box-shadow: 0 0 0 3px rgba(217,4,41,0.1);
+            outline: none;
+        }
+        
+        .table thead th {
+            background: #111827;
+            color: white;
+            font-weight: 600;
+            padding: 15px;
+            border: none;
+        }
+        
+        .table tbody td {
+            padding: 15px;
             vertical-align: middle;
-            border-bottom: 1px solid #f0f2f6;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .table tbody tr:hover {
+            background: rgba(217,4,41,0.03);
         }
         
         .badge-estado {
@@ -146,474 +83,435 @@
             border-radius: 40px;
             font-size: 12px;
             font-weight: 700;
+            text-align: center;
         }
-        .estado-borrador { background: #fef3c7; color: #92400e; border-left: 3px solid #f59e0b; }
-        .estado-generada { background: #dbeafe; color: #1e40af; border-left: 3px solid #3b82f6; }
-        .estado-aceptada { background: #d1fae5; color: #065f46; border-left: 3px solid #10b981; }
         
-        .btn-accion {
+        .estado-borrador {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 3px solid #f59e0b;
+        }
+        
+        .estado-generada {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .estado-aceptada {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 3px solid #10b981;
+        }
+        
+        .estado-rechazada {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 3px solid #ef4444;
+        }
+        
+        .estado-en-proceso {
+            background: #e0e7ff;
+            color: #3730a3;
+            border-left: 3px solid #6366f1;
+        }
+        
+        .monto {
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        .acciones {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .acciones .btn {
             width: 34px;
             height: 34px;
-            border-radius: 12px;
+            border-radius: 10px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: 0.2s;
-        }
-        .search-input-modern {
-            border-radius: 40px;
-            padding: 10px 18px 10px 42px;
-            border: 1px solid #e2e8f0;
-            background: white;
-        }
-        .filtro-select {
-            border-radius: 40px;
-            padding: 9px 20px;
-            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
         }
         
-        @media (max-width: 768px) {
-            .kcf-sidebar { transform: translateX(-100%); width: 260px; }
-            .main-dashboard { margin-left: 0; }
+        .acciones .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .badge-codigo {
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: 700;
+            background: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 8px;
+            color: #374151;
+        }
+        
+        .codigo-tmp {
+            color: #f59e0b;
+            background: #fef3c7;
+        }
+        
+        /* Modal de confirmación */
+        .modal-confirmacion {
+            border-radius: 20px;
+        }
+        
+        .modal-confirmacion .modal-header {
+            background: linear-gradient(135deg, #111827, #1f2937);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        /* Toolbar stats */
+        .stats-bar {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 16px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: #111827;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        /* Modal crear cliente */
+        .modal-crear-cliente .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
         }
         
         /* Notificaciones */
-        .notificacion {
+        #notificacionesContainer {
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 9999;
-            min-width: 300px;
-            animation: slideIn 0.3s ease;
-            border-radius: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
+        
+        .notificacion {
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            min-width: 300px;
+            max-width: 500px;
+            animation: slideIn 0.3s ease;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        
+        .notificacion-exito { background: #4CAF50; color: white; }
+        .notificacion-error { background: #f44336; color: white; }
+        .notificacion-info { background: #2196F3; color: white; }
+        .notificacion-warning { background: #ff9800; color: white; }
+        
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
         
-        /* Spinner */
-        .loading-spinner {
-            display: inline-block;
-            width: 1.2rem;
-            height: 1.2rem;
-            border: 2px solid rgba(0,0,0,0.1);
-            border-radius: 50%;
-            border-top-color: #2c7da0;
-            animation: spin 0.6s linear infinite;
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+            
+            .left-actions, .right-actions {
+                justify-content: center;
+            }
+            
+            .search-input {
+                width: 100%;
+                min-width: auto !important;
+            }
+            
+            .acciones {
+                flex-wrap: wrap;
+            }
+            
+            .stat-number {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
 
-<!-- SIDEBAR CORPORATIVO -->
-<div class="kcf-sidebar">
-    <div class="sidebar-brand">
-        <h2><i class="bi bi-briefcase-fill me-2"></i> KCF CORP</h2>
-        <span>ERP & Gestión Comercial</span>
-    </div>
-    <ul class="nav-sidebar">
-        <li><a href="#" class="active-link" id="sidebarDashboardLink"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a></li>
-        <li><a href="#" id="sidebarProductosLink"><i class="bi bi-box-seam"></i> <span>Gestión Productos</span></a></li>
-        <li><a href="#" id="sidebarCotizacionesLink"><i class="bi bi-clipboard-data"></i> <span>Cotizaciones</span></a></li>
-        <li><a href="#" id="sidebarKardexLink"><i class="bi bi-journal-bookmark-fill"></i> <span>Kárdex</span></a></li>
-        <li><a href="/mantenedor" id="volverMain"><i class="bi bi-arrow-return-left"></i> <span>Volver al Panel</span></a></li>
-    </ul>
-    <div class="sidebar-footer">
-        <div><i class="bi bi-person-circle me-2"></i> <strong>{{ session.nombre_completo|default('Ejecutivo KCF') }}</strong></div>
-        <div class="small opacity-50 mt-1">Acceso corporativo · v2.0</div>
-    </div>
-</div>
+<div class="container py-4">
 
-<!-- CONTENIDO PRINCIPAL -->
-<div class="main-dashboard">
-    <!-- Header moderno -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-        <div>
-            <h1 class="fw-bold" style="color: #0a2540;"><i class="bi bi-grid-1x2-fill text-primary me-2"></i>Panel Ejecutivo</h1>
-            <p class="text-secondary m-0">Visión completa de productos, cotizaciones y movimientos</p>
-        </div>
-        <div>
-            <span class="badge bg-dark fs-6 px-4 py-2 rounded-pill"><i class="bi bi-building"></i> KCF CORPORACIÓN</span>
-        </div>
-    </div>
-
-    <!-- SECCIÓN DE ESTADÍSTICAS (global - se actualiza con JS) -->
-    <div class="row g-4 mb-4" id="statsGlobalRow">
-        <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="totalProductosStat">{{ productos|length }}</div><div class="text-muted">Productos Activos</div></div></div>
-        <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="totalCotizacionesStat">0</div><div class="text-muted">Cotizaciones</div></div></div>
-        <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="totalStockValorStat">S/ 0</div><div class="text-muted">Valor Inventario</div></div></div>
-        <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="totalAceptadasStat">0</div><div class="text-muted">Aceptadas</div></div></div>
-    </div>
-
-    <!-- ============== SECCIÓN DINÁMICA: PRODUCTOS O COTIZACIONES ============== -->
-    <div id="dynamicSection">
-        <!-- Panel de Productos (datos desde BD con Jinja) -->
-        <div id="productosPanel">
-            <div class="card-elegant p-3 mb-4">
-                <div class="d-flex justify-content-between flex-wrap gap-3 align-items-center">
-                    <div><h3 class="fw-semibold mb-0"><i class="bi bi-box-seam text-primary"></i> Inventario de Productos</h3></div>
-                    <div><button class="btn btn-success rounded-pill px-4" id="btnNuevoProductoGlobal" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto"><i class="bi bi-plus-circle"></i> Nuevo Producto</button></div>
-                </div>
-                <hr>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="small fw-semibold">Familia</label>
-                        <select id="filtroFamiliaProductos" class="form-select rounded-pill">
-                            <option value="">Todas</option>
-                            {% set familias = [] %}
-                            {% for p in productos %}
-                                {% if p.familia not in familias %}
-                                    {% set _ = familias.append(p.familia) %}
-                                    <option value="{{ p.familia }}">{{ p.familia }}</option>
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="small fw-semibold">Buscar</label>
-                        <input type="text" id="filtroBusquedaProducto" class="form-control rounded-pill" placeholder="Código, descripción...">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="small fw-semibold">Stock crítico</label>
-                        <button class="btn btn-outline-secondary w-100 rounded-pill" id="btnFiltrarStockBajo"><i class="bi bi-exclamation-triangle"></i> Bajo stock</button>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-corporate" id="tablaProductosDinamica">
-                        <thead>
-                            <tr><th>ID</th><th>Código</th><th>Familia</th><th>Descripción</th><th>Marca</th><th class="text-end">Precio S/</th><th class="text-center">Stock</th><th class="text-center">Acciones</th></tr>
-                        </thead>
-                        <tbody id="tbodyProductosLista">
-                            {% for p in productos %}
-                            <tr data-id="{{ p.id }}" data-familia="{{ p.familia }}" data-codigo="{{ p.codigo }}" data-descripcion="{{ p.descripcion }} {{ p.marca }}">
-                                <td>{{ p.id }}</td>
-                                <td><span class="badge bg-secondary">{{ p.codigo }}</span></td>
-                                <td>{{ p.familia|truncate(25) }}</td>
-                                <td>{{ p.descripcion }} {{ p.modelo or '' }}</td>
-                                <td>{{ p.marca or '-' }}</td>
-                                <td class="text-end">S/ {{ p.precio_unitario|float|round(2) }}</td>
-                                <td class="text-center">
-                                    {% if p.stock <= 5 and p.stock > 0 %}
-                                        <span class="badge bg-warning text-dark">{{ p.stock }}</span>
-                                    {% elif p.stock == 0 %}
-                                        <span class="badge bg-danger">0</span>
-                                    {% else %}
-                                        <span class="badge bg-success">{{ p.stock }}</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary btn-editar-producto me-1"
-                                            data-id="{{ p.id }}"
-                                            data-familia="{{ p.familia }}"
-                                            data-descripcion="{{ p.descripcion }}"
-                                            data-marca="{{ p.marca }}"
-                                            data-modelo="{{ p.modelo }}"
-                                            data-unidad="{{ p.unidad }}"
-                                            data-costo="{{ p.costo_unitario }}"
-                                            data-precio="{{ p.precio_unitario }}"
-                                            data-stock="{{ p.stock }}"
-                                            data-observaciones="{{ p.observaciones|default('') }}">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger btn-eliminar-producto"
-                                            data-id="{{ p.id }}"
-                                            data-nombre="{{ p.descripcion }}">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    <!-- HEADER -->
+    <div class="card card-custom mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="page-title mb-1">
+                    <i class="bi bi-clipboard-data-fill text-primary"></i>
+                    Gestor de Cotizaciones
+                </h1>
+                <div class="subtitle">
+                    Administración de cotizaciones comerciales y órdenes de compra
                 </div>
             </div>
-        </div>
-
-        <!-- Panel de Cotizaciones -->
-        <div id="cotizacionesPanel" style="display: none;">
-            <div class="card-elegant p-3 mb-4">
-                <div class="d-flex justify-content-between flex-wrap gap-3 align-items-center mb-3">
-                    <h3 class="fw-semibold mb-0"><i class="bi bi-clipboard-data-fill text-primary"></i> Gestor de Cotizaciones</h3>
-                    <a href="/crear_cotizacion" class="btn btn-success rounded-pill px-4"><i class="bi bi-plus-circle"></i> Nueva Cotización</a>
-                </div>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4"><label>Filtrar por estado</label><select id="filtroEstadoCotizacion" class="form-select rounded-pill"><option value="todas">📋 Todas</option><option value="borrador">📝 Borrador</option><option value="generada">📄 Generada</option><option value="aceptada">✅ Aceptada</option></select></div>
-                    <div class="col-md-6"><label>Buscar</label><input type="text" id="filtroBusquedaCotizacion" class="form-control rounded-pill" placeholder="Cliente / N° Cotización"></div>
-                    <div class="col-md-2"><label>&nbsp;</label><button id="btnRefrescarCotizaciones" class="btn btn-secondary w-100 rounded-pill"><i class="bi bi-arrow-repeat"></i> Refrescar</button></div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-corporate">
-                        <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th class="text-end">Total S/.</th><th class="text-center">Acciones</th></tr></thead>
-                        <tbody id="tbodyCotizacionesLista">
-                            <tr><td colspan="6" class="text-center py-4"><div class="loading-spinner"></div> Cargando cotizaciones...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div>
+                <span class="badge bg-primary fs-6 px-3 py-2">
+                    <i class="bi bi-buildings-fill me-1"></i>
+                    KCF CORPORACION
+                </span>
             </div>
         </div>
     </div>
+
+    <!-- STATS BAR (Dinámico) -->
+    <div class="stats-bar" id="statsBar">
+        <div class="row text-center">
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" id="totalCotizaciones">0</div>
+                <div class="stat-label">Total Cotizaciones</div>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" id="totalBorradores">0</div>
+                <div class="stat-label">Borradores</div>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" id="totalGeneradas">0</div>
+                <div class="stat-label">Generadas</div>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" id="totalAceptadas">0</div>
+                <div class="stat-label">Aceptadas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="card card-custom mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 top-bar">
+
+                <!-- IZQUIERDA -->
+                <div class="d-flex align-items-center flex-wrap gap-2 left-actions">
+                    <a href="/index" class="btn btn-secondary btn-custom">
+                        <i class="bi bi-arrow-left"></i>
+                        Volver
+                    </a>
+
+                    <select id="filtroTipo" class="form-select" style="width: 220px; border-radius: 12px;">
+                        <option value="todas">📋 Ver Todo</option>
+                        <option value="borrador">📝 Borradores</option>
+                        <option value="generada">📄 Generadas</option>
+                        <option value="aceptada">✅ Aceptadas</option>
+                        <option value="rechazada">❌ Rechazadas</option>
+                        <option value="en_proceso">⏳ En Proceso</option>
+                    </select>
+
+                    <div class="position-relative">
+                        <i class="bi bi-search position-absolute" style="left:15px; top:11px; color:#888;"></i>
+                        <input type="text" id="buscador" class="form-control search-input ps-5"
+                               placeholder="Buscar por N° / Código / Cliente / Vendedor..."
+                               style="min-width:300px;">
+                    </div>
+                </div>
+
+                <!-- DERECHA -->
+                <div class="d-flex gap-2 right-actions">
+                    <button class="btn btn-info btn-custom" id="btnRefrescar">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Refrescar
+                    </button>
+                    <a href="/crear_cotizacion" class="btn btn-success btn-custom">
+                        <i class="bi bi-plus-circle"></i>
+                        Nueva Cotización
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA -->
+    <div class="card card-custom">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>N° Cotización / Código</th>
+                            <th>Fecha</th>
+                            <th>Cliente / Vendedor</th>
+                            <th>Estado</th>
+                            <th class="text-end">Total (S/.)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyCotizaciones">
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3"></div>
+                                <div class="text-muted">Cargando cotizaciones...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- MODAL NUEVO PRODUCTO (desde BD) -->
-<div class="modal fade" id="modalNuevoProducto" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5><i class="bi bi-box-seam"></i> Nuevo Producto</h5>
+<!-- MODAL CREAR NUEVO CLIENTE (desde listado) CON BOTÓN SUNAT -->
+<div class="modal fade" id="modalNuevoClienteListado" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modal-confirmacion">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus-fill text-success"></i>
+                    Nuevo Cliente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body modal-crear-cliente">
+                <form id="formNuevoClienteListado">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo Documento <span class="text-danger">*</span></label>
+                            <select class="form-select" id="nuevo_tipo_documento_listado" required>
+                                <option value="RUC">RUC</option>
+                                <option value="DNI">DNI</option>
+                                <option value="CE">Carnet de Extranjería</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Número Documento <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="nuevo_numero_documento_listado" required placeholder="11 dígitos para RUC">
+                                <button class="btn btn-primary" type="button" id="btnBuscarSunatListado">
+                                    <i class="bi bi-search"></i> Buscar en SUNAT
+                                </button>
+                            </div>
+                            <small class="text-muted">Para RUC, puede buscar datos automáticamente en SUNAT</small>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Razón Social / Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nuevo_razon_social_listado" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Nombre Comercial</label>
+                            <input type="text" class="form-control" id="nuevo_nombre_comercial_listado">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Dirección Fiscal</label>
+                            <input type="text" class="form-control" id="nuevo_direccion_fiscal_listado">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono Contacto</label>
+                            <input type="text" class="form-control" id="nuevo_telefono_listado">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Contacto</label>
+                            <input type="email" class="form-control" id="nuevo_email_listado">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Nombre Contacto</label>
+                            <input type="text" class="form-control" id="nuevo_nombre_contacto_listado">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btnGuardarNuevoClienteListado">
+                    <i class="bi bi-save-fill"></i> Guardar Cliente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE ELIMINACIÓN -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirmacion">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                    Confirmar Eliminación
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="/mantenedor/productos/guardar" id="formNuevoProducto">
-                    <div class="row g-3">
-                        <div class="col-md-6"><label>Familia *</label><select name="familia" class="form-select" required><option>EQUIPOS DE PROTECCIÓN PERSONAL</option><option>HERRAMIENTAS MANUALES</option><option>HERRAMIENTAS ELÉCTRICAS</option><option>MATERIALES ELÉCTRICOS</option><option>PRODUCTOS QUÍMICOS</option></select></div>
-                        <div class="col-md-6"><label>Marca *</label><input type="text" name="marca" class="form-control" required></div>
-                        <div class="col-12"><label>Descripción *</label><textarea name="descripcion" rows="2" class="form-control" required></textarea></div>
-                        <div class="col-md-4"><label>Modelo</label><input type="text" name="modelo" class="form-control"></div>
-                        <div class="col-md-4"><label>Unidad</label><select name="unidad" class="form-select"><option>Unidad</option><option>Caja</option><option>Galón</option></select></div>
-                        <div class="col-md-4"><label>Stock Inicial</label><input type="number" name="stock" value="0" class="form-control"></div>
-                        <div class="col-md-6"><label>Costo Unitario S/</label><input type="number" step="0.01" name="costo_unitario" class="form-control" required></div>
-                        <div class="col-md-6"><label>Precio Unitario S/</label><input type="number" step="0.01" name="precio_unitario" class="form-control" required></div>
-                        <div class="col-12"><label>Observaciones</label><textarea name="observaciones" rows="2" class="form-control"></textarea></div>
-                    </div>
-                </form>
+                <p>¿Está seguro que desea eliminar esta cotización?</p>
+                <p class="text-muted small" id="eliminarInfo">Esta acción no se puede deshacer.</p>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" form="formNuevoProducto" class="btn btn-success">Guardar Producto</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL EDITAR PRODUCTO (conexión real a BD) -->
-<div class="modal fade" id="modalEditarProducto" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5><i class="bi bi-pencil-square"></i> Editar Producto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- MODAL DE VER DETALLE -->
+<div class="modal fade" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modal-confirmacion">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-text-fill me-2"></i>
+                    Detalle de Cotización
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <form id="formEditarProducto" action="/mantenedor/productos/actualizar" method="POST">
-                    <input type="hidden" id="edit_id" name="id">
-                    <div class="row g-3">
-                        <div class="col-md-6"><label>Familia</label><input type="text" id="edit_familia" name="familia" class="form-control"></div>
-                        <div class="col-md-6"><label>Marca</label><input type="text" id="edit_marca" name="marca" class="form-control"></div>
-                        <div class="col-12"><label>Descripción</label><textarea id="edit_descripcion" name="descripcion" rows="2" class="form-control"></textarea></div>
-                        <div class="col-md-4"><label>Modelo</label><input type="text" id="edit_modelo" name="modelo" class="form-control"></div>
-                        <div class="col-md-4"><label>Unidad</label><select id="edit_unidad" name="unidad" class="form-select"><option>Unidad</option><option>Caja</option><option>Galón</option></select></div>
-                        <div class="col-md-4"><label>Stock</label><input type="number" id="edit_stock" name="stock" class="form-control"></div>
-                        <div class="col-md-6"><label>Costo S/</label><input type="number" step="0.01" id="edit_costo" name="costo_unitario" class="form-control"></div>
-                        <div class="col-md-6"><label>Precio S/</label><input type="number" step="0.01" id="edit_precio" name="precio_unitario" class="form-control"></div>
-                        <div class="col-12"><label>Observaciones</label><textarea id="edit_observaciones" name="observaciones" rows="2" class="form-control"></textarea></div>
-                    </div>
-                </form>
+            <div class="modal-body" id="detalleBody">
+                <!-- Contenido dinámico -->
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button id="btnGuardarEdicionProducto" class="btn btn-warning">Guardar Cambios</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cerrar
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL ELIMINAR PRODUCTO -->
-<div class="modal fade" id="modalEliminarProducto" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white"><h5>Eliminar producto</h5></div>
-            <div class="modal-body"><p>¿Confirmar eliminación de <strong id="eliminarProdNombre"></strong>?</p><input type="hidden" id="eliminarProdId"></div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="confirmarEliminarProductoBtn" class="btn btn-danger">Eliminar</button></div>
-        </div>
-    </div>
-</div>
+<!-- Notificaciones Container -->
+<div id="notificacionesContainer"></div>
 
-<!-- MODAL DETALLE COTIZACIÓN -->
-<div class="modal fade" id="modalDetalleCotizacion" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-dark text-white"><h5>Detalle de cotización</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body" id="detalleCotizacionBody"></div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div>
-        </div>
-    </div>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/listado_cotizaciones.js"></script>
 
-<script>
-    // Datos de cotizaciones (simulados, puedes reemplazar con llamada a API)
-    let cotizacionesData = [];
-    
-    // Cargar cotizaciones desde el backend
-    function cargarCotizaciones() {
-        $.get("/api/cotizaciones/listar", function(data) {
-            cotizacionesData = data;
-            renderizarCotizaciones();
-            actualizarStatsGenerales();
-        }).fail(function() {
-            // Si no hay endpoint, usar datos de ejemplo
-            cotizacionesData = [
-                { id:"COT-001", fecha:"2025-03-01", cliente:"Minera Volcan S.A.", vendedor:"Carlos López", estado:"generada", total:12500.00 },
-                { id:"COT-002", fecha:"2025-03-05", cliente:"Constructora Graña", vendedor:"Ana Torres", estado:"aceptada", total:8700.50 },
-                { id:"COT-003", fecha:"2025-03-10", cliente:"Tecnofil S.R.L", vendedor:"Carlos López", estado:"borrador", total:3450.00 }
-            ];
-            renderizarCotizaciones();
-            actualizarStatsGenerales();
-        });
-    }
-    
-    function actualizarStatsGenerales() {
-        let valorInv = 0;
-        $("#tbodyProductosLista tr").each(function() {
-            let stock = parseInt($(this).find("td:eq(6)").text()) || 0;
-            let precioText = $(this).find("td:eq(5)").text().replace("S/", "").trim();
-            let precio = parseFloat(precioText) || 0;
-            valorInv += stock * precio;
-        });
-        $("#totalProductosStat").text($("#tbodyProductosLista tr").length);
-        $("#totalCotizacionesStat").text(cotizacionesData.length);
-        $("#totalStockValorStat").text(`S/ ${valorInv.toFixed(2)}`);
-        let aceptadas = cotizacionesData.filter(c => c.estado === "aceptada").length;
-        $("#totalAceptadasStat").text(aceptadas);
-    }
-    
-    function renderizarTablaProductosFiltro() {
-        let familia = $("#filtroFamiliaProductos").val();
-        let busqueda = $("#filtroBusquedaProducto").val().toLowerCase();
-        let visibleCount = 0;
-        $("#tbodyProductosLista tr").each(function() {
-            let $row = $(this);
-            let rowFamilia = $row.data("familia") || "";
-            let textoBusqueda = ($row.data("descripcion") || "").toLowerCase();
-            let matchFamilia = !familia || rowFamilia === familia;
-            let matchBusqueda = !busqueda || textoBusqueda.includes(busqueda);
-            if(matchFamilia && matchBusqueda) { $row.show(); visibleCount++; }
-            else { $row.hide(); }
-        });
-        actualizarStatsGenerales();
-    }
-    
-    function renderizarCotizaciones() {
-        let estadoFiltro = $("#filtroEstadoCotizacion").val();
-        let busqueda = $("#filtroBusquedaCotizacion").val().toLowerCase();
-        let filtrados = cotizacionesData.filter(c => (estadoFiltro === "todas" || c.estado === estadoFiltro) && (!busqueda || c.id.toLowerCase().includes(busqueda) || c.cliente.toLowerCase().includes(busqueda)));
-        let html = "";
-        filtrados.forEach(c => {
-            let claseEstado = c.estado === "borrador" ? "estado-borrador" : (c.estado === "generada" ? "estado-generada" : "estado-aceptada");
-            html += `<tr>
-                        <td><strong>${c.id}</strong></td>
-                        <td>${c.fecha}</td>
-                        <td>${c.cliente}</td>
-                        <td><span class="badge-estado ${claseEstado}">${c.estado.toUpperCase()}</span></td>
-                        <td class="text-end fw-bold">S/ ${c.total.toFixed(2)}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-info btn-ver-detalle-cotizacion" data-id="${c.id}"><i class="bi bi-eye"></i></button>
-                        </td>
-                     </tr>`;
-        });
-        if(!html) html = '<tr><td colspan="6" class="text-center">No hay cotizaciones</td></tr>';
-        $("#tbodyCotizacionesLista").html(html);
-        actualizarStatsGenerales();
-    }
-    
-    // Eventos para productos desde BD
-    $(document).on("click", ".btn-editar-producto", function(){
-        let btn = $(this);
-        $("#edit_id").val(btn.data("id"));
-        $("#edit_familia").val(btn.data("familia"));
-        $("#edit_descripcion").val(btn.data("descripcion"));
-        $("#edit_marca").val(btn.data("marca"));
-        $("#edit_modelo").val(btn.data("modelo"));
-        $("#edit_unidad").val(btn.data("unidad"));
-        $("#edit_stock").val(btn.data("stock"));
-        $("#edit_costo").val(btn.data("costo"));
-        $("#edit_precio").val(btn.data("precio"));
-        $("#edit_observaciones").val(btn.data("observaciones"));
-        new bootstrap.Modal(document.getElementById('modalEditarProducto')).show();
-    });
-    
-    $("#btnGuardarEdicionProducto").click(function(){
-        let form = $("#formEditarProducto");
-        $.ajax({
-            url: form.attr("action"),
-            method: "POST",
-            data: form.serialize(),
-            success: function(response) {
-                if(response.success) { location.reload(); }
-                else { mostrarNotificacion(response.error || "Error al actualizar", "danger"); }
-            },
-            error: function() { mostrarNotificacion("Error de conexión", "danger"); }
-        });
-    });
-    
-    $(document).on("click", ".btn-eliminar-producto", function(){
-        let id = $(this).data("id");
-        let nombre = $(this).data("nombre");
-        $("#eliminarProdId").val(id);
-        $("#eliminarProdNombre").text(nombre);
-        new bootstrap.Modal(document.getElementById('modalEliminarProducto')).show();
-    });
-    
-    $("#confirmarEliminarProductoBtn").click(function(){
-        let id = $("#eliminarProdId").val();
-        $.ajax({
-            url: "/mantenedor/productos/eliminar/" + id,
-            method: "POST",
-            success: function(response) {
-                if(response.success) { location.reload(); }
-                else { mostrarNotificacion(response.error || "Error al eliminar", "danger"); }
-            },
-            error: function() { mostrarNotificacion("Error de conexión", "danger"); }
-        });
-    });
-    
-    $("#filtroFamiliaProductos, #filtroBusquedaProducto").on("change keyup", renderizarTablaProductosFiltro);
-    
-    $("#btnFiltrarStockBajo").click(function(){
-        let bajos = [];
-        $("#tbodyProductosLista tr:visible").each(function() {
-            let stock = parseInt($(this).find("td:eq(6)").text()) || 0;
-            let nombre = $(this).find("td:eq(3)").text();
-            if(stock <= 5 && stock > 0) bajos.push(`${nombre}: ${stock}`);
-        });
-        if(bajos.length) alert("Productos con stock bajo:\n" + bajos.join("\n"));
-        else alert("No hay productos con stock bajo");
-    });
-    
-    function initCotizaciones() {
-        cargarCotizaciones();
-        $("#filtroEstadoCotizacion, #filtroBusquedaCotizacion").on("change keyup", renderizarCotizaciones);
-        $("#btnRefrescarCotizaciones").click(cargarCotizaciones);
-        $(document).on("click", ".btn-ver-detalle-cotizacion", function(){
-            let id = $(this).data("id");
-            let cot = cotizacionesData.find(c=>c.id === id);
-            if(cot){
-                $("#detalleCotizacionBody").html(`<div class="p-3"><h5>${cot.id}</h5><p><strong>Cliente:</strong> ${cot.cliente}<br><strong>Vendedor:</strong> ${cot.vendedor || 'N/A'}<br><strong>Fecha:</strong> ${cot.fecha}<br><strong>Estado:</strong> ${cot.estado}<br><strong>Total:</strong> S/ ${cot.total.toFixed(2)}</p></div>`);
-                new bootstrap.Modal(document.getElementById('modalDetalleCotizacion')).show();
-            }
-        });
-    }
-    
-    // Navegación Sidebar
-    $("#sidebarProductosLink").click(function(e){ e.preventDefault(); $("#productosPanel").show(); $("#cotizacionesPanel").hide(); $(this).addClass("active-link"); $("#sidebarCotizacionesLink, #sidebarKardexLink").removeClass("active-link"); });
-    $("#sidebarCotizacionesLink").click(function(e){ e.preventDefault(); $("#productosPanel").hide(); $("#cotizacionesPanel").show(); initCotizaciones(); $(this).addClass("active-link"); $("#sidebarProductosLink, #sidebarKardexLink").removeClass("active-link"); });
-    $("#sidebarKardexLink").click(function(e){ e.preventDefault(); window.open("/mantenedor/productos/kardex", "_blank"); });
-    $("#sidebarDashboardLink").click(function(e){ e.preventDefault(); $("#productosPanel").show(); $("#cotizacionesPanel").hide(); $("#sidebarProductosLink").addClass("active-link"); $("#sidebarCotizacionesLink, #sidebarKardexLink").removeClass("active-link"); });
-    
-    function mostrarNotificacion(msg, tipo){
-        let color = tipo==='success'?'#198754':(tipo==='danger'?'#dc3545':'#0d6efd');
-        let n = $(`<div class="alert text-white shadow notificacion" style="background:${color}"><i class="bi bi-bell-fill me-2"></i> ${msg}</div>`);
-        $("body").append(n);
-        setTimeout(()=>n.fadeOut(300,function(){$(this).remove();}),2500);
-    }
-    
-    renderizarTablaProductosFiltro();
-    $("#productosPanel").show();
-    $("#cotizacionesPanel").hide();
-</script>
 </body>
 </html>

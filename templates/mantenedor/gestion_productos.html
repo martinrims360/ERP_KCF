@@ -138,6 +138,10 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
         @media (max-width: 768px) {
             .kcf-sidebar { transform: translateX(-100%); width: 260px; }
             .main-dashboard { margin-left: 0; }
@@ -302,43 +306,463 @@
     </div>
 </div>
 
-<!-- ========= MODALES COMPLETOS (MANTIENEN TODAS LAS FUNCIONALIDADES ORIGINALES) ========= -->
+<!-- ========= MODALES ========= -->
+
 <!-- MODAL NUEVO PRODUCTO -->
-<div class="modal fade" id="modalNuevoProducto" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content border-0 shadow"><div class="modal-header bg-primary text-white"><div><h4 class="modal-title fw-bold"><i class="bi bi-box-seam"></i> Nuevo Producto</h4><small class="text-light">Registro avanzado ERP</small></div><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-info"><i class="bi bi-info-circle-fill"></i> El código se generará automáticamente según la familia seleccionada.</div><form method="POST" action="/mantenedor/productos/guardar" id="formNuevoProducto"><div class="row g-3"><div class="col-md-6"><label class="fw-semibold">Familia *</label><select name="familia" class="form-select" required><option value="">Seleccione</option><option>EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA</option><option>EQUIPOS DE PROTECCIÓN PERSONAL (EPP)</option><option>EQUIPOS DE SOLDADURA</option><option>HERRAMIENTAS ELÉCTRICAS</option><option>HERRAMIENTAS MANUALES</option><option>MATERIALES ELÉCTRICOS</option><option>PRODUCTOS QUÍMICOS Y ADHESIVOS</option></select></div><div class="col-md-6"><label class="fw-semibold">Marca *</label><select name="marca" class="form-select" required><option value="">Seleccione</option><option>dimerc</option><option>magnaflux</option><option>shurtape</option><option>vistony</option></select></div><div class="col-md-8"><label>Descripción *</label><textarea name="descripcion" rows="2" class="form-control" required></textarea></div><div class="col-md-4"><label>Modelo</label><input name="modelo" class="form-control"></div><div class="col-md-4"><label>Unidad *</label><select name="unidad" class="form-select"><option>Unidad</option><option>Caja</option><option>Galón</option><option>Litro</option><option>Metro</option></select></div><div class="col-md-4"><label>Peso (rango)</label><input name="peso_rango" class="form-control" placeholder="ej: 0-1 kg"></div><div class="col-md-4"><label>Transporte *</label><select name="transporte" class="form-select"><option>motorizado</option><option>auto</option><option>camioneta</option><option>camion</option></select></div><div class="col-md-3"><label>Costo Unitario S/ *</label><input type="number" step="0.01" name="costo_unitario" class="form-control" required></div><div class="col-md-3"><label>Precio Unitario S/ *</label><input type="number" step="0.01" name="precio_unitario" class="form-control" required></div><div class="col-md-3"><label>Margen (%)</label><input type="text" id="margen_calculado_nuevo" class="form-control bg-light" readonly></div><div class="col-md-3"><label>Stock Inicial</label><input type="number" name="stock" value="0" class="form-control"></div><div class="col-12"><label>Descripción Larga</label><textarea name="descripcion_larga" rows="2" class="form-control"></textarea></div></div></form></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="submit" form="formNuevoProducto" class="btn btn-success"><i class="bi bi-check-circle"></i> Guardar</button></div></div></div></div>
+<div class="modal fade" id="modalNuevoProducto" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <div>
+                    <h4 class="modal-title fw-bold"><i class="bi bi-box-seam"></i> Nuevo Producto</h4>
+                    <small class="text-light">Registro avanzado ERP</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill"></i> El código se generará automáticamente según la familia seleccionada.
+                </div>
+                <form method="POST" action="/mantenedor/productos/guardar" id="formNuevoProducto">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="fw-semibold">Familia *</label>
+                            <select name="familia" class="form-select" required>
+                                <option value="">Seleccione</option>
+                                <option>EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA</option>
+                                <option>EQUIPOS DE PROTECCIÓN PERSONAL (EPP)</option>
+                                <option>EQUIPOS DE SOLDADURA</option>
+                                <option>HERRAMIENTAS ELÉCTRICAS</option>
+                                <option>HERRAMIENTAS MANUALES</option>
+                                <option>MATERIALES ELÉCTRICOS</option>
+                                <option>PRODUCTOS QUÍMICOS Y ADHESIVOS</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-semibold">Marca *</label>
+                            <select name="marca" class="form-select" required>
+                                <option value="">Seleccione</option>
+                                <option>dimerc</option>
+                                <option>magnaflux</option>
+                                <option>shurtape</option>
+                                <option>vistony</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label>Descripción *</label>
+                            <textarea name="descripcion" rows="2" class="form-control" required></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Modelo</label>
+                            <input name="modelo" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label>Unidad *</label>
+                            <select name="unidad" class="form-select">
+                                <option>Unidad</option>
+                                <option>Caja</option>
+                                <option>Galón</option>
+                                <option>Litro</option>
+                                <option>Metro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Peso (rango)</label>
+                            <input name="peso_rango" class="form-control" placeholder="ej: 0-1 kg">
+                        </div>
+                        <div class="col-md-4">
+                            <label>Transporte *</label>
+                            <select name="transporte" class="form-select">
+                                <option>motorizado</option>
+                                <option>auto</option>
+                                <option>camioneta</option>
+                                <option>camion</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Costo Unitario S/ *</label>
+                            <input type="number" step="0.01" name="costo_unitario" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Precio Unitario S/ *</label>
+                            <input type="number" step="0.01" name="precio_unitario" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Margen (%)</label>
+                            <input type="text" id="margen_calculado_nuevo" class="form-control bg-light" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Stock Inicial</label>
+                            <input type="number" name="stock" value="0" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label>Descripción Larga</label>
+                            <textarea name="descripcion_larga" rows="2" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formNuevoProducto" class="btn btn-success"><i class="bi bi-check-circle"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- MODAL EDITAR PRODUCTO -->
-<div class="modal fade" id="modalEditarProducto" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header bg-warning"><h5><i class="bi bi-pencil-square"></i> Editar Producto</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="formEditarProducto" action="/mantenedor/productos/actualizar" method="POST"><input type="hidden" id="edit_id" name="id"><div class="row"><div class="col-md-6"><label>Familia</label><input id="edit_familia" name="familia" class="form-control"></div><div class="col-md-6"><label>Marca</label><input id="edit_marca" name="marca" class="form-control"></div></div><div class="mt-2"><label>Descripción</label><textarea id="edit_descripcion" name="descripcion" rows="2" class="form-control"></textarea></div><div class="row mt-2"><div class="col"><label>Modelo</label><input id="edit_modelo" name="modelo" class="form-control"></div><div class="col"><label>Unidad</label><select id="edit_unidad" name="unidad" class="form-select"><option>Unidad</option><option>Caja</option><option>Galón</option></select></div></div><div class="row mt-2"><div class="col"><label>Costo S/</label><input type="number" step="0.01" id="edit_costo" name="costo_unitario" class="form-control"></div><div class="col"><label>Precio S/</label><input type="number" step="0.01" id="edit_precio" name="precio_unitario" class="form-control"></div><div class="col"><label>Stock</label><input type="number" id="edit_stock" name="stock" class="form-control"></div></div><div class="mt-2"><label>Observaciones</label><textarea id="edit_observaciones" name="observaciones" rows="2" class="form-control"></textarea></div><div class="mt-2"><label>Descripción Larga</label><textarea id="edit_descripcion_larga" name="descripcion_larga" rows="2" class="form-control"></textarea></div><div class="mt-2"><label>Transporte</label><select id="edit_transporte" name="transporte" class="form-select"><option>SI</option><option>NO</option></select></div></form></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btnGuardarEdicionProducto" class="btn btn-warning">Guardar Cambios</button></div></div></div></div>
+<!-- MODAL EDITAR PRODUCTO - CORREGIDO -->
+<div class="modal fade" id="modalEditarProducto" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark">
+                <div>
+                    <h4 class="modal-title fw-bold mb-1">
+                        <i class="bi bi-pencil-square"></i> Editar Producto
+                    </h4>
+                    <small>Modificación de información del producto</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarProducto">
+                    <input type="hidden" id="edit_id" name="id">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Familia *</label>
+                            <select id="edit_familia" name="familia" class="form-select" required>
+                                <option value="">Seleccione familia</option>
+                                <option value="EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA">📱 EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA</option>
+                                <option value="EQUIPOS DE PROTECCIÓN PERSONAL (EPP)">🛡️ EQUIPOS DE PROTECCIÓN PERSONAL (EPP)</option>
+                                <option value="EQUIPOS DE SOLDADURA">🔥 EQUIPOS DE SOLDADURA</option>
+                                <option value="HERRAMIENTAS ELÉCTRICAS">⚡ HERRAMIENTAS ELÉCTRICAS</option>
+                                <option value="HERRAMIENTAS MANUALES">🔧 HERRAMIENTAS MANUALES</option>
+                                <option value="MATERIALES DE EMBALAJE">📦 MATERIALES DE EMBALAJE</option>
+                                <option value="MATERIALES DE LIMPIEZA Y MANTENIMIENTO">🧹 MATERIALES DE LIMPIEZA Y MANTENIMIENTO</option>
+                                <option value="MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN">🚧 MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN</option>
+                                <option value="MATERIALES ELÉCTRICOS">🔌 MATERIALES ELÉCTRICOS</option>
+                                <option value="MOBILIARIO Y EQUIPOS DE OFICINA">💺 MOBILIARIO Y EQUIPOS DE OFICINA</option>
+                                <option value="PRODUCTOS QUÍMICOS Y ADHESIVOS">🧪 PRODUCTOS QUÍMICOS Y ADHESIVOS</option>
+                                <option value="REPUESTOS Y ACCESORIOS AUTOMOTRICES">🚗 REPUESTOS Y ACCESORIOS AUTOMOTRICES</option>
+                                <option value="ROPA DE PROTECCIÓN">🦺 ROPA DE PROTECCIÓN</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Marca *</label>
+                            <select id="edit_marca" name="marca" class="form-select" required>
+                                <option value="">Seleccione marca</option>
+                                <option value="dimerc">Dimerc</option>
+                                <option value="magnaflux">Magnaflux</option>
+                                <option value="shurtape">Shurtape</option>
+                                <option value="vistony">Vistony</option>
+                            </select>
+                        </div>
+                    </div>
 
-<!-- MODAL ELIMINAR -->
-<div class="modal fade" id="modalEliminarProducto"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5><i class="bi bi-exclamation-triangle"></i> Eliminar producto</h5></div><div class="modal-body"><p>¿Seguro que desea eliminar <strong id="eliminarProductoNombre"></strong>?</p><input type="hidden" id="eliminarProductoId"></div><div class="modal-footer"><button id="confirmarEliminarProductoBtn" class="btn btn-danger">Eliminar</button></div></div></div></div>
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold">Descripción *</label>
+                        <textarea id="edit_descripcion" name="descripcion" class="form-control" rows="3" required></textarea>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Modelo</label>
+                            <input type="text" id="edit_modelo" name="modelo" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Unidad *</label>
+                            <select id="edit_unidad" name="unidad" class="form-select" required>
+                                <option value="">Seleccione</option>
+                                <option value="Unidad">Unidad</option>
+                                <option value="Caja">Caja</option>
+                                <option value="Galón">Galón</option>
+                                <option value="Litro">Litro</option>
+                                <option value="Metro">Metro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Transporte *</label>
+                            <select id="edit_transporte" name="transporte" class="form-select" required>
+                                <option value="">Seleccione</option>
+                                <option value="motorizado">Motorizado</option>
+                                <option value="auto">Auto</option>
+                                <option value="camioneta">Camioneta</option>
+                                <option value="camion">Camión</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Costo Unitario (S/) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">S/</span>
+                                <input type="number" id="edit_costo_unitario" name="costo_unitario" class="form-control" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Precio Unitario (S/) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">S/</span>
+                                <input type="number" id="edit_precio_unitario" name="precio_unitario" class="form-control" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Margen (%)</label>
+                            <div class="input-group">
+                                <input type="text" id="edit_margen" class="form-control bg-light fw-bold text-center" readonly>
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Stock</label>
+                            <input type="number" id="edit_stock" name="stock" class="form-control" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Volumen</label>
+                            <select id="edit_volumen" name="volumen" class="form-select">
+                                <option value="">Seleccione</option>
+                                <option value="0-1000">0 - 1000 cm³</option>
+                                <option value="1000-5000">1000 - 5000 cm³</option>
+                                <option value="5000-10000">5000 - 10000 cm³</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Peso</label>
+                            <input type="text" id="edit_peso" name="peso" class="form-control" placeholder="ej: 0-1 kg">
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold">Observaciones</label>
+                        <textarea id="edit_observaciones" name="observaciones" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold">Descripción Larga</label>
+                        <textarea id="edit_descripcion_larga" name="descripcion_larga" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnGuardarEdicionProducto" class="btn btn-warning">
+                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ELIMINAR PRODUCTO - CORREGIDO -->
+<div class="modal fade" id="modalEliminarProducto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Eliminar Producto
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>⚠️ ¿Está seguro que desea eliminar este producto?</p>
+                <p class="text-muted small">Producto: <strong id="textoProductoEliminar"></strong></p>
+                <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                <input type="hidden" id="eliminar_id_producto">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmarEliminarProductoBtn">
+                    <i class="bi bi-trash"></i> Sí, Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- MODAL KARDEX + movimientos -->
-<div class="modal fade" id="modalKardex" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5><i class="bi bi-journal-text"></i> Kárdex de Inventario</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row mb-3"><div class="col-md-6"><label>Producto</label><select id="kardex_producto_id" class="form-select"></select></div><div class="col-md-3"><label>Desde</label><input type="date" id="kardex_fecha_desde" class="form-control"></div><div class="col-md-3"><label>Hasta</label><input type="date" id="kardex_fecha_hasta" class="form-control"></div></div><div class="row mb-3"><div class="col-md-4"><div class="bg-light p-3 rounded text-center"><small>Stock Actual</small><h3 id="kardex_stock_actual" class="text-success">0</h3></div></div><div class="col-md-4"><div class="bg-light p-3 rounded text-center"><small>Valor Total</small><h3 id="kardex_valor_total" class="text-primary">S/ 0.00</h3></div></div><div class="col-md-4"><button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#modalNuevoMovimientoKardex"><i class="bi bi-plus-circle"></i> Nuevo Movimiento</button></div></div><div class="table-responsive"><table class="table table-bordered"><thead class="table-dark"><tr><th>Fecha</th><th>Tipo</th><th>Referencia</th><th>Motivo</th><th class="text-end">Entrada</th><th class="text-end">Salida</th><th class="text-end">Saldo</th><th>Costo Unit.</th></tr></thead><tbody id="tbody-kardex"><tr><td colspan="8" class="text-center">Seleccione un producto</td></tr></tbody></table></div></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div></div></div></div>
+<div class="modal fade" id="modalKardex" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5><i class="bi bi-journal-text"></i> Kárdex de Inventario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label>Producto</label>
+                        <select id="kardex_producto_id" class="form-select"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Desde</label>
+                        <input type="date" id="kardex_fecha_desde" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label>Hasta</label>
+                        <input type="date" id="kardex_fecha_hasta" class="form-control">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="bg-light p-3 rounded text-center">
+                            <small>Stock Actual</small>
+                            <h3 id="kardex_stock_actual" class="text-success">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-light p-3 rounded text-center">
+                            <small>Valor Total</small>
+                            <h3 id="kardex_valor_total" class="text-primary">S/ 0.00</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#modalNuevoMovimientoKardex">
+                            <i class="bi bi-plus-circle"></i> Nuevo Movimiento
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Referencia</th>
+                                <th>Motivo</th>
+                                <th class="text-end">Entrada</th>
+                                <th class="text-end">Salida</th>
+                                <th class="text-end">Saldo</th>
+                                <th>Costo Unit.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-kardex">
+                            <tr><td colspan="8" class="text-center">Seleccione un producto</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- MODAL NUEVO MOVIMIENTO -->
-<div class="modal fade" id="modalNuevoMovimientoKardex" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-success text-white"><h5>Registrar movimiento de stock</h5></div><div class="modal-body"><form id="formMovimientoKardex" action="/mantenedor/productos/movimiento" method="POST"><div class="row g-2"><div class="col-md-6"><label>Producto</label><select id="mov_kardex_producto_id" name="producto_id" class="form-select" required></select></div><div class="col-md-3"><label>Tipo</label><select id="mov_kardex_tipo" name="tipo" class="form-select"><option>ENTRADA</option><option>SALIDA</option><option>AJUSTE</option></select></div><div class="col-md-3"><label>Fecha</label><input type="date" id="mov_kardex_fecha" name="fecha" class="form-control"></div><div class="col-md-4"><label>Cantidad</label><input type="number" id="mov_kardex_cantidad" name="cantidad" class="form-control" min="1" required></div><div class="col-md-4"><label>Costo Unitario (S/)</label><input type="number" step="0.01" id="mov_kardex_costo" name="costo_unitario" class="form-control"></div><div class="col-md-4"><label>Referencia</label><input type="text" id="mov_kardex_referencia" name="referencia" class="form-control" placeholder="#Factura"></div><div class="col-12"><label>Motivo</label><textarea id="mov_kardex_motivo" name="motivo" rows="2" class="form-control"></textarea></div></div></form></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btnGuardarMovimientoKardex" class="btn btn-success">Registrar movimiento</button></div></div></div></div>
+<div class="modal fade" id="modalNuevoMovimientoKardex" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5>Registrar movimiento de stock</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formMovimientoKardex">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label>Producto</label>
+                            <select id="mov_kardex_producto_id" name="producto_id" class="form-select" required></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Tipo</label>
+                            <select id="mov_kardex_tipo" name="tipo" class="form-select">
+                                <option>ENTRADA</option>
+                                <option>SALIDA</option>
+                                <option>AJUSTE</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Fecha</label>
+                            <input type="date" id="mov_kardex_fecha" name="fecha" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label>Cantidad</label>
+                            <input type="number" id="mov_kardex_cantidad" name="cantidad" class="form-control" min="1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Costo Unitario (S/)</label>
+                            <input type="number" step="0.01" id="mov_kardex_costo" name="costo_unitario" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label>Referencia</label>
+                            <input type="text" id="mov_kardex_referencia" name="referencia" class="form-control" placeholder="#Factura">
+                        </div>
+                        <div class="col-12">
+                            <label>Motivo</label>
+                            <textarea id="mov_kardex_motivo" name="motivo" rows="2" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button id="btnGuardarMovimientoKardex" class="btn btn-success">Registrar movimiento</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    // Funcionalidad cliente-side para filtros, modales y acciones (trabaja con los datos existentes en la tabla)
+    // ==================== GESTIÓN DE PRODUCTOS - KCF CORPORACIÓN ====================
+
+    // Variables globales
+    let editModal, deleteModal;
+
+    // ==================== NOTIFICACIONES ====================
+    function mostrarNotificacion(mensaje, tipo) {
+        const div = document.createElement('div');
+        div.className = `alert alert-${tipo} notificacion`;
+        div.innerHTML = `<i class="bi bi-${tipo === 'success' ? 'check-circle' : tipo === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>${mensaje}`;
+        div.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        document.body.appendChild(div);
+        setTimeout(() => {
+            div.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => div.remove(), 300);
+        }, 3000);
+    }
+
+    // ==================== FILTRAR TABLA PRODUCTOS ====================
     function filtrarTablaProductos() {
         let familia = $("#filtro-familia").val();
         let busqueda = $("#filtro-busqueda").val().toLowerCase();
         let visibleCount = 0;
+        
         $("#tbody-productos tr").each(function() {
             let $row = $(this);
             let rowFamilia = $row.data("familia") || "";
             let textoBusqueda = ($row.data("descripcion") || "") + " " + ($row.data("codigo") || "");
             let matchFamilia = !familia || rowFamilia === familia;
             let matchBusqueda = !busqueda || textoBusqueda.toLowerCase().includes(busqueda);
-            if(matchFamilia && matchBusqueda) { $row.show(); visibleCount++; }
-            else { $row.hide(); }
+            
+            if(matchFamilia && matchBusqueda) { 
+                $row.show(); 
+                visibleCount++; 
+            } else { 
+                $row.hide(); 
+            }
         });
+        
         $("#totalProductosCount").text(visibleCount);
     }
-    
+
     function cargarSelectoresKardex() {
         let options = '<option value="">-- Seleccionar producto --</option>';
         $("#tbody-productos tr:visible").each(function() {
@@ -348,8 +772,280 @@
         });
         $("#kardex_producto_id, #mov_kardex_producto_id").html(options);
     }
-    
-    $(document).ready(function(){
+
+    // ==================== EDITAR PRODUCTO ====================
+    function calcularMargenEdicion() {
+        const costo = parseFloat($('#edit_costo_unitario').val()) || 0;
+        const precio = parseFloat($('#edit_precio_unitario').val()) || 0;
+        
+        if (costo > 0 && precio > 0) {
+            const margen = ((precio - costo) / costo * 100).toFixed(2);
+            $('#edit_margen').val(margen);
+        } else {
+            $('#edit_margen').val('');
+        }
+    }
+
+    function guardarEdicion() {
+        const id = $('#edit_id').val();
+        
+        if (!id) {
+            mostrarNotificacion("Error: ID de producto no encontrado", "danger");
+            return;
+        }
+        
+        const datos = {
+            familia: $('#edit_familia').val(),
+            descripcion: $('#edit_descripcion').val(),
+            descripcion_larga: $('#edit_descripcion_larga').val(),
+            marca: $('#edit_marca').val(),
+            modelo: $('#edit_modelo').val(),
+            unidad: $('#edit_unidad').val(),
+            volumen: $('#edit_volumen').val(),
+            observaciones: $('#edit_observaciones').val(),
+            transporte: $('#edit_transporte').val(),
+            costo_unitario: parseFloat($('#edit_costo_unitario').val()) || 0,
+            precio_unitario: parseFloat($('#edit_precio_unitario').val()) || 0,
+            stock: parseInt($('#edit_stock').val()) || 0,
+            peso: $('#edit_peso').val()
+        };
+        
+        const btn = $('#btnGuardarEdicionProducto');
+        const textoOriginal = btn.html();
+        btn.prop('disabled', true);
+        btn.html('<span class="spinner-border spinner-border-sm me-2"></span>Guardando...');
+        
+        $.ajax({
+            url: '/api/productos/' + id,
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(datos),
+            success: function(response) {
+                if (response.success) {
+                    mostrarNotificacion("✅ Producto actualizado correctamente", "success");
+                    if (editModal) editModal.hide();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    mostrarNotificacion("❌ Error: " + (response.error || "No se pudo actualizar"), "danger");
+                }
+            },
+            error: function(xhr) {
+                console.error("Error al guardar edición:", xhr);
+                let errorMsg = "Error de conexión al servidor";
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg = xhr.responseJSON.error;
+                }
+                mostrarNotificacion("❌ " + errorMsg, "danger");
+            },
+            complete: function() {
+                btn.prop('disabled', false);
+                btn.html(textoOriginal);
+            }
+        });
+    }
+
+    // ==================== ELIMINAR PRODUCTO ====================
+    function eliminarProducto() {
+        const id = $('#eliminar_id_producto').val();
+        
+        if (!id) {
+            mostrarNotificacion("Error: ID de producto no encontrado", "danger");
+            return;
+        }
+        
+        const btn = $('#confirmarEliminarProductoBtn');
+        const textoOriginal = btn.html();
+        btn.prop('disabled', true);
+        btn.html('<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...');
+        
+        $.ajax({
+            url: '/api/productos/' + id,
+            method: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    mostrarNotificacion("✅ Producto eliminado correctamente", "success");
+                    if (deleteModal) deleteModal.hide();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    mostrarNotificacion("❌ Error: " + (response.error || "No se pudo eliminar"), "danger");
+                }
+            },
+            error: function(xhr) {
+                console.error("Error al eliminar producto:", xhr);
+                mostrarNotificacion("❌ Error de conexión al servidor", "danger");
+            },
+            complete: function() {
+                btn.prop('disabled', false);
+                btn.html(textoOriginal);
+            }
+        });
+    }
+
+    // ==================== KÁRDEX ====================
+    function cargarKardex(productoId) {
+        const tbody = $('#tbody-kardex');
+        if (!productoId) {
+            tbody.html('<tr><td colspan="8" class="text-center">Seleccione un producto</td></tr>');
+            $('#kardex_stock_actual').text('0');
+            $('#kardex_valor_total').text('S/ 0.00');
+            return;
+        }
+        
+        tbody.html('<tr><td colspan="8" class="text-center"><div class="spinner-border spinner-border-sm me-2"></div>Cargando...</td></tr>');
+        
+        $.ajax({
+            url: '/api/movimientos_stock?producto_id=' + productoId,
+            method: 'GET',
+            success: function(movimientos) {
+                if (movimientos.length === 0) {
+                    tbody.html('<tr><td colspan="8" class="text-center">No hay movimientos para este producto</td></tr>');
+                    actualizarStockProducto(productoId);
+                    return;
+                }
+                
+                tbody.empty();
+                let saldo = 0;
+                
+                movimientos.forEach(mov => {
+                    if (mov.tipo === 'ENTRADA') saldo += mov.cantidad;
+                    else if (mov.tipo === 'SALIDA') saldo -= mov.cantidad;
+                    else if (mov.tipo === 'AJUSTE') saldo = mov.cantidad;
+                    
+                    const fecha = mov.created_at ? new Date(mov.created_at).toLocaleDateString('es-PE') : '-';
+                    
+                    tbody.append(`
+                        <tr>
+                            <td>${fecha}</td>
+                            <td><span class="badge ${mov.tipo === 'ENTRADA' ? 'bg-success' : mov.tipo === 'SALIDA' ? 'bg-danger' : 'bg-warning'}">${mov.tipo}</span></td>
+                            <td>${mov.referencia || '-'}</td>
+                            <td>${mov.motivo || '-'}</td>
+                            <td class="text-end text-success">${mov.tipo === 'ENTRADA' ? mov.cantidad : '-'}</td>
+                            <td class="text-end text-danger">${mov.tipo === 'SALIDA' ? mov.cantidad : '-'}</td>
+                            <td class="text-end fw-bold">${saldo}</td>
+                            <td class="text-end">${mov.costo_unitario ? 'S/ ' + mov.costo_unitario.toFixed(2) : '-'}</td>
+                        </tr>
+                    `);
+                });
+                
+                $('#kardex_stock_actual').text(saldo);
+                actualizarValorTotal(productoId, saldo);
+            },
+            error: function(xhr) {
+                console.error("Error al cargar kárdex:", xhr);
+                tbody.html('<tr><td colspan="8" class="text-center text-danger">Error al cargar movimientos</td></tr>');
+                mostrarNotificacion("Error al cargar kárdex", "danger");
+            }
+        });
+    }
+
+    function actualizarStockProducto(productoId) {
+        $.ajax({
+            url: '/api/productos/' + productoId,
+            method: 'GET',
+            success: function(p) {
+                $('#kardex_stock_actual').text(p.stock || 0);
+                actualizarValorTotal(productoId, p.stock || 0);
+            }
+        });
+    }
+
+    function actualizarValorTotal(productoId, stock) {
+        $.ajax({
+            url: '/api/productos/' + productoId,
+            method: 'GET',
+            success: function(p) {
+                const valor = stock * (p.costo_unitario || 0);
+                $('#kardex_valor_total').text(`S/ ${valor.toFixed(2)}`);
+            }
+        });
+    }
+
+    function guardarMovimiento() {
+        const productoId = $('#mov_kardex_producto_id').val();
+        const tipo = $('#mov_kardex_tipo').val();
+        const cantidad = $('#mov_kardex_cantidad').val();
+        const costo = $('#mov_kardex_costo').val();
+        const referencia = $('#mov_kardex_referencia').val();
+        const motivo = $('#mov_kardex_motivo').val();
+        const fecha = $('#mov_kardex_fecha').val();
+        
+        if (!productoId) {
+            mostrarNotificacion("Seleccione un producto", "warning");
+            return;
+        }
+        if (!cantidad || cantidad <= 0) {
+            mostrarNotificacion("Cantidad válida requerida", "warning");
+            return;
+        }
+        
+        const datos = {
+            producto_id: parseInt(productoId),
+            tipo: tipo,
+            cantidad: parseInt(cantidad),
+            costo_unitario: costo ? parseFloat(costo) : null,
+            referencia: referencia || null,
+            motivo: motivo || null,
+            fecha: fecha || new Date().toISOString().split('T')[0]
+        };
+        
+        const btn = $('#btnGuardarMovimientoKardex');
+        const textoOriginal = btn.html();
+        btn.prop('disabled', true);
+        btn.html('<span class="spinner-border spinner-border-sm me-2"></span>Guardando...');
+        
+        $.ajax({
+            url: '/api/movimientos_stock',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(datos),
+            success: function(response) {
+                if (response.success) {
+                    mostrarNotificacion("✅ Movimiento registrado correctamente", "success");
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoMovimientoKardex'));
+                    if (modal) modal.hide();
+                    
+                    const select = $('#kardex_producto_id');
+                    if (select.val()) {
+                        cargarKardex(select.val());
+                    }
+                    
+                    $('#mov_kardex_cantidad').val('');
+                    $('#mov_kardex_costo').val('');
+                    $('#mov_kardex_referencia').val('');
+                    $('#mov_kardex_motivo').val('');
+                    
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    mostrarNotificacion("❌ " + (response.error || "Error al registrar movimiento"), "danger");
+                }
+            },
+            error: function(xhr) {
+                console.error("Error guardando movimiento:", xhr);
+                mostrarNotificacion("❌ Error de conexión al servidor", "danger");
+            },
+            complete: function() {
+                btn.prop('disabled', false);
+                btn.html(textoOriginal);
+            }
+        });
+    }
+
+    // ==================== INICIALIZACIÓN ====================
+    $(document).ready(function() {
+        console.log("🟢 Inicializando sistema de gestión de productos...");
+        
+        // Inicializar modales
+        const modalEditarElement = document.getElementById('modalEditarProducto');
+        const modalEliminarElement = document.getElementById('modalEliminarProducto');
+        
+        if (modalEditarElement) {
+            editModal = new bootstrap.Modal(modalEditarElement);
+        }
+        if (modalEliminarElement) {
+            deleteModal = new bootstrap.Modal(modalEliminarElement);
+        }
+        
         // Filtros
         $("#filtro-familia, #filtro-busqueda").on("change keyup", function() {
             filtrarTablaProductos();
@@ -358,11 +1054,32 @@
         filtrarTablaProductos();
         cargarSelectoresKardex();
         
-        // Sidebar
-        $("#sidebarKardexLink").click(function(e){ e.preventDefault(); $("#modalKardex").modal("show"); cargarSelectoresKardex(); });
+        // Sidebar Kárdex
+        $("#sidebarKardexLink").click(function(e) { 
+            e.preventDefault(); 
+            $("#modalKardex").modal("show"); 
+            cargarSelectoresKardex(); 
+        });
         
-        // Editar producto - llenar modal con datos
-        $(document).on("click", ".btn-editar-producto", function(){
+        // Botón guardar edición
+        $("#btnGuardarEdicionProducto").click(guardarEdicion);
+        
+        // Botón confirmar eliminación
+        $("#confirmarEliminarProductoBtn").click(eliminarProducto);
+        
+        // Botón guardar movimiento
+        $("#btnGuardarMovimientoKardex").click(guardarMovimiento);
+        
+        // Calcular margen en edición
+        $("#edit_costo_unitario, #edit_precio_unitario").on("input", calcularMargenEdicion);
+        
+        // Cargar kárdex al seleccionar producto
+        $("#kardex_producto_id").change(function() {
+            cargarKardex($(this).val());
+        });
+        
+        // Abrir modales desde los botones de la tabla
+        $(document).on("click", ".btn-editar-producto", function() {
             let btn = $(this);
             $("#edit_id").val(btn.data("id"));
             $("#edit_familia").val(btn.data("familia"));
@@ -371,118 +1088,42 @@
             $("#edit_marca").val(btn.data("marca"));
             $("#edit_modelo").val(btn.data("modelo"));
             $("#edit_unidad").val(btn.data("unidad"));
-            $("#edit_costo").val(btn.data("costo_unitario"));
-            $("#edit_precio").val(btn.data("precio_unitario"));
-            $("#edit_stock").val(btn.data("stock"));
+            $("#edit_volumen").val(btn.data("volumen") || "");
             $("#edit_observaciones").val(btn.data("observaciones") || "");
-            $("#edit_transporte").val(btn.data("transporte") === "SI" ? "SI" : "NO");
-            new bootstrap.Modal(document.getElementById('modalEditarProducto')).show();
+            $("#edit_transporte").val(btn.data("transporte") === "SI" ? "motorizado" : (btn.data("transporte") || ""));
+            $("#edit_costo_unitario").val(btn.data("costo_unitario"));
+            $("#edit_precio_unitario").val(btn.data("precio_unitario"));
+            $("#edit_stock").val(btn.data("stock"));
+            $("#edit_peso").val(btn.data("peso") || "");
+            
+            calcularMargenEdicion();
+            
+            if (editModal) editModal.show();
         });
         
-        // Guardar edición mediante POST
-        $("#btnGuardarEdicionProducto").click(function(){
-            let form = $("#formEditarProducto");
-            $.ajax({
-                url: form.attr("action"),
-                method: "POST",
-                data: form.serialize(),
-                success: function(response) {
-                    if(response.success) {
-                        location.reload();
-                    } else {
-                        mostrarNotificacion(response.error || "Error al actualizar", "danger");
-                    }
-                },
-                error: function() { mostrarNotificacion("Error de conexión", "danger"); }
-            });
-        });
-        
-        // Eliminar producto
-        $(document).on("click", ".btn-eliminar-producto", function(){
+        $(document).on("click", ".btn-eliminar-producto", function() {
             let id = $(this).data("id");
             let nombre = $(this).data("descripcion");
-            $("#eliminarProductoId").val(id);
-            $("#eliminarProductoNombre").text(nombre);
-            new bootstrap.Modal(document.getElementById('modalEliminarProducto')).show();
-        });
-        
-        $("#confirmarEliminarProductoBtn").click(function(){
-            let id = $("#eliminarProductoId").val();
-            $.ajax({
-                url: "/mantenedor/productos/eliminar/" + id,
-                method: "POST",
-                success: function(response) {
-                    if(response.success) {
-                        location.reload();
-                    } else {
-                        mostrarNotificacion(response.error || "Error al eliminar", "danger");
-                    }
-                },
-                error: function() { mostrarNotificacion("Error de conexión", "danger"); }
-            });
-        });
-        
-        // Nuevo producto submit normal
-        $("#formNuevoProducto").on("submit", function(e){
-            // Se envía normalmente al action
-            // No prevenimos para que Flask procese
-        });
-        
-        // Movimiento Kardex
-        $("#btnGuardarMovimientoKardex").click(function(){
-            let form = $("#formMovimientoKardex");
-            $.ajax({
-                url: form.attr("action"),
-                method: "POST",
-                data: form.serialize(),
-                success: function(response) {
-                    if(response.success) {
-                        mostrarNotificacion("Movimiento registrado", "success");
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        mostrarNotificacion(response.error || "Error al registrar", "danger");
-                    }
-                },
-                error: function() { mostrarNotificacion("Error de conexión", "danger"); }
-            });
+            $("#eliminar_id_producto").val(id);
+            $("#textoProductoEliminar").text(nombre);
+            if (deleteModal) deleteModal.show();
         });
         
         // Importar Excel
-        $("#btnImportarExcelTrigger").click(function(){ $("#fileExcelInput").click(); });
-        $("#fileExcelInput").change(function(){ if(this.files.length) $("#importExcelForm").submit(); });
+        $("#btnImportarExcelTrigger").click(function() { 
+            $("#fileExcelInput").click(); 
+        });
         
-        function mostrarNotificacion(msg, tipo){
-            let color = tipo === 'success' ? '#198754' : (tipo === 'danger' ? '#dc3545' : '#0d6efd');
-            let n = $(`<div class="alert text-white shadow notificacion" style="background:${color}"><i class="bi bi-bell-fill me-2"></i> ${msg}</div>`);
-            $("body").append(n);
-            setTimeout(()=>n.fadeOut(300,function(){$(this).remove();}),2500);
+        $("#fileExcelInput").change(function() { 
+            if(this.files.length) $("#importExcelForm").submit(); 
+        });
+        
+        // Fecha por defecto en movimiento
+        if ($("#mov_kardex_fecha").val() === '') {
+            $("#mov_kardex_fecha").val(new Date().toISOString().split('T')[0]);
         }
         
-        // Cargar kárdex (simulación, ajustar según tu endpoint real)
-        $("#kardex_producto_id").change(function(){
-            let prodId = $(this).val();
-            if(!prodId) { $("#tbody-kardex").html('<tr><td colspan="8">Seleccione un producto</td></tr>'); return; }
-            $.get("/mantenedor/productos/kardex/" + prodId, function(data){
-                if(data.stock_actual !== undefined) {
-                    $("#kardex_stock_actual").text(data.stock_actual);
-                    $("#kardex_valor_total").text("S/ " + (data.valor_total || 0).toFixed(2));
-                }
-                let filas = "";
-                if(data.movimientos && data.movimientos.length) {
-                    data.movimientos.forEach(m => {
-                        filas += `<tr><td>${m.fecha}</td><td><span class="badge ${m.tipo==='ENTRADA'?'bg-success':'bg-danger'}">${m.tipo}</span></td>
-                                <td>${m.referencia||'-'}</td><td>${m.motivo||'-'}</td>
-                                <td class="text-end">${m.tipo==='ENTRADA'?m.cantidad:'-'}</td>
-                                <td class="text-end">${m.tipo==='SALIDA'?m.cantidad:'-'}</td>
-                                <td class="text-end">${m.saldo}</td>
-                                <td class="text-end">S/ ${(m.costo_unitario||0).toFixed(2)}</td></tr>`;
-                    });
-                } else {
-                    filas = '<tr><td colspan="8" class="text-center">Sin movimientos</td></tr>';
-                }
-                $("#tbody-kardex").html(filas);
-            }).fail(function(){ $("#tbody-kardex").html('<tr><td colspan="8">Error al cargar<td></tr>'); });
-        });
+        console.log("✅ Inicialización completa");
     });
 </script>
 </body>
