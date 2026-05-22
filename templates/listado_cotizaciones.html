@@ -191,6 +191,18 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        
+        /* Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 1.2rem;
+            height: 1.2rem;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: #2c7da0;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -209,7 +221,7 @@
         <li><a href="/mantenedor" id="volverMain"><i class="bi bi-arrow-return-left"></i> <span>Volver al Panel</span></a></li>
     </ul>
     <div class="sidebar-footer">
-        <div><i class="bi bi-person-circle me-2"></i> <strong>Ejecutivo KCF</strong></div>
+        <div><i class="bi bi-person-circle me-2"></i> <strong>{{ session.nombre_completo|default('Ejecutivo KCF') }}</strong></div>
         <div class="small opacity-50 mt-1">Acceso corporativo · v2.0</div>
     </div>
 </div>
@@ -227,9 +239,9 @@
         </div>
     </div>
 
-    <!-- SECCIÓN DE ESTADÍSTICAS (global) -->
+    <!-- SECCIÓN DE ESTADÍSTICAS (global - se actualiza con JS) -->
     <div class="row g-4 mb-4" id="statsGlobalRow">
-        <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="totalProductosStat">0</div><div class="text-muted">Productos Activos</div></div></div>
+        <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="totalProductosStat">{{ productos|length }}</div><div class="text-muted">Productos Activos</div></div></div>
         <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="totalCotizacionesStat">0</div><div class="text-muted">Cotizaciones</div></div></div>
         <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="totalStockValorStat">S/ 0</div><div class="text-muted">Valor Inventario</div></div></div>
         <div class="col-md-3"><div class="stat-card"><div class="stat-number" id="totalAceptadasStat">0</div><div class="text-muted">Aceptadas</div></div></div>
@@ -237,28 +249,89 @@
 
     <!-- ============== SECCIÓN DINÁMICA: PRODUCTOS O COTIZACIONES ============== -->
     <div id="dynamicSection">
-        <!-- Por defecto: Tabla de productos (gestión completa) -->
+        <!-- Panel de Productos (datos desde BD con Jinja) -->
         <div id="productosPanel">
             <div class="card-elegant p-3 mb-4">
                 <div class="d-flex justify-content-between flex-wrap gap-3 align-items-center">
                     <div><h3 class="fw-semibold mb-0"><i class="bi bi-box-seam text-primary"></i> Inventario de Productos</h3></div>
-                    <div><button class="btn btn-success rounded-pill px-4" id="btnNuevoProductoGlobal"><i class="bi bi-plus-circle"></i> Nuevo Producto</button></div>
+                    <div><button class="btn btn-success rounded-pill px-4" id="btnNuevoProductoGlobal" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto"><i class="bi bi-plus-circle"></i> Nuevo Producto</button></div>
                 </div>
                 <hr>
                 <div class="row g-3 mb-3">
-                    <div class="col-md-4"><label class="small fw-semibold">Familia</label><select id="filtroFamiliaProductos" class="form-select rounded-pill"><option value="">Todas</option><option>EQUIPOS DE PROTECCIÓN PERSONAL</option><option>HERRAMIENTAS MANUALES</option><option>HERRAMIENTAS ELÉCTRICAS</option><option>MATERIALES ELÉCTRICOS</option><option>PRODUCTOS QUÍMICOS</option></select></div>
-                    <div class="col-md-6"><label class="small fw-semibold">Buscar</label><input type="text" id="filtroBusquedaProducto" class="form-control rounded-pill" placeholder="Código, descripción..."></div>
-                    <div class="col-md-2"><label class="small fw-semibold">Stock crítico</label><button class="btn btn-outline-secondary w-100 rounded-pill" id="btnFiltrarStockBajo"><i class="bi bi-exclamation-triangle"></i> Bajo stock</button></div>
+                    <div class="col-md-4">
+                        <label class="small fw-semibold">Familia</label>
+                        <select id="filtroFamiliaProductos" class="form-select rounded-pill">
+                            <option value="">Todas</option>
+                            {% set familias = [] %}
+                            {% for p in productos %}
+                                {% if p.familia not in familias %}
+                                    {% set _ = familias.append(p.familia) %}
+                                    <option value="{{ p.familia }}">{{ p.familia }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-semibold">Buscar</label>
+                        <input type="text" id="filtroBusquedaProducto" class="form-control rounded-pill" placeholder="Código, descripción...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small fw-semibold">Stock crítico</label>
+                        <button class="btn btn-outline-secondary w-100 rounded-pill" id="btnFiltrarStockBajo"><i class="bi bi-exclamation-triangle"></i> Bajo stock</button>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-corporate" id="tablaProductosDinamica">
-                        <thead><tr><th>ID</th><th>Código</th><th>Familia</th><th>Descripción</th><th>Marca</th><th class="text-end">Precio S/</th><th class="text-center">Stock</th><th class="text-center">Acciones</th></tr></thead>
-                        <tbody id="tbodyProductosLista"></tbody>
+                        <thead>
+                            <tr><th>ID</th><th>Código</th><th>Familia</th><th>Descripción</th><th>Marca</th><th class="text-end">Precio S/</th><th class="text-center">Stock</th><th class="text-center">Acciones</th></tr>
+                        </thead>
+                        <tbody id="tbodyProductosLista">
+                            {% for p in productos %}
+                            <tr data-id="{{ p.id }}" data-familia="{{ p.familia }}" data-codigo="{{ p.codigo }}" data-descripcion="{{ p.descripcion }} {{ p.marca }}">
+                                <td>{{ p.id }}</td>
+                                <td><span class="badge bg-secondary">{{ p.codigo }}</span></td>
+                                <td>{{ p.familia|truncate(25) }}</td>
+                                <td>{{ p.descripcion }} {{ p.modelo or '' }}</td>
+                                <td>{{ p.marca or '-' }}</td>
+                                <td class="text-end">S/ {{ p.precio_unitario|float|round(2) }}</td>
+                                <td class="text-center">
+                                    {% if p.stock <= 5 and p.stock > 0 %}
+                                        <span class="badge bg-warning text-dark">{{ p.stock }}</span>
+                                    {% elif p.stock == 0 %}
+                                        <span class="badge bg-danger">0</span>
+                                    {% else %}
+                                        <span class="badge bg-success">{{ p.stock }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary btn-editar-producto me-1"
+                                            data-id="{{ p.id }}"
+                                            data-familia="{{ p.familia }}"
+                                            data-descripcion="{{ p.descripcion }}"
+                                            data-marca="{{ p.marca }}"
+                                            data-modelo="{{ p.modelo }}"
+                                            data-unidad="{{ p.unidad }}"
+                                            data-costo="{{ p.costo_unitario }}"
+                                            data-precio="{{ p.precio_unitario }}"
+                                            data-stock="{{ p.stock }}"
+                                            data-observaciones="{{ p.observaciones|default('') }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger btn-eliminar-producto"
+                                            data-id="{{ p.id }}"
+                                            data-nombre="{{ p.descripcion }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
+        <!-- Panel de Cotizaciones -->
         <div id="cotizacionesPanel" style="display: none;">
             <div class="card-elegant p-3 mb-4">
                 <div class="d-flex justify-content-between flex-wrap gap-3 align-items-center mb-3">
@@ -273,7 +346,9 @@
                 <div class="table-responsive">
                     <table class="table table-corporate">
                         <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th class="text-end">Total S/.</th><th class="text-center">Acciones</th></tr></thead>
-                        <tbody id="tbodyCotizacionesLista"></tbody>
+                        <tbody id="tbodyCotizacionesLista">
+                            <tr><td colspan="6" class="text-center py-4"><div class="loading-spinner"></div> Cargando cotizaciones...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -281,63 +356,144 @@
     </div>
 </div>
 
-<!-- MODALES PARA PRODUCTOS (Nuevo/Editar/Eliminar) -->
-<div class="modal fade" id="modalProductoForm" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5><i class="bi bi-box-seam"></i> Registrar Producto</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="productoFormModal"><input type="hidden" id="productoIdEdit"><div class="row g-3"><div class="col-md-6"><label>Familia</label><select id="modalFamilia" class="form-select" required><option>EQUIPOS DE PROTECCIÓN PERSONAL</option><option>HERRAMIENTAS MANUALES</option><option>HERRAMIENTAS ELÉCTRICAS</option></select></div><div class="col-md-6"><label>Marca</label><input id="modalMarca" class="form-control"></div><div class="col-12"><label>Descripción</label><textarea id="modalDescripcion" rows="2" class="form-control" required></textarea></div><div class="col-md-4"><label>Modelo</label><input id="modalModelo" class="form-control"></div><div class="col-md-4"><label>Unidad</label><select id="modalUnidad" class="form-select"><option>Unidad</option><option>Caja</option></select></div><div class="col-md-4"><label>Stock</label><input type="number" id="modalStock" class="form-control" value="0"></div><div class="col-md-6"><label>Costo S/</label><input type="number" step="0.01" id="modalCosto" class="form-control"></div><div class="col-md-6"><label>Precio S/</label><input type="number" step="0.01" id="modalPrecio" class="form-control"></div></div></form></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="btnSaveProductoModal" class="btn btn-primary">Guardar producto</button></div></div></div></div>
+<!-- MODAL NUEVO PRODUCTO (desde BD) -->
+<div class="modal fade" id="modalNuevoProducto" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5><i class="bi bi-box-seam"></i> Nuevo Producto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="/mantenedor/productos/guardar" id="formNuevoProducto">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label>Familia *</label><select name="familia" class="form-select" required><option>EQUIPOS DE PROTECCIÓN PERSONAL</option><option>HERRAMIENTAS MANUALES</option><option>HERRAMIENTAS ELÉCTRICAS</option><option>MATERIALES ELÉCTRICOS</option><option>PRODUCTOS QUÍMICOS</option></select></div>
+                        <div class="col-md-6"><label>Marca *</label><input type="text" name="marca" class="form-control" required></div>
+                        <div class="col-12"><label>Descripción *</label><textarea name="descripcion" rows="2" class="form-control" required></textarea></div>
+                        <div class="col-md-4"><label>Modelo</label><input type="text" name="modelo" class="form-control"></div>
+                        <div class="col-md-4"><label>Unidad</label><select name="unidad" class="form-select"><option>Unidad</option><option>Caja</option><option>Galón</option></select></div>
+                        <div class="col-md-4"><label>Stock Inicial</label><input type="number" name="stock" value="0" class="form-control"></div>
+                        <div class="col-md-6"><label>Costo Unitario S/</label><input type="number" step="0.01" name="costo_unitario" class="form-control" required></div>
+                        <div class="col-md-6"><label>Precio Unitario S/</label><input type="number" step="0.01" name="precio_unitario" class="form-control" required></div>
+                        <div class="col-12"><label>Observaciones</label><textarea name="observaciones" rows="2" class="form-control"></textarea></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formNuevoProducto" class="btn btn-success">Guardar Producto</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<div class="modal fade" id="modalEliminarProducto" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5>Eliminar producto</h5></div><div class="modal-body"><p>¿Confirmar eliminación de <strong id="eliminarProdNombre"></strong>?</p><input type="hidden" id="eliminarProdId"></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="confirmarEliminarProductoBtn" class="btn btn-danger">Eliminar</button></div></div></div></div>
+<!-- MODAL EDITAR PRODUCTO (conexión real a BD) -->
+<div class="modal fade" id="modalEditarProducto" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5><i class="bi bi-pencil-square"></i> Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarProducto" action="/mantenedor/productos/actualizar" method="POST">
+                    <input type="hidden" id="edit_id" name="id">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label>Familia</label><input type="text" id="edit_familia" name="familia" class="form-control"></div>
+                        <div class="col-md-6"><label>Marca</label><input type="text" id="edit_marca" name="marca" class="form-control"></div>
+                        <div class="col-12"><label>Descripción</label><textarea id="edit_descripcion" name="descripcion" rows="2" class="form-control"></textarea></div>
+                        <div class="col-md-4"><label>Modelo</label><input type="text" id="edit_modelo" name="modelo" class="form-control"></div>
+                        <div class="col-md-4"><label>Unidad</label><select id="edit_unidad" name="unidad" class="form-select"><option>Unidad</option><option>Caja</option><option>Galón</option></select></div>
+                        <div class="col-md-4"><label>Stock</label><input type="number" id="edit_stock" name="stock" class="form-control"></div>
+                        <div class="col-md-6"><label>Costo S/</label><input type="number" step="0.01" id="edit_costo" name="costo_unitario" class="form-control"></div>
+                        <div class="col-md-6"><label>Precio S/</label><input type="number" step="0.01" id="edit_precio" name="precio_unitario" class="form-control"></div>
+                        <div class="col-12"><label>Observaciones</label><textarea id="edit_observaciones" name="observaciones" rows="2" class="form-control"></textarea></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button id="btnGuardarEdicionProducto" class="btn btn-warning">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- Modales Cotizaciones (detalle) -->
-<div class="modal fade" id="modalDetalleCotizacion" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5>Detalle de cotización</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="detalleCotizacionBody"></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div></div></div></div>
+<!-- MODAL ELIMINAR PRODUCTO -->
+<div class="modal fade" id="modalEliminarProducto" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white"><h5>Eliminar producto</h5></div>
+            <div class="modal-body"><p>¿Confirmar eliminación de <strong id="eliminarProdNombre"></strong>?</p><input type="hidden" id="eliminarProdId"></div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button id="confirmarEliminarProductoBtn" class="btn btn-danger">Eliminar</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DETALLE COTIZACIÓN -->
+<div class="modal fade" id="modalDetalleCotizacion" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white"><h5>Detalle de cotización</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" id="detalleCotizacionBody"></div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div>
+        </div>
+    </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // ---------- DATOS SIMULADOS pero completos para demostración ----------
-    let productosData = [
-        { id:1, codigo:"EPP-101", familia:"EQUIPOS DE PROTECCIÓN PERSONAL", descripcion:"Casco industrial dieléctrico", modelo:"V-Gard", marca:"3M", unidad:"Unidad", costo:42.5, precio:89.9, stock:28 },
-        { id:2, codigo:"HMA-205", familia:"HERRAMIENTAS MANUALES", descripcion:"Juego de llaves mixtas", modelo:"PRO", marca:"Stanley", unidad:"Caja", costo:115, precio:210, stock:5 },
-        { id:3, codigo:"HEL-88", familia:"HERRAMIENTAS ELÉCTRICAS", descripcion:"Taladro percutor 800W", modelo:"GBH", marca:"Bosch", unidad:"Unidad", costo:190, precio:329, stock:0 },
-        { id:4, codigo:"MEL-002", familia:"MATERIALES ELÉCTRICOS", descripcion:"Cable THW 10 AWG", modelo:"THW", marca:"Indeco", unidad:"Metro", costo:2.3, precio:4.9, stock:150 }
-    ];
+    // Datos de cotizaciones (simulados, puedes reemplazar con llamada a API)
+    let cotizacionesData = [];
     
-    let cotizacionesData = [
-        { id:"COT-001", fecha:"2025-03-01", cliente:"Minera Volcan S.A.", vendedor:"Carlos López", estado:"generada", total:12500.00, items:[] },
-        { id:"COT-002", fecha:"2025-03-05", cliente:"Constructora Graña", vendedor:"Ana Torres", estado:"aceptada", total:8700.50, items:[] },
-        { id:"COT-003", fecha:"2025-03-10", cliente:"Tecnofil S.R.L", vendedor:"Carlos López", estado:"borrador", total:3450.00, items:[] }
-    ];
+    // Cargar cotizaciones desde el backend
+    function cargarCotizaciones() {
+        $.get("/api/cotizaciones/listar", function(data) {
+            cotizacionesData = data;
+            renderizarCotizaciones();
+            actualizarStatsGenerales();
+        }).fail(function() {
+            // Si no hay endpoint, usar datos de ejemplo
+            cotizacionesData = [
+                { id:"COT-001", fecha:"2025-03-01", cliente:"Minera Volcan S.A.", vendedor:"Carlos López", estado:"generada", total:12500.00 },
+                { id:"COT-002", fecha:"2025-03-05", cliente:"Constructora Graña", vendedor:"Ana Torres", estado:"aceptada", total:8700.50 },
+                { id:"COT-003", fecha:"2025-03-10", cliente:"Tecnofil S.R.L", vendedor:"Carlos López", estado:"borrador", total:3450.00 }
+            ];
+            renderizarCotizaciones();
+            actualizarStatsGenerales();
+        });
+    }
     
     function actualizarStatsGenerales() {
-        let valorInv = productosData.reduce((sum, p) => sum + (p.stock * p.costo), 0);
-        $("#totalProductosStat").text(productosData.length);
+        let valorInv = 0;
+        $("#tbodyProductosLista tr").each(function() {
+            let stock = parseInt($(this).find("td:eq(6)").text()) || 0;
+            let precioText = $(this).find("td:eq(5)").text().replace("S/", "").trim();
+            let precio = parseFloat(precioText) || 0;
+            valorInv += stock * precio;
+        });
+        $("#totalProductosStat").text($("#tbodyProductosLista tr").length);
         $("#totalCotizacionesStat").text(cotizacionesData.length);
         $("#totalStockValorStat").text(`S/ ${valorInv.toFixed(2)}`);
         let aceptadas = cotizacionesData.filter(c => c.estado === "aceptada").length;
         $("#totalAceptadasStat").text(aceptadas);
     }
     
-    function renderizarTablaProductos() {
+    function renderizarTablaProductosFiltro() {
         let familia = $("#filtroFamiliaProductos").val();
         let busqueda = $("#filtroBusquedaProducto").val().toLowerCase();
-        let filtrados = productosData.filter(p => (!familia || p.familia === familia) && (!busqueda || p.descripcion.toLowerCase().includes(busqueda) || p.codigo.toLowerCase().includes(busqueda)));
-        let html = "";
-        filtrados.forEach(p => {
-            let stockBadge = p.stock <= 0 ? '<span class="badge bg-danger">0</span>' : (p.stock <= 5 ? '<span class="badge bg-warning text-dark">'+p.stock+'</span>' : '<span class="badge bg-success">'+p.stock+'</span>');
-            html += `<tr>
-                        <td>${p.id}</td>
-                        <td><span class="badge bg-secondary">${p.codigo}</span></td>
-                        <td>${p.familia.substring(0,20)}</td>
-                        <td>${p.descripcion} ${p.modelo || ''}</td>
-                        <td>${p.marca}</td>
-                        <td class="text-end">S/ ${p.precio.toFixed(2)}</td>
-                        <td class="text-center">${stockBadge}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary btn-editar-producto me-1" data-id="${p.id}"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-outline-danger btn-eliminar-producto" data-id="${p.id}" data-nombre="${p.descripcion}"><i class="bi bi-trash"></i></button>
-                        </td>
-                     </tr>`;
+        let visibleCount = 0;
+        $("#tbodyProductosLista tr").each(function() {
+            let $row = $(this);
+            let rowFamilia = $row.data("familia") || "";
+            let textoBusqueda = ($row.data("descripcion") || "").toLowerCase();
+            let matchFamilia = !familia || rowFamilia === familia;
+            let matchBusqueda = !busqueda || textoBusqueda.includes(busqueda);
+            if(matchFamilia && matchBusqueda) { $row.show(); visibleCount++; }
+            else { $row.hide(); }
         });
-        $("#tbodyProductosLista").html(html);
         actualizarStatsGenerales();
     }
     
@@ -355,32 +511,45 @@
                         <td><span class="badge-estado ${claseEstado}">${c.estado.toUpperCase()}</span></td>
                         <td class="text-end fw-bold">S/ ${c.total.toFixed(2)}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-info btn-ver-detalle-cotizacion" data-id="${c.id}" title="Ver detalle"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-sm btn-warning ms-1" disabled><i class="bi bi-printer"></i></button>
+                            <button class="btn btn-sm btn-info btn-ver-detalle-cotizacion" data-id="${c.id}"><i class="bi bi-eye"></i></button>
                         </td>
                      </tr>`;
         });
+        if(!html) html = '<tr><td colspan="6" class="text-center">No hay cotizaciones</td></tr>';
         $("#tbodyCotizacionesLista").html(html);
         actualizarStatsGenerales();
     }
     
-    // Eventos Productos
+    // Eventos para productos desde BD
     $(document).on("click", ".btn-editar-producto", function(){
-        let id = $(this).data("id");
-        let prod = productosData.find(p=>p.id === id);
-        if(prod){
-            $("#productoIdEdit").val(prod.id);
-            $("#modalFamilia").val(prod.familia);
-            $("#modalMarca").val(prod.marca);
-            $("#modalDescripcion").val(prod.descripcion);
-            $("#modalModelo").val(prod.modelo);
-            $("#modalUnidad").val(prod.unidad);
-            $("#modalStock").val(prod.stock);
-            $("#modalCosto").val(prod.costo);
-            $("#modalPrecio").val(prod.precio);
-            new bootstrap.Modal(document.getElementById('modalProductoForm')).show();
-        }
+        let btn = $(this);
+        $("#edit_id").val(btn.data("id"));
+        $("#edit_familia").val(btn.data("familia"));
+        $("#edit_descripcion").val(btn.data("descripcion"));
+        $("#edit_marca").val(btn.data("marca"));
+        $("#edit_modelo").val(btn.data("modelo"));
+        $("#edit_unidad").val(btn.data("unidad"));
+        $("#edit_stock").val(btn.data("stock"));
+        $("#edit_costo").val(btn.data("costo"));
+        $("#edit_precio").val(btn.data("precio"));
+        $("#edit_observaciones").val(btn.data("observaciones"));
+        new bootstrap.Modal(document.getElementById('modalEditarProducto')).show();
     });
+    
+    $("#btnGuardarEdicionProducto").click(function(){
+        let form = $("#formEditarProducto");
+        $.ajax({
+            url: form.attr("action"),
+            method: "POST",
+            data: form.serialize(),
+            success: function(response) {
+                if(response.success) { location.reload(); }
+                else { mostrarNotificacion(response.error || "Error al actualizar", "danger"); }
+            },
+            error: function() { mostrarNotificacion("Error de conexión", "danger"); }
+        });
+    });
+    
     $(document).on("click", ".btn-eliminar-producto", function(){
         let id = $(this).data("id");
         let nombre = $(this).data("nombre");
@@ -388,68 +557,52 @@
         $("#eliminarProdNombre").text(nombre);
         new bootstrap.Modal(document.getElementById('modalEliminarProducto')).show();
     });
-    $("#confirmarEliminarProductoBtn").click(function(){
-        let id = parseInt($("#eliminarProdId").val());
-        productosData = productosData.filter(p=>p.id !== id);
-        renderizarTablaProductos();
-        bootstrap.Modal.getInstance(document.getElementById('modalEliminarProducto')).hide();
-        mostrarNotificacion("Producto eliminado", "danger");
-    });
-    $("#btnSaveProductoModal").click(function(){
-        let id = $("#productoIdEdit").val();
-        if(id){
-            let idx = productosData.findIndex(p=>p.id == id);
-            if(idx !== -1){
-                productosData[idx].familia = $("#modalFamilia").val();
-                productosData[idx].marca = $("#modalMarca").val();
-                productosData[idx].descripcion = $("#modalDescripcion").val();
-                productosData[idx].modelo = $("#modalModelo").val();
-                productosData[idx].unidad = $("#modalUnidad").val();
-                productosData[idx].stock = parseInt($("#modalStock").val());
-                productosData[idx].costo = parseFloat($("#modalCosto").val());
-                productosData[idx].precio = parseFloat($("#modalPrecio").val());
-                renderizarTablaProductos();
-                bootstrap.Modal.getInstance(document.getElementById('modalProductoForm')).hide();
-                mostrarNotificacion("Producto actualizado", "success");
-            }
-        } else {
-            let newId = productosData.length + 10;
-            let newProd = { id:newId, codigo:"NEW"+newId, familia:$("#modalFamilia").val(), descripcion:$("#modalDescripcion").val(), marca:$("#modalMarca").val(), modelo:$("#modalModelo").val(), unidad:$("#modalUnidad").val(), costo:parseFloat($("#modalCosto").val()), precio:parseFloat($("#modalPrecio").val()), stock:parseInt($("#modalStock").val()) };
-            productosData.push(newProd);
-            renderizarTablaProductos();
-            bootstrap.Modal.getInstance(document.getElementById('modalProductoForm')).hide();
-            mostrarNotificacion("Producto creado", "success");
-        }
-    });
-    $("#btnNuevoProductoGlobal").click(function(){
-        $("#productoIdEdit").val("");
-        $("#modalFamilia").val("EQUIPOS DE PROTECCIÓN PERSONAL");
-        $("#modalMarca").val(""); $("#modalDescripcion").val(""); $("#modalModelo").val(""); $("#modalUnidad").val("Unidad"); $("#modalStock").val(0); $("#modalCosto").val(0); $("#modalPrecio").val(0);
-        new bootstrap.Modal(document.getElementById('modalProductoForm')).show();
-    });
-    $("#filtroFamiliaProductos, #filtroBusquedaProducto").on("change keyup", renderizarTablaProductos);
-    $("#btnFiltrarStockBajo").click(function(){ $("#filtroBusquedaProducto").val(""); renderizarTablaProductos(); let stockBajo = productosData.filter(p=> p.stock <=5 && p.stock>0); let htmlTemp=""; stockBajo.forEach(p=>{ htmlTemp+=`<tr><td>${p.codigo}</td><td>${p.descripcion}</td><td class="text-center"><span class="badge bg-warning">${p.stock}</span></td></tr>`; }); if(stockBajo.length) alert("Productos con stock bajo:\n"+stockBajo.map(p=>`${p.descripcion}: ${p.stock}`).join("\n")); else alert("No hay productos con stock bajo"); });
     
-    // Cotizaciones: eventos
+    $("#confirmarEliminarProductoBtn").click(function(){
+        let id = $("#eliminarProdId").val();
+        $.ajax({
+            url: "/mantenedor/productos/eliminar/" + id,
+            method: "POST",
+            success: function(response) {
+                if(response.success) { location.reload(); }
+                else { mostrarNotificacion(response.error || "Error al eliminar", "danger"); }
+            },
+            error: function() { mostrarNotificacion("Error de conexión", "danger"); }
+        });
+    });
+    
+    $("#filtroFamiliaProductos, #filtroBusquedaProducto").on("change keyup", renderizarTablaProductosFiltro);
+    
+    $("#btnFiltrarStockBajo").click(function(){
+        let bajos = [];
+        $("#tbodyProductosLista tr:visible").each(function() {
+            let stock = parseInt($(this).find("td:eq(6)").text()) || 0;
+            let nombre = $(this).find("td:eq(3)").text();
+            if(stock <= 5 && stock > 0) bajos.push(`${nombre}: ${stock}`);
+        });
+        if(bajos.length) alert("Productos con stock bajo:\n" + bajos.join("\n"));
+        else alert("No hay productos con stock bajo");
+    });
+    
     function initCotizaciones() {
-        renderizarCotizaciones();
+        cargarCotizaciones();
         $("#filtroEstadoCotizacion, #filtroBusquedaCotizacion").on("change keyup", renderizarCotizaciones);
-        $("#btnRefrescarCotizaciones").click(renderizarCotizaciones);
+        $("#btnRefrescarCotizaciones").click(cargarCotizaciones);
         $(document).on("click", ".btn-ver-detalle-cotizacion", function(){
             let id = $(this).data("id");
             let cot = cotizacionesData.find(c=>c.id === id);
             if(cot){
-                $("#detalleCotizacionBody").html(`<div class="p-3"><h5>${cot.id}</h5><p><strong>Cliente:</strong> ${cot.cliente}<br><strong>Vendedor:</strong> ${cot.vendedor}<br><strong>Fecha:</strong> ${cot.fecha}<br><strong>Estado:</strong> ${cot.estado}<br><strong>Total:</strong> S/ ${cot.total.toFixed(2)}</p><hr><p class="text-muted">Detalle de items no disponible en demo.</p></div>`);
+                $("#detalleCotizacionBody").html(`<div class="p-3"><h5>${cot.id}</h5><p><strong>Cliente:</strong> ${cot.cliente}<br><strong>Vendedor:</strong> ${cot.vendedor || 'N/A'}<br><strong>Fecha:</strong> ${cot.fecha}<br><strong>Estado:</strong> ${cot.estado}<br><strong>Total:</strong> S/ ${cot.total.toFixed(2)}</p></div>`);
                 new bootstrap.Modal(document.getElementById('modalDetalleCotizacion')).show();
             }
         });
     }
     
     // Navegación Sidebar
-    $("#sidebarProductosLink").click(function(e){ e.preventDefault(); $("#productosPanel").show(); $("#cotizacionesPanel").hide(); $(this).addClass("active-link"); $("#sidebarCotizacionesLink").removeClass("active-link"); $("#sidebarKardexLink").removeClass("active-link"); });
-    $("#sidebarCotizacionesLink").click(function(e){ e.preventDefault(); $("#productosPanel").hide(); $("#cotizacionesPanel").show(); initCotizaciones(); $(this).addClass("active-link"); $("#sidebarProductosLink").removeClass("active-link"); $("#sidebarKardexLink").removeClass("active-link"); });
-    $("#sidebarKardexLink").click(function(e){ e.preventDefault(); alert("Módulo Kárdex: Vista rápida de movimientos (demo). Aquí se mostraría historial de inventario."); });
-    $("#sidebarDashboardLink").click(function(e){ e.preventDefault(); $("#productosPanel").show(); $("#cotizacionesPanel").hide(); $("#sidebarProductosLink").addClass("active-link"); $("#sidebarCotizacionesLink").removeClass("active-link"); });
+    $("#sidebarProductosLink").click(function(e){ e.preventDefault(); $("#productosPanel").show(); $("#cotizacionesPanel").hide(); $(this).addClass("active-link"); $("#sidebarCotizacionesLink, #sidebarKardexLink").removeClass("active-link"); });
+    $("#sidebarCotizacionesLink").click(function(e){ e.preventDefault(); $("#productosPanel").hide(); $("#cotizacionesPanel").show(); initCotizaciones(); $(this).addClass("active-link"); $("#sidebarProductosLink, #sidebarKardexLink").removeClass("active-link"); });
+    $("#sidebarKardexLink").click(function(e){ e.preventDefault(); window.open("/mantenedor/productos/kardex", "_blank"); });
+    $("#sidebarDashboardLink").click(function(e){ e.preventDefault(); $("#productosPanel").show(); $("#cotizacionesPanel").hide(); $("#sidebarProductosLink").addClass("active-link"); $("#sidebarCotizacionesLink, #sidebarKardexLink").removeClass("active-link"); });
     
     function mostrarNotificacion(msg, tipo){
         let color = tipo==='success'?'#198754':(tipo==='danger'?'#dc3545':'#0d6efd');
@@ -458,10 +611,7 @@
         setTimeout(()=>n.fadeOut(300,function(){$(this).remove();}),2500);
     }
     
-    renderizarTablaProductos();
-    actualizarStatsGenerales();
-    initCotizaciones();
-    // por defecto visible productos
+    renderizarTablaProductosFiltro();
     $("#productosPanel").show();
     $("#cotizacionesPanel").hide();
 </script>
