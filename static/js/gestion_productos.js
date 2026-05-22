@@ -69,7 +69,7 @@ function inicializarCalculoMargen() {
 }
 
 // =====================================================
-// KÁRDEX - FUNCIONES CORREGIDAS
+// KÁRDEX - FUNCIONES CORREGIDAS Y MEJORADAS
 // =====================================================
 
 // Cargar productos en el select del kárdex
@@ -90,61 +90,160 @@ async function cargarProductosKardex() {
         
         const productos = await res.json();
         console.log("📦 Productos recibidos:", productos.length);
+        
+        if (productos.length === 0) {
+            console.warn("⚠️ No hay productos en la base de datos");
+        }
 
         selects.forEach(select => {
-            if (!select) return;
-            select.innerHTML = '<option value="">Seleccione un producto</option>';
+            if (!select) {
+                console.warn("⚠️ Select no encontrado");
+                return;
+            }
+            
+            // Guardar el valor seleccionado actualmente (si existe)
+            const valorActual = select.value;
+            
+            select.innerHTML = '<option value="">📦 Seleccione un producto</option>';
+            
             if (productos.length === 0) {
-                select.innerHTML += '<option value="" disabled>No hay productos disponibles</option>';
+                select.innerHTML += '<option value="" disabled>❌ No hay productos disponibles</option>';
             } else {
                 productos.forEach(p => {
-                    select.innerHTML += `<option value="${p.id}">${p.codigo || 'Sin código'} - ${p.descripcion.substring(0, 50)}</option>`;
+                    const codigo = p.codigo || `ID-${p.id}`;
+                    const descripcion = p.descripcion ? p.descripcion.substring(0, 50) : 'Sin descripción';
+                    const stock = p.stock || 0;
+                    select.innerHTML += `<option value="${p.id}">${codigo} - ${descripcion} (Stock: ${stock})</option>`;
                 });
             }
+            
+            // Restaurar el valor seleccionado si existía
+            if (valorActual && valorActual !== '') {
+                select.value = valorActual;
+            }
         });
+        
+        // Inicializar Select2 para mejor experiencia
+        if (typeof $ !== 'undefined') {
+            if ($('#kardex_producto_id').length) {
+                $('#kardex_producto_id').select2({
+                    dropdownParent: $('#modalKardex'),
+                    placeholder: "🔍 Buscar producto...",
+                    width: '100%',
+                    allowClear: true
+                });
+            }
+            
+            if ($('#mov_kardex_producto_id').length) {
+                $('#mov_kardex_producto_id').select2({
+                    dropdownParent: $('#modalNuevoMovimientoKardex'),
+                    placeholder: "🔍 Buscar producto...",
+                    width: '100%',
+                    allowClear: true
+                });
+            }
+        }
         
         console.log("✅ Productos cargados exitosamente");
     } catch (e) {
         console.error("❌ Error cargando productos para Kárdex", e);
-        mostrarNotificacion("Error al cargar productos para kárdex", "danger");
+        mostrarNotificacion("Error al cargar productos para kárdex: " + e.message, "danger");
         
         selects.forEach(select => {
             if (select) {
-                select.innerHTML = '<option value="">Error al cargar productos</option>';
+                select.innerHTML = '<option value="">❌ Error al cargar productos</option>';
             }
         });
+    }
+}
+
+// Función auxiliar para actualizar el valor total
+async function actualizarValorTotal(productoId, stock) {
+    try {
+        const res = await fetch(`/api/productos/${productoId}`);
+        if (res.ok) {
+            const producto = await res.json();
+            const costoUnitario = producto.costo_unitario || 0;
+            const valorTotal = stock * costoUnitario;
+            const valorTotalElem = document.getElementById('kardex_valor_total');
+            if (valorTotalElem) {
+                valorTotalElem.textContent = `S/ ${valorTotal.toFixed(2)}`;
+            }
+        }
+    } catch (e) {
+        console.error("Error calculando valor total:", e);
+        const valorTotalElem = document.getElementById('kardex_valor_total');
+        if (valorTotalElem) {
+            valorTotalElem.textContent = 'S/ 0.00';
+        }
     }
 }
 
 // Cargar movimientos del kárdex
 async function cargarKardex(productoId = '') {
     const tbody = document.getElementById('tbody-kardex');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error("❌ No se encontró el elemento tbody-kardex");
+        return;
+    }
 
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando movimientos...</td></tr>`;
+    // Si no hay producto seleccionado, mostrar mensaje
+    if (!productoId || productoId === '') {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">
+            <i class="bi bi-info-circle"></i> Seleccione un producto para ver sus movimientos
+        <\/td><\/tr>`;
+        const stockActualElem = document.getElementById('kardex_stock_actual');
+        if (stockActualElem) stockActualElem.textContent = '0';
+        const valorTotalElem = document.getElementById('kardex_valor_total');
+        if (valorTotalElem) valorTotalElem.textContent = 'S/ 0.00';
+        return;
+    }
+
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <br>Cargando movimientos...
+    <\/td><\/tr>`;
 
     try {
-        let url = '/api/movimientos_stock';
-        if (productoId) url += `?producto_id=${productoId}`;
-
+        const url = `/api/movimientos_stock?producto_id=${productoId}`;
+        console.log("📊 URL:", url);
+        
         const res = await fetch(url);
         console.log("📊 Respuesta movimientos:", res.status);
         
         if (!res.ok) {
-            throw new Error(`Error HTTP: ${res.status}`);
+            throw new Error(`Error HTTP: ${res.status} - ${res.statusText}`);
         }
         
         const movimientos = await res.json();
         console.log("📊 Movimientos recibidos:", movimientos.length);
 
+        if (!movimientos || movimientos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-warning">
+                <i class="bi bi-exclamation-triangle"></i> No hay movimientos para este producto
+            <\/td><\/tr>`;
+            // Obtener stock actual del producto
+            try {
+                const resProducto = await fetch(`/api/productos/${productoId}`);
+                if (resProducto.ok) {
+                    const producto = await resProducto.json();
+                    const stockActualElem = document.getElementById('kardex_stock_actual');
+                    if (stockActualElem) stockActualElem.textContent = producto.stock || 0;
+                    await actualizarValorTotal(productoId, producto.stock || 0);
+                }
+            } catch (e) {
+                console.error("Error obteniendo stock:", e);
+            }
+            return;
+        }
+
         tbody.innerHTML = '';
         let saldo = 0;
 
-        if (movimientos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4">No hay movimientos para este producto</td></tr>`;
-        }
-
-        movimientos.forEach(mov => {
+        movimientos.forEach((mov, index) => {
+            // Calcular saldo acumulado
             if (mov.tipo === 'ENTRADA') {
                 saldo += parseInt(mov.cantidad);
             } else if (mov.tipo === 'SALIDA') {
@@ -153,41 +252,45 @@ async function cargarKardex(productoId = '') {
                 saldo = parseInt(mov.cantidad);
             }
 
-            const fecha = mov.created_at ? new Date(mov.created_at).toLocaleDateString('es-PE') : '-';
+            const fecha = mov.created_at ? new Date(mov.created_at).toLocaleDateString('es-PE', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : '-';
             
             const fila = `
-                <tr>
-                    <td>${fecha}</td>
+                <tr class="${index % 2 === 0 ? 'table-light' : ''}">
+                    <td class="small">${fecha}<\/td>
                     <td>
                         <span class="badge ${mov.tipo === 'ENTRADA' ? 'bg-success' : mov.tipo === 'SALIDA' ? 'bg-danger' : 'bg-warning'}">
-                            ${mov.tipo}
+                            ${mov.tipo === 'ENTRADA' ? '➕ ENTRADA' : mov.tipo === 'SALIDA' ? '➖ SALIDA' : '📊 AJUSTE'}
                         </span>
-                    </td>
-                    <td>${mov.referencia || '-'}</td>
-                    <td>${mov.motivo || '-'}</td>
-                    <td class="text-end text-success fw-bold">${mov.tipo === 'ENTRADA' ? mov.cantidad : '-'}</td>
-                    <td class="text-end text-danger fw-bold">${mov.tipo === 'SALIDA' ? mov.cantidad : '-'}</td>
-                    <td class="text-end fw-bold">${saldo}</td>
-                    <td class="text-end">${mov.costo_unitario ? 'S/ ' + parseFloat(mov.costo_unitario).toFixed(2) : '-'}</td>
-                </tr>`;
+                    <\/td>
+                    <td class="small">${mov.referencia || '-'}<\/td>
+                    <td class="small">${mov.motivo || '-'}<\/td>
+                    <td class="text-end text-success fw-bold">${mov.tipo === 'ENTRADA' ? mov.cantidad : '-'}<\/td>
+                    <td class="text-end text-danger fw-bold">${mov.tipo === 'SALIDA' ? mov.cantidad : '-'}<\/td>
+                    <td class="text-end fw-bold">${saldo}<\/td>
+                    <td class="text-end">${mov.costo_unitario ? 'S/ ' + parseFloat(mov.costo_unitario).toFixed(2) : '-'}<\/td>
+                <\/tr>`;
             tbody.innerHTML += fila;
         });
 
         // Actualizar stock actual
-        document.getElementById('kardex_stock_actual').textContent = saldo;
+        const stockActualElem = document.getElementById('kardex_stock_actual');
+        if (stockActualElem) stockActualElem.textContent = saldo;
         
-        // Actualizar valor total (si hay costo unitario)
-        if (movimientos.length > 0 && movimientos[0].costo_unitario) {
-            const valorTotal = saldo * movimientos[0].costo_unitario;
-            document.getElementById('kardex_valor_total').textContent = `S/ ${valorTotal.toFixed(2)}`;
-        } else {
-            document.getElementById('kardex_valor_total').textContent = 'S/ 0.00';
-        }
+        // Actualizar valor total
+        await actualizarValorTotal(productoId, saldo);
 
     } catch (error) {
         console.error("❌ Error cargando kárdex:", error);
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar el Kárdex: ${error.message}</td></tr>`;
-        mostrarNotificacion("Error al cargar el kárdex", "danger");
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">
+            <i class="bi bi-exclamation-octagon"></i> Error al cargar el Kárdex: ${error.message}
+        <\/td><\/tr>`;
+        mostrarNotificacion("Error al cargar el kárdex: " + error.message, "danger");
     }
 }
 
@@ -201,32 +304,60 @@ async function guardarMovimientoKardex() {
     const costo = document.getElementById('mov_kardex_costo').value;
     const referencia = document.getElementById('mov_kardex_referencia').value;
     const motivo = document.getElementById('mov_kardex_motivo').value;
+    const fecha = document.getElementById('mov_kardex_fecha').value;
 
+    // Validaciones
     if (!productoId) {
-        mostrarNotificacion("❌ Seleccione un producto", "danger");
+        mostrarNotificacion("❌ Por favor, seleccione un producto", "warning");
         return;
     }
     
     if (!cantidad || parseInt(cantidad) <= 0) {
-        mostrarNotificacion("❌ Ingrese una cantidad válida", "danger");
+        mostrarNotificacion("❌ Ingrese una cantidad válida (mayor a 0)", "warning");
+        document.getElementById('mov_kardex_cantidad').focus();
         return;
     }
     
     if (!tipo) {
-        mostrarNotificacion("❌ Seleccione un tipo de movimiento", "danger");
+        mostrarNotificacion("❌ Seleccione un tipo de movimiento", "warning");
         return;
+    }
+
+    // Para salidas, verificar stock disponible
+    if (tipo === 'SALIDA') {
+        try {
+            const resProducto = await fetch(`/api/productos/${productoId}`);
+            if (resProducto.ok) {
+                const producto = await resProducto.json();
+                if (producto.stock < parseInt(cantidad)) {
+                    mostrarNotificacion(`❌ Stock insuficiente. Stock actual: ${producto.stock}`, "danger");
+                    return;
+                }
+            }
+        } catch (e) {
+            console.error("Error verificando stock:", e);
+        }
     }
 
     const datos = {
         producto_id: parseInt(productoId),
         tipo: tipo,
         cantidad: parseInt(cantidad),
-        costo_unitario: costo ? parseFloat(costo) : null,
+        costo_unitario: costo && costo !== '' ? parseFloat(costo) : null,
         referencia: referencia || null,
-        motivo: motivo || null
+        motivo: motivo || null,
+        fecha: fecha || null
     };
 
     console.log("📝 Datos a enviar:", datos);
+
+    // Deshabilitar botón para evitar doble envío
+    const btnGuardar = document.getElementById('btnGuardarMovimientoKardex');
+    const textoOriginal = btnGuardar ? btnGuardar.innerHTML : '';
+    if (btnGuardar) {
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+    }
 
     try {
         const res = await fetch('/api/movimientos_stock', {
@@ -246,28 +377,39 @@ async function guardarMovimientoKardex() {
             const modalMovimiento = bootstrap.Modal.getInstance(document.getElementById('modalNuevoMovimientoKardex'));
             if (modalMovimiento) modalMovimiento.hide();
             
-            // Recargar el kárdex
+            // Recargar el kárdex con el producto seleccionado
             const productoSelect = document.getElementById('kardex_producto_id');
             if (productoSelect && productoSelect.value) {
                 await cargarKardex(productoSelect.value);
-            } else {
-                await cargarKardex();
             }
             
             // Limpiar formulario
-            document.getElementById('mov_kardex_cantidad').value = '';
-            document.getElementById('mov_kardex_costo').value = '';
-            document.getElementById('mov_kardex_referencia').value = '';
-            document.getElementById('mov_kardex_motivo').value = '';
+            const cantidadInput = document.getElementById('mov_kardex_cantidad');
+            const costoInput = document.getElementById('mov_kardex_costo');
+            const referenciaInput = document.getElementById('mov_kardex_referencia');
+            const motivoInput = document.getElementById('mov_kardex_motivo');
             
-            // Recargar productos para actualizar stock en tabla principal
-            setTimeout(() => location.reload(), 1500);
+            if (cantidadInput) cantidadInput.value = '';
+            if (costoInput) costoInput.value = '';
+            if (referenciaInput) referenciaInput.value = '';
+            if (motivoInput) motivoInput.value = '';
+            
+            // Recargar productos para actualizar stock en tabla principal después de 1 segundo
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
         } else {
             mostrarNotificacion("❌ " + (result.error || "Error al registrar el movimiento"), "danger");
         }
     } catch (error) {
         console.error("❌ Error:", error);
-        mostrarNotificacion("❌ Error de conexión al registrar movimiento", "danger");
+        mostrarNotificacion("❌ Error de conexión al registrar movimiento. Verifique su conexión.", "danger");
+    } finally {
+        // Rehabilitar botón
+        if (btnGuardar) {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = textoOriginal;
+        }
     }
 }
 
@@ -299,11 +441,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // SELECT2
-    $(document).ready(function() {
-        $('#familia').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar familia..." });
-        $('#marca').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar marca..." });
-        $('#unidad').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar unidad..." });
-    });
+    if (typeof $ !== 'undefined') {
+        $(document).ready(function() {
+            if ($('#familia').length) {
+                $('#familia').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar familia..." });
+            }
+            if ($('#marca').length) {
+                $('#marca').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar marca..." });
+            }
+            if ($('#unidad').length) {
+                $('#unidad').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar unidad..." });
+            }
+        });
+    }
 
     // CAMBIO PESO
     const tipoPeso = document.getElementById('tipo_peso');
@@ -365,7 +515,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (productoSelect && productoSelect.value) {
                 cargarKardex(productoSelect.value);
             } else {
-                cargarKardex();
+                // Si hay productos en el select, seleccionar el primero automáticamente
+                if (productoSelect && productoSelect.options.length > 1) {
+                    productoSelect.selectedIndex = 1;
+                    cargarKardex(productoSelect.value);
+                }
             }
         });
     }
@@ -479,8 +633,11 @@ function eliminarProducto(btn) {
     const id = btn.dataset.id;
     const descripcion = btn.dataset.descripcion || 'Producto';
 
-    document.getElementById('eliminar_id_producto').value = id;
-    document.getElementById('textoProductoEliminar').textContent = descripcion;
+    const eliminarIdInput = document.getElementById('eliminar_id_producto');
+    const textoProducto = document.getElementById('textoProductoEliminar');
+    
+    if (eliminarIdInput) eliminarIdInput.value = id;
+    if (textoProducto) textoProducto.textContent = descripcion;
 
     const modal = new bootstrap.Modal(document.getElementById('modalEliminarProducto'));
     modal.show();

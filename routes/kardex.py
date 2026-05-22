@@ -17,7 +17,8 @@ from datetime import datetime
 print("🟢 [6] datetime importado")
 
 print("🟢 [7] Creando blueprint kardex_bp...")
-kardex_bp = Blueprint('kardex', __name__)
+# 🔥 AGREGAR url_prefix='' para asegurar que las rutas sean correctas
+kardex_bp = Blueprint('kardex', __name__, url_prefix='')
 print("🟢 [8] Blueprint kardex_bp creado exitosamente")
 
 # ====================== OBTENER PRODUCTOS ======================
@@ -27,15 +28,24 @@ def get_productos():
     try:
         productos = Producto.query.order_by(Producto.descripcion).all()
         print(f"📦 [API] Se encontraron {len(productos)} productos")
-        return jsonify([{
-            'id': p.id,
-            'codigo': getattr(p, 'codigo', ''),
-            'descripcion': p.descripcion,
-            'stock': p.stock,
-            'costo_unitario': float(p.costo_unitario) if p.costo_unitario else 0
-        } for p in productos])
+        
+        # 🔥 MEJORA: Verificar que los productos tengan los atributos necesarios
+        resultado = []
+        for p in productos:
+            resultado.append({
+                'id': p.id,
+                'codigo': getattr(p, 'codigo', f'PROD-{p.id}'),  # Si no tiene código, genera uno
+                'descripcion': p.descripcion,
+                'stock': getattr(p, 'stock', 0),
+                'costo_unitario': float(p.costo_unitario) if hasattr(p, 'costo_unitario') and p.costo_unitario else 0
+            })
+        
+        print(f"📦 [API] Retornando {len(resultado)} productos")
+        return jsonify(resultado)
     except Exception as e:
         print(f"❌ [API] Error en get_productos: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
@@ -49,11 +59,13 @@ def get_producto(id):
             'id': producto.id,
             'codigo': getattr(producto, 'codigo', ''),
             'descripcion': producto.descripcion,
-            'stock': producto.stock,
-            'costo_unitario': float(producto.costo_unitario) if producto.costo_unitario else 0
+            'stock': getattr(producto, 'stock', 0),
+            'costo_unitario': float(producto.costo_unitario) if hasattr(producto, 'costo_unitario') and producto.costo_unitario else 0
         })
     except Exception as e:
         print(f"❌ [API] Error en get_producto: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
@@ -82,18 +94,24 @@ def get_movimientos():
         movimientos = query.all()
         print(f"📊 [API] Se encontraron {len(movimientos)} movimientos")
 
-        return jsonify([{
-            'id': m.id,
-            'producto_id': m.producto_id,
-            'tipo': m.tipo,
-            'cantidad': m.cantidad,
-            'motivo': m.motivo,
-            'referencia': m.referencia,
-            'costo_unitario': float(m.costo_unitario) if m.costo_unitario else None,
-            'created_at': m.created_at.isoformat()
-        } for m in movimientos])
+        resultado = []
+        for m in movimientos:
+            resultado.append({
+                'id': m.id,
+                'producto_id': m.producto_id,
+                'tipo': m.tipo,
+                'cantidad': m.cantidad,
+                'motivo': m.motivo or '',
+                'referencia': m.referencia or '',
+                'costo_unitario': float(m.costo_unitario) if m.costo_unitario else None,
+                'created_at': m.created_at.isoformat() if m.created_at else datetime.now().isoformat()
+            })
+        
+        return jsonify(resultado)
     except Exception as e:
         print(f"❌ [API] Error en get_movimientos: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
@@ -105,51 +123,71 @@ def crear_movimiento():
         data = request.get_json()
         print(f"📝 [API] Datos recibidos: {data}")
         
-        if not data.get('producto_id') or not data.get('tipo') or not data.get('cantidad'):
-            return jsonify({'success': False, 'error': 'Faltan datos requeridos'}), 400
+        # 🔥 MEJORA: Validaciones más claras
+        if not data.get('producto_id'):
+            return jsonify({'success': False, 'error': 'Producto no especificado'}), 400
+        
+        if not data.get('tipo'):
+            return jsonify({'success': False, 'error': 'Tipo de movimiento no especificado'}), 400
+        
+        if not data.get('cantidad') or int(data.get('cantidad', 0)) <= 0:
+            return jsonify({'success': False, 'error': 'Cantidad inválida'}), 400
         
         producto = Producto.query.get(data['producto_id'])
         if not producto:
             return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
         
         cantidad = int(data['cantidad'])
+        stock_actual = getattr(producto, 'stock', 0)
         
-        if data['tipo'] == 'SALIDA' and producto.stock < cantidad:
-            return jsonify({'success': False, 'error': f'Stock insuficiente. Stock actual: {producto.stock}'}), 400
+        # Validar stock para salidas
+        if data['tipo'] == 'SALIDA' and stock_actual < cantidad:
+            return jsonify({'success': False, 'error': f'Stock insuficiente. Stock actual: {stock_actual}'}), 400
 
         nuevo = MovimientoStock(
             producto_id=data['producto_id'],
             tipo=data['tipo'],
             cantidad=cantidad,
-            motivo=data.get('motivo'),
-            referencia=data.get('referencia'),
-            costo_unitario=data.get('costo_unitario')
+            motivo=data.get('motivo', ''),
+            referencia=data.get('referencia', ''),
+            costo_unitario=data.get('costo_unitario') if data.get('costo_unitario') else None
         )
         
         if data.get('fecha'):
-            nuevo.created_at = datetime.fromisoformat(data['fecha'])
+            try:
+                nuevo.created_at = datetime.strptime(data['fecha'], '%Y-%m-%d')
+            except:
+                print(f"⚠️ No se pudo parsear la fecha: {data.get('fecha')}")
         
         db.session.add(nuevo)
         
+        # Actualizar stock según tipo
         if data['tipo'] == 'ENTRADA':
-            producto.stock += cantidad
+            producto.stock = stock_actual + cantidad
         elif data['tipo'] == 'SALIDA':
-            producto.stock -= cantidad
+            producto.stock = stock_actual - cantidad
         elif data['tipo'] == 'AJUSTE':
             producto.stock = cantidad
         
         db.session.commit()
-        print("✅ [API] Movimiento registrado y stock actualizado")
-        return jsonify({'success': True, 'message': 'Movimiento registrado correctamente'}), 201
+        print(f"✅ [API] Movimiento registrado. Nuevo stock: {producto.stock}")
+        return jsonify({
+            'success': True, 
+            'message': 'Movimiento registrado correctamente',
+            'nuevo_stock': producto.stock
+        }), 201
         
     except Exception as e:
         db.session.rollback()
         print(f"❌ [API] Error en crear_movimiento: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
-print("🟢 [9] ¡kardex.py se ha cargado COMPLETAMENTE sin errores!")
 
-# routes/kardex.py - Agrega esto al final
+# ====================== RUTA DE PRUEBA ======================
 @kardex_bp.route('/test', methods=['GET'])
 def test_kardex():
     return jsonify({'message': 'Kardex funciona correctamente', 'status': 'ok'})
+
+print("🟢 [9] ¡kardex.py se ha cargado COMPLETAMENTE sin errores!")

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import base64
 
@@ -16,121 +16,231 @@ db.init_app(app)
 # ==================== IMPORTAR MODELOS ====================
 from models.producto import Producto
 from models.movimiento_stock import MovimientoStock
-from datetime import datetime
 
-# ==================== RUTAS DIRECTAS PARA KÁRDEX (SIN BLUEPRINT) ====================
+# ==================== IMPORTAR BLUEPRINTS ====================
+from routes.usuarios import usuarios_bp
+from routes.cotizaciones import cotizaciones_bp
+from routes.mantenedor_productos import productos_bp
+from routes.kardex import kardex_bp  # IMPORTAR EL BLUEPRINT DEL KÁRDEX
 
-# Ruta para obtener todos los productos
-@app.route('/api/productos', methods=['GET'])
-def get_productos():
-    print("📦 Llamada a /api/productos")
-    try:
-        productos = Producto.query.all()
-        resultado = []
-        for p in productos:
-            resultado.append({
-                'id': p.id,
-                'codigo': p.codigo if hasattr(p, 'codigo') else '',
-                'descripcion': p.descripcion,
-                'stock': p.stock if hasattr(p, 'stock') else 0,
-                'costo_unitario': float(p.costo_unitario) if hasattr(p, 'costo_unitario') and p.costo_unitario else 0
-            })
-        print(f"✅ Se encontraron {len(resultado)} productos")
-        return jsonify(resultado)
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return jsonify({'error': str(e)}), 500
+# ==================== REGISTRAR BLUEPRINTS ====================
+app.register_blueprint(usuarios_bp)
+app.register_blueprint(cotizaciones_bp)
+app.register_blueprint(productos_bp)
+app.register_blueprint(kardex_bp)  # REGISTRAR EL BLUEPRINT DEL KÁRDEX
 
-# Ruta para obtener movimientos de stock
-@app.route('/api/movimientos_stock', methods=['GET'])
-def get_movimientos():
-    print("📊 Llamada a /api/movimientos_stock")
-    try:
-        producto_id = request.args.get('producto_id', type=int)
-        
-        if producto_id:
-            movimientos = MovimientoStock.query.filter_by(producto_id=producto_id).order_by(MovimientoStock.created_at.desc()).all()
-        else:
-            movimientos = []
-        
-        resultado = []
-        for m in movimientos:
-            resultado.append({
-                'id': m.id,
-                'producto_id': m.producto_id,
-                'tipo': m.tipo,
-                'cantidad': m.cantidad,
-                'motivo': m.motivo,
-                'referencia': m.referencia,
-                'costo_unitario': float(m.costo_unitario) if m.costo_unitario else None,
-                'created_at': m.created_at.isoformat() if m.created_at else None
-            })
-        print(f"✅ Se encontraron {len(resultado)} movimientos")
-        return jsonify(resultado)
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return jsonify({'error': str(e)}), 500
-
-# Ruta para crear movimientos
-@app.route('/api/movimientos_stock', methods=['POST'])
-def crear_movimiento():
-    print("📝 Llamada a POST /api/movimientos_stock")
-    try:
-        data = request.get_json()
-        print(f"Datos recibidos: {data}")
-        
-        if not data.get('producto_id') or not data.get('tipo') or not data.get('cantidad'):
-            return jsonify({'success': False, 'error': 'Faltan datos'}), 400
-        
-        producto = Producto.query.get(data['producto_id'])
-        if not producto:
-            return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
-        
-        cantidad = int(data['cantidad'])
-        
-        if data['tipo'] == 'SALIDA' and producto.stock < cantidad:
-            return jsonify({'success': False, 'error': f'Stock insuficiente. Stock actual: {producto.stock}'}), 400
-        
-        nuevo = MovimientoStock(
-            producto_id=data['producto_id'],
-            tipo=data['tipo'],
-            cantidad=cantidad,
-            motivo=data.get('motivo'),
-            referencia=data.get('referencia'),
-            costo_unitario=data.get('costo_unitario')
-        )
-        
-        db.session.add(nuevo)
-        
-        if data['tipo'] == 'ENTRADA':
-            producto.stock += cantidad
-        elif data['tipo'] == 'SALIDA':
-            producto.stock -= cantidad
-        elif data['tipo'] == 'AJUSTE':
-            producto.stock = cantidad
-        
-        db.session.commit()
-        print("✅ Movimiento creado exitosamente")
-        return jsonify({'success': True, 'message': 'Movimiento registrado'}), 201
-        
-    except Exception as e:
-        db.session.rollback()
-        print(f"❌ Error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# Ruta de prueba
+# ==================== RUTA DE PRUEBA ====================
 @app.route('/')
 def home():
     return jsonify({'message': 'Servidor funcionando', 'status': 'ok'})
 
-# ==================== BLUEPRINTS ORIGINALES ====================
-from routes.usuarios import usuarios_bp
-from routes.cotizaciones import cotizaciones_bp
-from routes.mantenedor_productos import productos_bp
+# ==================== RUTAS PARA PLANTILLAS PRINCIPALES ====================
+@app.route('/mantenedor')
+def mantenedor():
+    """Página principal del mantenedor"""
+    return render_template('mantenedor.html')
 
-app.register_blueprint(usuarios_bp)
-app.register_blueprint(cotizaciones_bp)
-app.register_blueprint(productos_bp)
+@app.route('/mantenedor/productos')
+def gestion_productos():
+    """Página de gestión de productos"""
+    productos = Producto.query.all()
+    return render_template('gestion_productos.html', productos=productos)
+
+@app.route('/mantenedor/productos/guardar', methods=['POST'])
+def guardar_producto():
+    """Guardar nuevo producto"""
+    try:
+        from models.producto import Producto
+        from datetime import datetime
+        
+        # Obtener datos del formulario
+        familia = request.form.get('familia')
+        marca = request.form.get('marca')
+        descripcion = request.form.get('descripcion')
+        descripcion_larga = request.form.get('descripcion_larga', '')
+        modelo = request.form.get('modelo')
+        unidad = request.form.get('unidad')
+        volumen = request.form.get('volumen')
+        transporte = request.form.get('transporte')
+        observaciones = request.form.get('observaciones', '')
+        costo_unitario = float(request.form.get('costo_unitario', 0))
+        precio_unitario = float(request.form.get('precio_unitario', 0))
+        stock = int(request.form.get('stock', 0))
+        
+        # Procesar peso
+        tipo_peso = request.form.get('tipo_peso')
+        if tipo_peso == 'exacto':
+            peso = request.form.get('peso_exacto')
+        else:
+            peso = request.form.get('peso_rango')
+        
+        # Generar código automático
+        from models.producto import generar_codigo_producto
+        codigo = generar_codigo_producto(familia)
+        
+        # Crear producto
+        nuevo_producto = Producto(
+            codigo=codigo,
+            familia=familia,
+            marca=marca,
+            descripcion=descripcion,
+            descripcion_larga=descripcion_larga,
+            modelo=modelo,
+            unidad=unidad,
+            peso=peso,
+            volumen=volumen,
+            transporte=transporte,
+            observaciones=observaciones,
+            costo_unitario=costo_unitario,
+            precio_unitario=precio_unitario,
+            stock=stock
+        )
+        
+        db.session.add(nuevo_producto)
+        db.session.commit()
+        
+        # Si hay stock inicial, crear movimiento de entrada
+        if stock > 0:
+            movimiento = MovimientoStock(
+                producto_id=nuevo_producto.id,
+                tipo='ENTRADA',
+                cantidad=stock,
+                motivo='Stock inicial',
+                referencia='Registro inicial',
+                costo_unitario=costo_unitario
+            )
+            db.session.add(movimiento)
+            db.session.commit()
+        
+        return redirect('/mantenedor/productos?success=producto_creado')
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al guardar producto: {e}")
+        return redirect('/mantenedor/productos?error=' + str(e))
+
+@app.route('/api/productos/<int:id>', methods=['PUT'])
+def actualizar_producto(id):
+    """Actualizar producto por API"""
+    try:
+        producto = Producto.query.get(id)
+        if not producto:
+            return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
+        
+        data = request.get_json()
+        
+        # Actualizar campos
+        producto.familia = data.get('familia', producto.familia)
+        producto.marca = data.get('marca', producto.marca)
+        producto.descripcion = data.get('descripcion', producto.descripcion)
+        producto.descripcion_larga = data.get('descripcion_larga', producto.descripcion_larga)
+        producto.modelo = data.get('modelo', producto.modelo)
+        producto.unidad = data.get('unidad', producto.unidad)
+        producto.volumen = data.get('volumen', producto.volumen)
+        producto.transporte = data.get('transporte', producto.transporte)
+        producto.observaciones = data.get('observaciones', producto.observaciones)
+        producto.costo_unitario = data.get('costo_unitario', producto.costo_unitario)
+        producto.precio_unitario = data.get('precio_unitario', producto.precio_unitario)
+        producto.stock = data.get('stock', producto.stock)
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Producto actualizado'})
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al actualizar producto: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/productos/<int:id>', methods=['DELETE'])
+def eliminar_producto(id):
+    """Eliminar producto por API"""
+    try:
+        producto = Producto.query.get(id)
+        if not producto:
+            return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
+        
+        # Eliminar movimientos relacionados primero
+        MovimientoStock.query.filter_by(producto_id=id).delete()
+        
+        # Eliminar producto
+        db.session.delete(producto)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Producto eliminado'})
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al eliminar producto: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/productos/<int:id>', methods=['GET'])
+def obtener_producto(id):
+    """Obtener producto por ID para la API"""
+    try:
+        producto = Producto.query.get(id)
+        if not producto:
+            return jsonify({'error': 'Producto no encontrado'}), 404
+        
+        return jsonify({
+            'id': producto.id,
+            'codigo': getattr(producto, 'codigo', ''),
+            'descripcion': producto.descripcion,
+            'stock': getattr(producto, 'stock', 0),
+            'costo_unitario': float(producto.costo_unitario) if producto.costo_unitario else 0,
+            'precio_unitario': float(producto.precio_unitario) if producto.precio_unitario else 0
+        })
+    except Exception as e:
+        print(f"Error al obtener producto: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ==================== RUTA PARA IMPORTAR EXCEL ====================
+@app.route('/mantenedor/productos/importar', methods=['POST'])
+def importar_productos_excel():
+    """Importar productos desde archivo Excel"""
+    try:
+        import pandas as pd
+        from io import BytesIO
+        
+        if 'archivo' not in request.files:
+            return redirect('/mantenedor/productos?error=No se seleccionó archivo')
+        
+        archivo = request.files['archivo']
+        if archivo.filename == '':
+            return redirect('/mantenedor/productos?error=Archivo vacío')
+        
+        # Leer Excel
+        df = pd.read_excel(BytesIO(archivo.read()))
+        
+        productos_importados = 0
+        for _, row in df.iterrows():
+            # Generar código automático
+            from models.producto import generar_codigo_producto
+            familia = row.get('familia', '')
+            codigo = generar_codigo_producto(familia)
+            
+            producto = Producto(
+                codigo=codigo,
+                familia=familia,
+                marca=row.get('marca', ''),
+                descripcion=row.get('descripcion', ''),
+                modelo=row.get('modelo', ''),
+                unidad=row.get('unidad', 'Unidad'),
+                costo_unitario=float(row.get('costo_unitario', 0)),
+                precio_unitario=float(row.get('precio_unitario', 0)),
+                stock=int(row.get('stock', 0))
+            )
+            db.session.add(producto)
+            productos_importados += 1
+        
+        db.session.commit()
+        
+        return redirect(f'/mantenedor/productos?success=importados_{productos_importados}')
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al importar Excel: {e}")
+        return redirect(f'/mantenedor/productos?error={str(e)}')
 
 print("🔵 Blueprints registrados:", list(app.blueprints.keys()))
 print("🚀 Servidor Flask iniciado")
