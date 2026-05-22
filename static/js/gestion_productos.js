@@ -1,4 +1,4 @@
-// gestion_productos.js - VERSIÓN COMPLETA Y FUNCIONAL CON KÁRDEX
+// gestion_productos.js - VERSIÓN COMPLETA CON KÁRDEX FUNCIONAL
 
 const filtroFamilia = document.getElementById('filtro-familia');
 const filtroBusqueda = document.getElementById('filtro-busqueda');
@@ -69,7 +69,7 @@ function inicializarCalculoMargen() {
 }
 
 // =====================================================
-// KÁRDEX - FUNCIONES CORREGIDAS Y MEJORADAS
+// KÁRDEX - FUNCIONES COMPLETAS
 // =====================================================
 
 // Cargar productos en el select del kárdex
@@ -101,7 +101,6 @@ async function cargarProductosKardex() {
                 return;
             }
             
-            // Guardar el valor seleccionado actualmente (si existe)
             const valorActual = select.value;
             
             select.innerHTML = '<option value="">📦 Seleccione un producto</option>';
@@ -117,13 +116,12 @@ async function cargarProductosKardex() {
                 });
             }
             
-            // Restaurar el valor seleccionado si existía
             if (valorActual && valorActual !== '') {
                 select.value = valorActual;
             }
         });
         
-        // Inicializar Select2 para mejor experiencia
+        // Inicializar Select2 si está disponible
         if (typeof $ !== 'undefined') {
             if ($('#kardex_producto_id').length) {
                 $('#kardex_producto_id').select2({
@@ -187,7 +185,6 @@ async function cargarKardex(productoId = '') {
         return;
     }
 
-    // Si no hay producto seleccionado, mostrar mensaje
     if (!productoId || productoId === '') {
         tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">
             <i class="bi bi-info-circle"></i> Seleccione un producto para ver sus movimientos
@@ -224,7 +221,6 @@ async function cargarKardex(productoId = '') {
             tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-warning">
                 <i class="bi bi-exclamation-triangle"></i> No hay movimientos para este producto
             <\/td><\/tr>`;
-            // Obtener stock actual del producto
             try {
                 const resProducto = await fetch(`/api/productos/${productoId}`);
                 if (resProducto.ok) {
@@ -243,7 +239,6 @@ async function cargarKardex(productoId = '') {
         let saldo = 0;
 
         movimientos.forEach((mov, index) => {
-            // Calcular saldo acumulado
             if (mov.tipo === 'ENTRADA') {
                 saldo += parseInt(mov.cantidad);
             } else if (mov.tipo === 'SALIDA') {
@@ -278,11 +273,9 @@ async function cargarKardex(productoId = '') {
             tbody.innerHTML += fila;
         });
 
-        // Actualizar stock actual
         const stockActualElem = document.getElementById('kardex_stock_actual');
         if (stockActualElem) stockActualElem.textContent = saldo;
         
-        // Actualizar valor total
         await actualizarValorTotal(productoId, saldo);
 
     } catch (error) {
@@ -306,7 +299,6 @@ async function guardarMovimientoKardex() {
     const motivo = document.getElementById('mov_kardex_motivo').value;
     const fecha = document.getElementById('mov_kardex_fecha').value;
 
-    // Validaciones
     if (!productoId) {
         mostrarNotificacion("❌ Por favor, seleccione un producto", "warning");
         return;
@@ -323,7 +315,6 @@ async function guardarMovimientoKardex() {
         return;
     }
 
-    // Para salidas, verificar stock disponible
     if (tipo === 'SALIDA') {
         try {
             const resProducto = await fetch(`/api/productos/${productoId}`);
@@ -351,7 +342,6 @@ async function guardarMovimientoKardex() {
 
     console.log("📝 Datos a enviar:", datos);
 
-    // Deshabilitar botón para evitar doble envío
     const btnGuardar = document.getElementById('btnGuardarMovimientoKardex');
     const textoOriginal = btnGuardar ? btnGuardar.innerHTML : '';
     if (btnGuardar) {
@@ -373,17 +363,14 @@ async function guardarMovimientoKardex() {
         if (res.ok && result.success) {
             mostrarNotificacion("✅ Movimiento registrado correctamente", "success");
             
-            // Cerrar modal de nuevo movimiento
             const modalMovimiento = bootstrap.Modal.getInstance(document.getElementById('modalNuevoMovimientoKardex'));
             if (modalMovimiento) modalMovimiento.hide();
             
-            // Recargar el kárdex con el producto seleccionado
             const productoSelect = document.getElementById('kardex_producto_id');
             if (productoSelect && productoSelect.value) {
                 await cargarKardex(productoSelect.value);
             }
             
-            // Limpiar formulario
             const cantidadInput = document.getElementById('mov_kardex_cantidad');
             const costoInput = document.getElementById('mov_kardex_costo');
             const referenciaInput = document.getElementById('mov_kardex_referencia');
@@ -394,7 +381,6 @@ async function guardarMovimientoKardex() {
             if (referenciaInput) referenciaInput.value = '';
             if (motivoInput) motivoInput.value = '';
             
-            // Recargar productos para actualizar stock en tabla principal después de 1 segundo
             setTimeout(() => {
                 location.reload();
             }, 1000);
@@ -405,148 +391,12 @@ async function guardarMovimientoKardex() {
         console.error("❌ Error:", error);
         mostrarNotificacion("❌ Error de conexión al registrar movimiento. Verifique su conexión.", "danger");
     } finally {
-        // Rehabilitar botón
         if (btnGuardar) {
             btnGuardar.disabled = false;
             btnGuardar.innerHTML = textoOriginal;
         }
     }
 }
-
-// =====================================================
-// INICIALIZACIÓN
-// =====================================================
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("🟢 DOM cargado, inicializando...");
-    inicializarCalculoMargen();
-
-    const modalNuevo = document.getElementById('modalNuevoProducto');
-    if (modalNuevo) {
-        modalNuevo.addEventListener('shown.bs.modal', () => inicializarCalculoMargen());
-    }
-
-    const modalEditar = document.getElementById('modalEditarProducto');
-    if (modalEditar) {
-        modalEditar.addEventListener('shown.bs.modal', () => inicializarCalculoMargen());
-    }
-
-    // IMPORTAR EXCEL
-    const btnImportar = document.getElementById('btnImportar');
-    const fileInput = document.getElementById('fileInput');
-    if (btnImportar && fileInput) {
-        btnImportar.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) this.closest('form').submit();
-        });
-    }
-
-    // SELECT2
-    if (typeof $ !== 'undefined') {
-        $(document).ready(function() {
-            if ($('#familia').length) {
-                $('#familia').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar familia..." });
-            }
-            if ($('#marca').length) {
-                $('#marca').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar marca..." });
-            }
-            if ($('#unidad').length) {
-                $('#unidad').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar unidad..." });
-            }
-        });
-    }
-
-    // CAMBIO PESO
-    const tipoPeso = document.getElementById('tipo_peso');
-    if (tipoPeso) {
-        tipoPeso.addEventListener('change', function() {
-            const rango = document.getElementById('contenedor-rango');
-            const exacto = document.getElementById('contenedor-exacto');
-            if (this.value === 'exacto') {
-                if (rango) rango.style.display = 'none';
-                if (exacto) exacto.style.display = 'block';
-            } else {
-                if (rango) rango.style.display = 'block';
-                if (exacto) exacto.style.display = 'none';
-            }
-        });
-    }
-
-    // DELEGACIÓN DE EVENTOS PARA EDITAR Y ELIMINAR
-    const tbody = document.getElementById('tbody-productos');
-    if (tbody) {
-        tbody.addEventListener('click', function(e) {
-            const btnEditar = e.target.closest('.btn-editar-producto');
-            if (btnEditar) {
-                editarProducto(btnEditar);
-                return;
-            }
-            const btnEliminar = e.target.closest('.btn-eliminar-producto');
-            if (btnEliminar) {
-                eliminarProducto(btnEliminar);
-                return;
-            }
-        });
-    }
-
-    // BOTÓN GUARDAR EDICIÓN
-    const btnGuardar = document.getElementById('btnGuardarEdicionProducto');
-    if (btnGuardar) {
-        btnGuardar.addEventListener('click', guardarEdicionProducto);
-    }
-
-    // BOTÓN CONFIRMAR ELIMINACIÓN
-    const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminarProducto');
-    if (btnConfirmarEliminar) {
-        btnConfirmarEliminar.addEventListener('click', confirmarEliminarProducto);
-    }
-
-    // ==================== KÁRDEX ====================
-    console.log("🟢 Inicializando kárdex...");
-    
-    // Cargar productos al iniciar
-    cargarProductosKardex();
-
-    // Cuando se abre el modal del kárdex, cargar movimientos
-    const modalKardex = document.getElementById('modalKardex');
-    if (modalKardex) {
-        modalKardex.addEventListener('shown.bs.modal', () => {
-            console.log("🟢 Modal kárdex abierto");
-            const productoSelect = document.getElementById('kardex_producto_id');
-            if (productoSelect && productoSelect.value) {
-                cargarKardex(productoSelect.value);
-            } else {
-                // Si hay productos en el select, seleccionar el primero automáticamente
-                if (productoSelect && productoSelect.options.length > 1) {
-                    productoSelect.selectedIndex = 1;
-                    cargarKardex(productoSelect.value);
-                }
-            }
-        });
-    }
-
-    // Filtro por producto
-    const filtroKardex = document.getElementById('kardex_producto_id');
-    if (filtroKardex) {
-        filtroKardex.addEventListener('change', () => {
-            console.log("🟢 Filtro cambiado a:", filtroKardex.value);
-            cargarKardex(filtroKardex.value);
-        });
-    }
-
-    // Botón guardar movimiento
-    const btnGuardarKardex = document.getElementById('btnGuardarMovimientoKardex');
-    if (btnGuardarKardex) {
-        btnGuardarKardex.addEventListener('click', guardarMovimientoKardex);
-    }
-    
-    // Fecha por defecto en el modal de nuevo movimiento
-    const fechaInput = document.getElementById('mov_kardex_fecha');
-    if (fechaInput) {
-        fechaInput.value = new Date().toISOString().split('T')[0];
-    }
-    
-    console.log("✅ Inicialización completa");
-});
 
 // =====================================================
 // EDITAR PRODUCTO
@@ -694,7 +544,136 @@ function mostrarNotificacion(mensaje, tipo) {
     }, 3000);
 }
 
-// ESTILOS
+// =====================================================
+// INICIALIZACIÓN PRINCIPAL
+// =====================================================
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("🟢 DOM cargado, inicializando...");
+    inicializarCalculoMargen();
+
+    const modalNuevo = document.getElementById('modalNuevoProducto');
+    if (modalNuevo) {
+        modalNuevo.addEventListener('shown.bs.modal', () => inicializarCalculoMargen());
+    }
+
+    const modalEditar = document.getElementById('modalEditarProducto');
+    if (modalEditar) {
+        modalEditar.addEventListener('shown.bs.modal', () => inicializarCalculoMargen());
+    }
+
+    // IMPORTAR EXCEL
+    const btnImportar = document.getElementById('btnImportar');
+    const fileInput = document.getElementById('fileInput');
+    if (btnImportar && fileInput) {
+        btnImportar.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) this.closest('form').submit();
+        });
+    }
+
+    // SELECT2
+    if (typeof $ !== 'undefined') {
+        $(document).ready(function() {
+            if ($('#familia').length) {
+                $('#familia').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar familia..." });
+            }
+            if ($('#marca').length) {
+                $('#marca').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar marca..." });
+            }
+            if ($('#unidad').length) {
+                $('#unidad').select2({ dropdownParent: $('#modalNuevoProducto'), placeholder: "Buscar unidad..." });
+            }
+        });
+    }
+
+    // CAMBIO PESO
+    const tipoPeso = document.getElementById('tipo_peso');
+    if (tipoPeso) {
+        tipoPeso.addEventListener('change', function() {
+            const rango = document.getElementById('contenedor-rango');
+            const exacto = document.getElementById('contenedor-exacto');
+            if (this.value === 'exacto') {
+                if (rango) rango.style.display = 'none';
+                if (exacto) exacto.style.display = 'block';
+            } else {
+                if (rango) rango.style.display = 'block';
+                if (exacto) exacto.style.display = 'none';
+            }
+        });
+    }
+
+    // DELEGACIÓN DE EVENTOS PARA EDITAR Y ELIMINAR
+    const tbody = document.getElementById('tbody-productos');
+    if (tbody) {
+        tbody.addEventListener('click', function(e) {
+            const btnEditar = e.target.closest('.btn-editar-producto');
+            if (btnEditar) {
+                editarProducto(btnEditar);
+                return;
+            }
+            const btnEliminar = e.target.closest('.btn-eliminar-producto');
+            if (btnEliminar) {
+                eliminarProducto(btnEliminar);
+                return;
+            }
+        });
+    }
+
+    // BOTÓN GUARDAR EDICIÓN
+    const btnGuardar = document.getElementById('btnGuardarEdicionProducto');
+    if (btnGuardar) {
+        btnGuardar.addEventListener('click', guardarEdicionProducto);
+    }
+
+    // BOTÓN CONFIRMAR ELIMINACIÓN
+    const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminarProducto');
+    if (btnConfirmarEliminar) {
+        btnConfirmarEliminar.addEventListener('click', confirmarEliminarProducto);
+    }
+
+    // ==================== KÁRDEX ====================
+    console.log("🟢 Inicializando kárdex...");
+    
+    cargarProductosKardex();
+
+    const modalKardex = document.getElementById('modalKardex');
+    if (modalKardex) {
+        modalKardex.addEventListener('shown.bs.modal', () => {
+            console.log("🟢 Modal kárdex abierto");
+            const productoSelect = document.getElementById('kardex_producto_id');
+            if (productoSelect && productoSelect.value) {
+                cargarKardex(productoSelect.value);
+            } else {
+                if (productoSelect && productoSelect.options.length > 1) {
+                    productoSelect.selectedIndex = 1;
+                    cargarKardex(productoSelect.value);
+                }
+            }
+        });
+    }
+
+    const filtroKardex = document.getElementById('kardex_producto_id');
+    if (filtroKardex) {
+        filtroKardex.addEventListener('change', () => {
+            console.log("🟢 Filtro cambiado a:", filtroKardex.value);
+            cargarKardex(filtroKardex.value);
+        });
+    }
+
+    const btnGuardarKardex = document.getElementById('btnGuardarMovimientoKardex');
+    if (btnGuardarKardex) {
+        btnGuardarKardex.addEventListener('click', guardarMovimientoKardex);
+    }
+    
+    const fechaInput = document.getElementById('mov_kardex_fecha');
+    if (fechaInput) {
+        fechaInput.value = new Date().toISOString().split('T')[0];
+    }
+    
+    console.log("✅ Inicialización completa");
+});
+
+// ESTILOS PARA NOTIFICACIONES
 if (!document.querySelector('#notificaciones-styles')) {
     const style = document.createElement('style');
     style.id = 'notificaciones-styles';

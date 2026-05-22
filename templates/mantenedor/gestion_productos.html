@@ -16,8 +16,15 @@
     <!-- SELECT2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/gestion_productos.css') }}">
+    <style>
+        .table-responsive { max-height: 500px; overflow-y: auto; }
+        .badge-stock-bajo { background-color: #ffc107; color: #000; }
+        .badge-stock-cero { background-color: #dc3545; }
+        .badge-stock-normal { background-color: #198754; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        .notificacion { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease; }
+    </style>
 </head>
 <body>
 
@@ -50,7 +57,7 @@
                             Nuevo Producto
 
                     </button>
-                <!-- BOTÓN KÁRDEx -->
+                    <!-- BOTÓN KÁRDEX -->
                     <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalKardex">
                        <i class="bi bi-journal-text"></i> Ver Kárdex
                     </button>
@@ -106,54 +113,18 @@
                             class="form-select">
 
                         <option value="">Todas las familias</option>
-
-                        <option value="EQUIPOS DE PROTECCIÓN PERSONAL">
-                            EPP - Equipos Protección
-                        </option>
-
-                        <option value="HERRAMIENTAS MANUALES">
-                            HMA - Herramientas Manuales
-                        </option>
-
-                        <option value="HERRAMIENTAS ELÉCTRICAS">
-                            HEL - Herramientas Eléctricas
-                        </option>
-
-                        <option value="MATERIALES ELÉCTRICOS">
-                            MEL - Materiales Eléctricos
-                        </option>
-
-                        <option value="PRODUCTOS QUÍMICOS">
-                            QUI - Productos Químicos
-                        </option>
-
-                        <option value="SEGURIDAD Y SEÑALIZACIÓN">
-                            SEG - Seguridad y Señalización
-                        </option>
-
-                        <option value="EQUIPOS DE SOLDADURA">
-                            SOL - Equipos Soldadura
-                        </option>
-
-                        <option value="MATERIALES DE EMBALAJE">
-                            EMB - Materiales Embalaje
-                        </option>
-
-                        <option value="ELECTRÓNICA Y COMUNICACIÓN">
-                            ELE - Electrónica y Comunicación
-                        </option>
-
-                        <option value="MOBILIARIO OFICINA">
-                            OFI - Mobiliario Oficina
-                        </option>
-
-                        <option value="LIMPIEZA Y MANTENIMIENTO">
-                            LIM - Limpieza y Mantenimiento
-                        </option>
-
-                        <option value="REPUESTOS AUTOMOTRICES">
-                            AUT - Repuestos Automotrices
-                        </option>
+                        <option value="EQUIPOS DE PROTECCIÓN PERSONAL">EPP - Equipos Protección</option>
+                        <option value="HERRAMIENTAS MANUALES">HMA - Herramientas Manuales</option>
+                        <option value="HERRAMIENTAS ELÉCTRICAS">HEL - Herramientas Eléctricas</option>
+                        <option value="MATERIALES ELÉCTRICOS">MEL - Materiales Eléctricos</option>
+                        <option value="PRODUCTOS QUÍMICOS">QUI - Productos Químicos</option>
+                        <option value="SEGURIDAD Y SEÑALIZACIÓN">SEG - Seguridad y Señalización</option>
+                        <option value="EQUIPOS DE SOLDADURA">SOL - Equipos Soldadura</option>
+                        <option value="MATERIALES DE EMBALAJE">EMB - Materiales Embalaje</option>
+                        <option value="ELECTRÓNICA Y COMUNICACIÓN">ELE - Electrónica y Comunicación</option>
+                        <option value="MOBILIARIO OFICINA">OFI - Mobiliario Oficina</option>
+                        <option value="LIMPIEZA Y MANTENIMIENTO">LIM - Limpieza y Mantenimiento</option>
+                        <option value="REPUESTOS AUTOMOTRICES">AUT - Repuestos Automotrices</option>
 
                     </select>
 
@@ -198,7 +169,7 @@
 
     </div>
 
-    <!-- TABLA -->
+    <!-- TABLA DE PRODUCTOS -->
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
             <div class="table-responsive tabla-container">
@@ -315,7 +286,7 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg">
 
-            <div class="modal-header modal-header-producto">
+            <div class="modal-header bg-primary text-white">
                 <div>
                     <h4 class="modal-title fw-bold mb-1">
                         <i class="bi bi-box-seam"></i> Nuevo Producto
@@ -332,7 +303,6 @@
                 </div>
 
                 <form method="POST" action="/mantenedor/productos/guardar" id="formNuevoProducto">
-                    <!-- FILA 1 -->
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Familia *</label>
@@ -366,7 +336,6 @@
                         </div>
                     </div>
 
-                    <!-- FILA 2 -->
                     <div class="row g-3 mt-3">
                         <div class="col-md-8">
                             <label class="form-label fw-semibold">Descripción *</label>
@@ -378,7 +347,6 @@
                         </div>
                     </div>
 
-                    <!-- FILA 3 -->
                     <div class="row g-3 mt-1">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Unidad *</label>
@@ -415,7 +383,6 @@
                         </div>
                     </div>
 
-                    <!-- FILA 4 -->
                     <div class="row g-3 mt-1">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Volumen *</label>
@@ -442,7 +409,6 @@
                         </div>
                     </div>
 
-                    <!-- PRECIOS Y STOCK INICIAL -->
                     <div class="row g-3 mt-4 border-top pt-3">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Costo Unitario *</label>
@@ -471,7 +437,6 @@
                         </div>
                     </div>
 
-                    <!-- Descripción Larga -->
                     <div class="mt-3">
                         <label class="form-label fw-semibold">Descripción Larga</label>
                         <textarea id="descripcion_larga" name="descripcion_larga" class="form-control" rows="4"></textarea>
@@ -488,14 +453,14 @@
         </div>
     </div>
 </div>
+
 <!-- ===================================================== -->
-<!-- MODAL KÁRDEx - MOVIMIENTOS DE INVENTARIO -->
+<!-- MODAL KÁRDEX - MOVIMIENTOS DE INVENTARIO -->
 <!-- ===================================================== -->
 <div class="modal fade" id="modalKardex" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg">
 
-            <!-- HEADER -->
             <div class="modal-header bg-primary text-white">
                 <div>
                     <h4 class="modal-title fw-bold">
@@ -506,10 +471,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
 
-            <!-- BODY -->
             <div class="modal-body">
 
-                <!-- Filtros rápidos -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Producto</label>
@@ -525,7 +488,6 @@
                     </div>
                 </div>
 
-                <!-- Resumen -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
                         <div class="card border-0 bg-light text-center p-3">
@@ -546,7 +508,6 @@
                     </div>
                 </div>
 
-                <!-- Tabla de Movimientos -->
                 <div class="table-responsive">
                     <table class="table table-hover table-bordered" id="tabla-kardex">
                         <thead class="table-dark">
@@ -561,7 +522,9 @@
                                 <th class="text-end">Costo Unit.</th>
                             </tr>
                         </thead>
-                        <tbody id="tbody-kardex"></tbody>
+                        <tbody id="tbody-kardex">
+                            <tr><td colspan="8" class="text-center">Seleccione un producto</td><\/tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -572,7 +535,10 @@
         </div>
     </div>
 </div>
-<!-- Modal Nuevo Movimiento desde Kárdex -->
+
+<!-- ===================================================== -->
+<!-- MODAL NUEVO MOVIMIENTO DESDE KÁRDEX -->
+<!-- ===================================================== -->
 <div class="modal fade" id="modalNuevoMovimientoKardex" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -597,7 +563,7 @@
                         </div>
                         <div class="col-md-3">
                             <label>Fecha</label>
-                            <input type="date" id="mov_kardex_fecha" class="form-control" required>
+                            <input type="date" id="mov_kardex_fecha" class="form-control">
                         </div>
 
                         <div class="col-md-4">
@@ -627,6 +593,7 @@
         </div>
     </div>
 </div>
+
 <!-- ===================================================== -->
 <!-- MODAL EDITAR PRODUCTO -->
 <!-- ===================================================== -->
@@ -753,7 +720,7 @@
 </div>
 
 <!-- ===================================================== -->
-<!-- MODAL ELIMINAR PRODUCTO - ¡NUEVO! NECESARIO PARA ELIMINAR -->
+<!-- MODAL ELIMINAR PRODUCTO -->
 <!-- ===================================================== -->
 <div class="modal fade" id="modalEliminarProducto" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
