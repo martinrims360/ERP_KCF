@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template, session, redirect, url_for
+from flask import Flask, jsonify, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 import base64
 
@@ -17,34 +17,35 @@ db.init_app(app)
 class Producto(db.Model):
     __tablename__ = 'productos'
     id = db.Column(db.Integer, primary_key=True)
-    codigo = db.Column(db.String(50), unique=True)
+    codigo = db.Column(db.String(50))
     familia = db.Column(db.String(100))
     marca = db.Column(db.String(100))
     descripcion = db.Column(db.Text)
     modelo = db.Column(db.String(100))
-    unidad = db.Column(db.String(20), default='Unidad')
-    costo_unitario = db.Column(db.Numeric(10,2), default=0)
-    precio_unitario = db.Column(db.Numeric(10,2), default=0)
+    unidad = db.Column(db.String(20))
+    costo_unitario = db.Column(db.Numeric(10,2))
+    precio_unitario = db.Column(db.Numeric(10,2))
     stock = db.Column(db.Integer, default=0)
-    activo = db.Column(db.Boolean, default=True)
 
 class MovimientoStock(db.Model):
     __tablename__ = 'movimientos_stock'
     id = db.Column(db.Integer, primary_key=True)
     producto_id = db.Column(db.Integer, db.ForeignKey('productos.id'))
-    tipo = db.Column(db.String(20))  # ENTRADA, SALIDA, AJUSTE
+    tipo = db.Column(db.String(20))
     cantidad = db.Column(db.Integer)
     motivo = db.Column(db.String(200))
     referencia = db.Column(db.String(100))
     costo_unitario = db.Column(db.Numeric(10,2))
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-# ==================== RUTAS DIRECTAS KÁRDEX ====================
+# ==================== RUTAS API PARA KÁRDEX ====================
+
+# Obtener todos los productos
 @app.route('/api/productos', methods=['GET'])
 def get_productos():
-    print("📦 [API] /api/productos fue llamado")
+    print("📦 Llamada a /api/productos")
     try:
-        productos = Producto.query.filter_by(activo=True).order_by(Producto.descripcion).all()
+        productos = Producto.query.all()
         resultado = []
         for p in productos:
             resultado.append({
@@ -54,17 +55,20 @@ def get_productos():
                 'stock': p.stock or 0,
                 'costo_unitario': float(p.costo_unitario) if p.costo_unitario else 0
             })
-        print(f"✅ Retornando {len(resultado)} productos")
+        print(f"✅ {len(resultado)} productos encontrados")
         return jsonify(resultado)
     except Exception as e:
         print(f"❌ Error: {e}")
         return jsonify({'error': str(e)}), 500
 
+# Obtener movimientos de stock por producto
 @app.route('/api/movimientos_stock', methods=['GET'])
 def get_movimientos():
-    print("📊 [API] /api/movimientos_stock fue llamado")
+    print("📊 Llamada a /api/movimientos_stock")
     try:
         producto_id = request.args.get('producto_id', type=int)
+        print(f"Producto ID: {producto_id}")
+        
         if producto_id:
             movimientos = MovimientoStock.query.filter_by(producto_id=producto_id).order_by(MovimientoStock.created_at.asc()).all()
         else:
@@ -82,14 +86,16 @@ def get_movimientos():
                 'costo_unitario': float(m.costo_unitario) if m.costo_unitario else None,
                 'created_at': m.created_at.isoformat() if m.created_at else None
             })
+        print(f"✅ {len(resultado)} movimientos encontrados")
         return jsonify(resultado)
     except Exception as e:
         print(f"❌ Error: {e}")
         return jsonify({'error': str(e)}), 500
 
+# Registrar nuevo movimiento
 @app.route('/api/movimientos_stock', methods=['POST'])
 def crear_movimiento():
-    print("📝 [API] POST /api/movimientos_stock fue llamado")
+    print("📝 POST a /api/movimientos_stock")
     try:
         data = request.get_json()
         print(f"Datos: {data}")
@@ -100,9 +106,11 @@ def crear_movimiento():
         
         cantidad = int(data['cantidad'])
         
+        # Validar stock para salidas
         if data['tipo'] == 'SALIDA' and producto.stock < cantidad:
             return jsonify({'success': False, 'error': f'Stock insuficiente. Stock actual: {producto.stock}'}), 400
         
+        # Crear movimiento
         nuevo = MovimientoStock(
             producto_id=data['producto_id'],
             tipo=data['tipo'],
@@ -111,9 +119,9 @@ def crear_movimiento():
             referencia=data.get('referencia', ''),
             costo_unitario=data.get('costo_unitario')
         )
-        
         db.session.add(nuevo)
         
+        # Actualizar stock
         if data['tipo'] == 'ENTRADA':
             producto.stock += cantidad
         elif data['tipo'] == 'SALIDA':
@@ -122,16 +130,18 @@ def crear_movimiento():
             producto.stock = cantidad
         
         db.session.commit()
-        print(f"✅ Movimiento creado. Nuevo stock: {producto.stock}")
-        return jsonify({'success': True, 'message': 'Movimiento registrado'}), 201
+        print(f"✅ Movimiento registrado. Nuevo stock: {producto.stock}")
+        
+        return jsonify({'success': True, 'message': 'Movimiento registrado', 'nuevo_stock': producto.stock}), 201
         
     except Exception as e:
         db.session.rollback()
         print(f"❌ Error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Obtener un producto por ID
 @app.route('/api/productos/<int:id>', methods=['GET'])
-def obtener_producto(id):
+def get_producto(id):
     try:
         producto = Producto.query.get(id)
         if not producto:
@@ -149,7 +159,7 @@ def obtener_producto(id):
 # ==================== RUTAS DE PÁGINAS ====================
 @app.route('/mantenedor/productos')
 def gestion_productos():
-    productos = Producto.query.filter_by(activo=True).all()
+    productos = Producto.query.all()
     return render_template('gestion_productos.html', productos=productos)
 
 @app.route('/test')
