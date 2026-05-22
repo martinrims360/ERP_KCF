@@ -8,20 +8,22 @@ import sys
 app = Flask(__name__)
 
 # ==================== CONFIGURACIÓN SUPABASE ====================
-# Usar variable de entorno de Render o la directa
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if not DATABASE_URL:
     _a = base64.b64decode('cG9zdGdyZXNxbDovLy9wb3N0Z3Jlcy50a2Ztd3ZzZW52Z3B5ZXh2ZGNhdDphZG1pbjM1NjE5NjdrY2ZAYXdzLTEtdXMtZWFzdC0xLnBvb2xlci5zdXBhYmFzZS5jb206NjU0My9wb3N0Z3Jlcw==').decode('utf-8')
     DATABASE_URL = _a
 
-# Limpiar URL si es necesario
-if DATABASE_URL.startswith('postgresql+psycopg2://'):
+# Limpiar URL
+if DATABASE_URL and 'postgresql+psycopg2://' in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace('postgresql+psycopg2://', 'postgresql://', 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'sb_secret_k56lhPYVINqZMj_BZexRbw_JzeBx8Hx')
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+}
 
 db = SQLAlchemy()
 db.init_app(app)
@@ -181,15 +183,24 @@ def home():
 def test():
     return jsonify({'status': 'ok', 'message': 'Kardex funcionando'})
 
-# ==================== INICIALIZACIÓN ====================
+# ==================== INICIALIZACIÓN (SIN crear tablas) ====================
 if __name__ == "__main__":
+    print("🚀 Iniciando servidor...")
+    
+    # NO crear tablas, solo verificar conexión
     with app.app_context():
         try:
-            db.create_all()
-            print("✅ Base de datos inicializada")
+            # Solo probar la conexión, no crear tablas
+            db.engine.connect()
+            print("✅ Conexión a base de datos exitosa")
+            
+            # Verificar si hay productos
+            count = Producto.query.count()
+            print(f"📦 Productos en BD: {count}")
+            
         except Exception as e:
-            print(f"⚠️ Error al crear tablas: {e}")
-            print("Las tablas pueden existir ya")
+            print(f"⚠️ Error de conexión: {e}")
+            print("⚠️ Continuando de todos modos...")
     
     port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    app.run(debug=False, host='0.0.0.0', port=port)4
