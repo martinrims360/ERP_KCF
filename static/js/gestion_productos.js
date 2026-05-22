@@ -1,4 +1,5 @@
-// ==================== FUNCIONES PARA PRODUCTOS Y KÁRDEX ====================
+// ==================== GESTIÓN DE PRODUCTOS - KCF CORPORACIÓN ====================
+// Archivo: static/js/gestion_productos.js
 
 // Variables globales para los modales
 let editModal, deleteModal;
@@ -15,6 +16,7 @@ function mostrarNotificacion(mensaje, tipo) {
         z-index: 10000;
         min-width: 300px;
         animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     `;
     document.body.appendChild(div);
     setTimeout(() => {
@@ -23,11 +25,9 @@ function mostrarNotificacion(mensaje, tipo) {
     }, 3000);
 }
 
-// ==================== GESTIÓN DE PRODUCTOS ====================
-
-// Cargar productos en los selects
+// ==================== CARGAR PRODUCTOS EN LOS SELECTS ====================
 async function cargarProductos() {
-    console.log("🟢 Cargando productos...");
+    console.log("🟢 Cargando productos en selects...");
     try {
         const res = await fetch('/api/productos');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -40,7 +40,8 @@ async function cargarProductos() {
         if (selectKardex) {
             selectKardex.innerHTML = '<option value="">Seleccione un producto</option>';
             productos.forEach(p => {
-                selectKardex.innerHTML += `<option value="${p.id}">${p.codigo} - ${p.descripcion.substring(0, 50)} (Stock: ${p.stock})</option>`;
+                const descripcion = p.descripcion ? p.descripcion.substring(0, 50) : 'Sin descripción';
+                selectKardex.innerHTML += `<option value="${p.id}">${p.codigo || 'Sin código'} - ${descripcion} (Stock: ${p.stock || 0})</option>`;
             });
         }
         
@@ -49,13 +50,14 @@ async function cargarProductos() {
         if (selectMov) {
             selectMov.innerHTML = '<option value="">Seleccione un producto</option>';
             productos.forEach(p => {
-                selectMov.innerHTML += `<option value="${p.id}">${p.codigo} - ${p.descripcion.substring(0, 50)}</option>`;
+                const descripcion = p.descripcion ? p.descripcion.substring(0, 50) : 'Sin descripción';
+                selectMov.innerHTML += `<option value="${p.id}">${p.codigo || 'Sin código'} - ${descripcion}</option>`;
             });
         }
         
         console.log("✅ Productos cargados exitosamente");
     } catch (e) {
-        console.error("❌ Error:", e);
+        console.error("❌ Error al cargar productos:", e);
         mostrarNotificacion("Error al cargar productos: " + e.message, "danger");
     }
 }
@@ -72,14 +74,14 @@ async function cargarKardex(productoId) {
         return;
     }
     
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center">Cargando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center"><div class="spinner-border spinner-border-sm me-2"></div>Cargando...</td></tr>';
     
     try {
         const res = await fetch(`/api/movimientos_stock?producto_id=${productoId}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         
         const movimientos = await res.json();
-        console.log(`📊 ${movimientos.length} movimientos`);
+        console.log(`📊 ${movimientos.length} movimientos encontrados`);
         
         if (movimientos.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" class="text-center">No hay movimientos para este producto</td></tr>';
@@ -115,7 +117,7 @@ async function cargarKardex(productoId) {
         await actualizarValorTotal(productoId, saldo);
         
     } catch (e) {
-        console.error("❌ Error:", e);
+        console.error("❌ Error al cargar kárdex:", e);
         tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error: ${e.message}</td></tr>`;
         mostrarNotificacion("Error al cargar kárdex", "danger");
     }
@@ -130,7 +132,7 @@ async function actualizarStockProducto(productoId) {
             await actualizarValorTotal(productoId, p.stock || 0);
         }
     } catch (e) {
-        console.error(e);
+        console.error("Error actualizando stock:", e);
     }
 }
 
@@ -143,7 +145,7 @@ async function actualizarValorTotal(productoId, stock) {
             document.getElementById('kardex_valor_total').textContent = `S/ ${valor.toFixed(2)}`;
         }
     } catch (e) {
-        console.error(e);
+        console.error("Error actualizando valor total:", e);
     }
 }
 
@@ -177,7 +179,7 @@ async function guardarMovimiento() {
     const btn = document.getElementById('btnGuardarMovimientoKardex');
     const textoOriginal = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = 'Guardando...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
     
     try {
         const res = await fetch('/api/movimientos_stock', {
@@ -189,7 +191,7 @@ async function guardarMovimiento() {
         const result = await res.json();
         
         if (res.ok && result.success) {
-            mostrarNotificacion("✅ Movimiento registrado", "success");
+            mostrarNotificacion("✅ Movimiento registrado correctamente", "success");
             
             // Cerrar modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoMovimientoKardex'));
@@ -210,14 +212,14 @@ async function guardarMovimiento() {
             // Recargar productos
             await cargarProductos();
             
-            // Recargar página
-            setTimeout(() => location.reload(), 1000);
+            // Recargar página después de 1.5 segundos
+            setTimeout(() => location.reload(), 1500);
         } else {
-            mostrarNotificacion("❌ " + (result.error || "Error"), "danger");
+            mostrarNotificacion("❌ " + (result.error || "Error al registrar movimiento"), "danger");
         }
     } catch (e) {
-        console.error(e);
-        mostrarNotificacion("❌ Error de conexión", "danger");
+        console.error("Error guardando movimiento:", e);
+        mostrarNotificacion("❌ Error de conexión al servidor", "danger");
     } finally {
         btn.disabled = false;
         btn.innerHTML = textoOriginal;
@@ -226,11 +228,9 @@ async function guardarMovimiento() {
 
 // ==================== FUNCIONES PARA EDITAR PRODUCTO ====================
 
-// Función para abrir modal de edición
 function abrirModalEdicion(productoId) {
     console.log("✏️ Abriendo edición para producto ID:", productoId);
     
-    // Obtener los datos del producto desde los data attributes del botón
     const btnEditar = document.querySelector(`.btn-editar-producto[data-id="${productoId}"]`);
     if (!btnEditar) {
         console.error("No se encontró el botón de editar");
@@ -238,7 +238,7 @@ function abrirModalEdicion(productoId) {
         return;
     }
     
-    // Llenar el formulario de edición con todos los datos
+    // Llenar el formulario de edición
     document.getElementById('edit_id').value = btnEditar.dataset.id || '';
     document.getElementById('edit_familia').value = btnEditar.dataset.familia || '';
     document.getElementById('edit_descripcion').value = btnEditar.dataset.descripcion || '';
@@ -246,15 +246,6 @@ function abrirModalEdicion(productoId) {
     document.getElementById('edit_marca').value = btnEditar.dataset.marca || '';
     document.getElementById('edit_modelo').value = btnEditar.dataset.modelo || '';
     document.getElementById('edit_unidad').value = btnEditar.dataset.unidad || '';
-    
-    // Manejar peso (puede ser rango o exacto)
-    const peso = btnEditar.dataset.peso;
-    if (peso) {
-        // Verificar si existe el campo peso en el formulario
-        const pesoInput = document.getElementById('edit_peso');
-        if (pesoInput) pesoInput.value = peso;
-    }
-    
     document.getElementById('edit_volumen').value = btnEditar.dataset.volumen || '';
     document.getElementById('edit_observaciones').value = btnEditar.dataset.observaciones || '';
     document.getElementById('edit_transporte').value = btnEditar.dataset.transporte || '';
@@ -262,10 +253,8 @@ function abrirModalEdicion(productoId) {
     document.getElementById('edit_precio_unitario').value = btnEditar.dataset.precio_unitario || '';
     document.getElementById('edit_stock').value = btnEditar.dataset.stock || '';
     
-    // Calcular margen
     calcularMargenEdicion();
     
-    // Mostrar modal
     if (editModal) {
         editModal.show();
     } else {
@@ -274,7 +263,6 @@ function abrirModalEdicion(productoId) {
     }
 }
 
-// Función para calcular margen en edición
 function calcularMargenEdicion() {
     const costo = parseFloat(document.getElementById('edit_costo_unitario').value) || 0;
     const precio = parseFloat(document.getElementById('edit_precio_unitario').value) || 0;
@@ -287,7 +275,6 @@ function calcularMargenEdicion() {
     }
 }
 
-// Función para guardar edición
 async function guardarEdicion() {
     const id = document.getElementById('edit_id').value;
     
@@ -297,14 +284,12 @@ async function guardarEdicion() {
     }
     
     const datos = {
-        id: parseInt(id),
         familia: document.getElementById('edit_familia').value,
         descripcion: document.getElementById('edit_descripcion').value,
         descripcion_larga: document.getElementById('edit_descripcion_larga').value,
         marca: document.getElementById('edit_marca').value,
         modelo: document.getElementById('edit_modelo').value,
         unidad: document.getElementById('edit_unidad').value,
-        peso: document.getElementById('edit_peso') ? document.getElementById('edit_peso').value : null,
         volumen: document.getElementById('edit_volumen').value,
         observaciones: document.getElementById('edit_observaciones').value,
         transporte: document.getElementById('edit_transporte').value,
@@ -321,9 +306,7 @@ async function guardarEdicion() {
     try {
         const response = await fetch('/api/productos/' + id, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
         });
         
@@ -331,11 +314,7 @@ async function guardarEdicion() {
         
         if (response.ok && result.success) {
             mostrarNotificacion("✅ Producto actualizado correctamente", "success");
-            
-            // Cerrar modal
             if (editModal) editModal.hide();
-            
-            // Recargar la página para mostrar cambios
             setTimeout(() => location.reload(), 1000);
         } else {
             mostrarNotificacion("❌ Error: " + (result.error || "No se pudo actualizar"), "danger");
@@ -351,9 +330,8 @@ async function guardarEdicion() {
 
 // ==================== FUNCIONES PARA ELIMINAR PRODUCTO ====================
 
-// Función para abrir modal de eliminación
 function abrirModalEliminacion(productoId, descripcion) {
-    console.log("🗑️ Abriendo eliminación para producto:", productoId, descripcion);
+    console.log("🗑️ Abriendo eliminación para producto:", productoId);
     
     document.getElementById('eliminar_id_producto').value = productoId;
     document.getElementById('textoProductoEliminar').textContent = descripcion || 'Producto sin descripción';
@@ -366,7 +344,6 @@ function abrirModalEliminacion(productoId, descripcion) {
     }
 }
 
-// Función para eliminar producto
 async function eliminarProducto() {
     const id = document.getElementById('eliminar_id_producto').value;
     
@@ -389,11 +366,7 @@ async function eliminarProducto() {
         
         if (response.ok && result.success) {
             mostrarNotificacion("✅ Producto eliminado correctamente", "success");
-            
-            // Cerrar modal
             if (deleteModal) deleteModal.hide();
-            
-            // Recargar después de 1 segundo
             setTimeout(() => location.reload(), 1000);
         } else {
             mostrarNotificacion("❌ Error: " + (result.error || "No se pudo eliminar"), "danger");
@@ -419,7 +392,6 @@ function aplicarFiltros() {
     filas.forEach(fila => {
         let mostrar = true;
         
-        // Filtrar por familia
         if (familia) {
             const familiaProducto = fila.getAttribute('data-familia');
             if (familiaProducto !== familia) {
@@ -427,7 +399,6 @@ function aplicarFiltros() {
             }
         }
         
-        // Filtrar por búsqueda
         if (mostrar && busqueda) {
             const textoBusqueda = fila.getAttribute('data-codigo') + ' ' + fila.getAttribute('data-descripcion');
             if (!textoBusqueda.toLowerCase().includes(busqueda)) {
@@ -439,7 +410,6 @@ function aplicarFiltros() {
         if (mostrar) contadorVisibles++;
     });
     
-    // Actualizar contador
     const contador = document.querySelector('.form-control.bg-light.fw-bold.text-primary');
     if (contador) {
         contador.textContent = contadorVisibles + ' productos';
@@ -451,7 +421,6 @@ function aplicarFiltros() {
 function configurarImportacion() {
     const btnImportar = document.getElementById('btnImportar');
     const fileInput = document.getElementById('fileInput');
-    const formImportar = document.querySelector('#btnImportar').closest('form');
     
     if (btnImportar && fileInput) {
         btnImportar.addEventListener('click', () => {
@@ -460,8 +429,9 @@ function configurarImportacion() {
         
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
-                if (formImportar) {
-                    formImportar.submit();
+                const form = btnImportar.closest('form');
+                if (form) {
+                    form.submit();
                 }
             }
         });
@@ -475,6 +445,8 @@ function configurarCalculoMargen() {
     const precioInput = document.getElementById('precio_unitario');
     const margenInput = document.getElementById('margen');
     
+    if (!costoInput || !precioInput || !margenInput) return;
+    
     function calcularMargen() {
         const costo = parseFloat(costoInput.value) || 0;
         const precio = parseFloat(precioInput.value) || 0;
@@ -487,13 +459,11 @@ function configurarCalculoMargen() {
         }
     }
     
-    if (costoInput && precioInput) {
-        costoInput.addEventListener('input', calcularMargen);
-        precioInput.addEventListener('input', calcularMargen);
-    }
+    costoInput.addEventListener('input', calcularMargen);
+    precioInput.addEventListener('input', calcularMargen);
 }
 
-// ==================== CONFIGURAR PESO EN NUEVO PRODUCTO ====================
+// ==================== CONFIGURAR PESO ====================
 
 function configurarPeso() {
     const tipoPeso = document.getElementById('tipo_peso');
@@ -513,105 +483,49 @@ function configurarPeso() {
     }
 }
 
-// ==================== CÓDIGO AUTOMÁTICO ====================
-
-function configurarCodigoAutomatico() {
-    const familiaSelect = document.getElementById('familia');
-    const codigoInput = document.getElementById('codigo');
-    
-    if (familiaSelect && codigoInput) {
-        const prefijos = {
-            'EQUIPOS DE COMUNICACIÓN Y ELECTRÓNICA': 'ELE',
-            'EQUIPOS DE PROTECCIÓN PERSONAL (EPP)': 'EPP',
-            'EQUIPOS DE SOLDADURA': 'SOL',
-            'HERRAMIENTAS ELÉCTRICAS': 'HEL',
-            'HERRAMIENTAS MANUALES': 'HMA',
-            'MATERIALES DE EMBALAJE': 'EMB',
-            'MATERIALES DE LIMPIEZA Y MANTENIMIENTO': 'LIM',
-            'MATERIALES DE SEGURIDAD Y SEÑALIZACIÓN': 'SEG',
-            'MATERIALES ELÉCTRICOS': 'MEL',
-            'MOBILIARIO Y EQUIPOS DE OFICINA': 'OFI',
-            'PRODUCTOS QUÍMICOS Y ADHESIVOS': 'QUI',
-            'REPUESTOS Y ACCESORIOS AUTOMOTRICES': 'AUT',
-            'ROPA DE PROTECCIÓN': 'ROP'
-        };
-        
-        familiaSelect.addEventListener('change', async () => {
-            const familia = familiaSelect.value;
-            const prefijo = prefijos[familia] || 'GEN';
-            
-            try {
-                const response = await fetch(`/api/ultimo_codigo?prefijo=${prefijo}`);
-                const data = await response.json();
-                const numero = (data.ultimo_numero || 0) + 1;
-                codigoInput.value = `${prefijo}-${numero.toString().padStart(4, '0')}`;
-            } catch (error) {
-                console.error("Error generando código:", error);
-                codigoInput.value = `${prefijo}-0001`;
-            }
-        });
-    }
-}
-
-// ==================== INICIALIZACIÓN PRINCIPAL ====================
+// ==================== INICIALIZACIÓN ====================
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🟢 Inicializando sistema de gestión de productos...");
     
-    // Inicializar modales de Bootstrap
+    // Inicializar modales
     const modalEditarElement = document.getElementById('modalEditarProducto');
     const modalEliminarElement = document.getElementById('modalEliminarProducto');
     
     if (modalEditarElement) {
         editModal = new bootstrap.Modal(modalEditarElement);
         console.log("✅ Modal de edición inicializado");
-    } else {
-        console.warn("⚠️ No se encontró el modal de edición");
     }
     
     if (modalEliminarElement) {
         deleteModal = new bootstrap.Modal(modalEliminarElement);
         console.log("✅ Modal de eliminación inicializado");
-    } else {
-        console.warn("⚠️ No se encontró el modal de eliminación");
     }
     
-    // Cargar productos para selects
+    // Cargar productos
     cargarProductos();
     
-    // Configurar event listeners para botones de editar y eliminar (delegación de eventos)
+    // Delegación de eventos para botones
     document.body.addEventListener('click', (e) => {
-        // Botón editar
         const btnEditar = e.target.closest('.btn-editar-producto');
         if (btnEditar) {
             e.preventDefault();
             const productoId = btnEditar.getAttribute('data-id');
-            if (productoId) {
-                abrirModalEdicion(productoId);
-            } else {
-                console.error("Botón de editar sin data-id");
-                mostrarNotificacion("Error: Datos del producto no disponibles", "danger");
-            }
+            if (productoId) abrirModalEdicion(productoId);
             return;
         }
         
-        // Botón eliminar
         const btnEliminar = e.target.closest('.btn-eliminar-producto');
         if (btnEliminar) {
             e.preventDefault();
             const productoId = btnEliminar.getAttribute('data-id');
             const descripcion = btnEliminar.getAttribute('data-descripcion');
-            if (productoId) {
-                abrirModalEliminacion(productoId, descripcion);
-            } else {
-                console.error("Botón de eliminar sin data-id");
-                mostrarNotificacion("Error: Datos del producto no disponibles", "danger");
-            }
+            if (productoId) abrirModalEliminacion(productoId, descripcion);
             return;
         }
     });
     
-    // Configurar eventos para el kárdex
+    // Modal Kárdex
     const modalKardex = document.getElementById('modalKardex');
     if (modalKardex) {
         modalKardex.addEventListener('shown.bs.modal', () => {
@@ -622,6 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Filtro kárdex
     const filtroKardex = document.getElementById('kardex_producto_id');
     if (filtroKardex) {
         filtroKardex.addEventListener('change', (e) => {
@@ -629,65 +544,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Botón guardar movimiento kárdex
+    // Botón guardar movimiento
     const btnGuardarMovimiento = document.getElementById('btnGuardarMovimientoKardex');
     if (btnGuardarMovimiento) {
-        const newBtn = btnGuardarMovimiento.cloneNode(true);
-        btnGuardarMovimiento.parentNode.replaceChild(newBtn, btnGuardarMovimiento);
-        newBtn.addEventListener('click', guardarMovimiento);
-        console.log("✅ Botón guardar movimiento configurado");
+        btnGuardarMovimiento.addEventListener('click', guardarMovimiento);
     }
     
     // Botón guardar edición
     const btnGuardarEdicion = document.getElementById('btnGuardarEdicionProducto');
     if (btnGuardarEdicion) {
-        const newBtn = btnGuardarEdicion.cloneNode(true);
-        btnGuardarEdicion.parentNode.replaceChild(newBtn, btnGuardarEdicion);
-        newBtn.addEventListener('click', guardarEdicion);
-        console.log("✅ Botón guardar edición configurado");
-    } else {
-        console.warn("⚠️ No se encontró el botón guardar edición");
+        btnGuardarEdicion.addEventListener('click', guardarEdicion);
     }
     
     // Botón confirmar eliminación
     const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminarProducto');
     if (btnConfirmarEliminar) {
-        const newBtn = btnConfirmarEliminar.cloneNode(true);
-        btnConfirmarEliminar.parentNode.replaceChild(newBtn, btnConfirmarEliminar);
-        newBtn.addEventListener('click', eliminarProducto);
-        console.log("✅ Botón confirmar eliminación configurado");
-    } else {
-        console.warn("⚠️ No se encontró el botón confirmar eliminación");
+        btnConfirmarEliminar.addEventListener('click', eliminarProducto);
     }
     
-    // Configurar eventos para calcular margen en edición
+    // Calcular margen en edición
     const editCosto = document.getElementById('edit_costo_unitario');
     const editPrecio = document.getElementById('edit_precio_unitario');
-    
     if (editCosto && editPrecio) {
         editCosto.addEventListener('input', calcularMargenEdicion);
         editPrecio.addEventListener('input', calcularMargenEdicion);
     }
     
-    // Configurar filtros
+    // Filtros de tabla
     const filtroFamilia = document.getElementById('filtro-familia');
     const filtroBusqueda = document.getElementById('filtro-busqueda');
+    if (filtroFamilia) filtroFamilia.addEventListener('change', aplicarFiltros);
+    if (filtroBusqueda) filtroBusqueda.addEventListener('keyup', aplicarFiltros);
     
-    if (filtroFamilia) {
-        filtroFamilia.addEventListener('change', aplicarFiltros);
-    }
-    
-    if (filtroBusqueda) {
-        filtroBusqueda.addEventListener('keyup', aplicarFiltros);
-    }
-    
-    // Configurar otras funcionalidades
+    // Configurar importación
     configurarImportacion();
     configurarCalculoMargen();
     configurarPeso();
-    configurarCodigoAutomatico();
     
-    // Fecha por defecto para movimiento kárdex
+    // Fecha por defecto
     const fechaInput = document.getElementById('mov_kardex_fecha');
     if (fechaInput) {
         fechaInput.value = new Date().toISOString().split('T')[0];
