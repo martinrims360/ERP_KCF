@@ -51,7 +51,7 @@ class MovimientoStock(db.Model):
     costo_unitario = db.Column(db.Numeric(10,2))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ==================== RUTAS API PARA KÁRDEX ====================
+# ==================== RUTAS API ====================
 
 @app.route('/api/productos', methods=['GET'])
 def get_productos():
