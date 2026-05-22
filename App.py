@@ -1,20 +1,32 @@
 from flask import Flask, jsonify, request, render_template
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 import base64
-import traceback
+import os
+import sys
 
 app = Flask(__name__)
 
 # ==================== CONFIGURACIÓN SUPABASE ====================
-_a = base64.b64decode('cG9zdGdyZXNxbDovLy9wb3N0Z3Jlcy50a2Ztd3ZzZW52Z3B5ZXh2ZGNhdDphZG1pbjM1NjE5NjdrY2ZAYXdzLTEtdXMtZWFzdC0xLnBvb2xlci5zdXBhYmFzZS5jb206NjU0My9wb3N0Z3Jlcw==').decode('utf-8')
-app.config['SQLALCHEMY_DATABASE_URI'] = _a
+# Usar variable de entorno de Render o la directa
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if not DATABASE_URL:
+    _a = base64.b64decode('cG9zdGdyZXNxbDovLy9wb3N0Z3Jlcy50a2Ztd3ZzZW52Z3B5ZXh2ZGNhdDphZG1pbjM1NjE5NjdrY2ZAYXdzLTEtdXMtZWFzdC0xLnBvb2xlci5zdXBhYmFzZS5jb206NjU0My9wb3N0Z3Jlcw==').decode('utf-8')
+    DATABASE_URL = _a
+
+# Limpiar URL si es necesario
+if DATABASE_URL.startswith('postgresql+psycopg2://'):
+    DATABASE_URL = DATABASE_URL.replace('postgresql+psycopg2://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'sb_secret_k56lhPYVINqZMj_BZexRbw_JzeBx8Hx'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'sb_secret_k56lhPYVINqZMj_BZexRbw_JzeBx8Hx')
 
 db = SQLAlchemy()
 db.init_app(app)
 
-# ==================== MODELOS (SIN IMPORTAR DE OTROS LADOS) ====================
+# ==================== MODELOS ====================
 class Producto(db.Model):
     __tablename__ = 'productos'
     id = db.Column(db.Integer, primary_key=True)
@@ -37,9 +49,9 @@ class MovimientoStock(db.Model):
     motivo = db.Column(db.String(200))
     referencia = db.Column(db.String(100))
     costo_unitario = db.Column(db.Numeric(10,2))
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ==================== RUTAS API PARA KÁRDEX ====================
+# ==================== RUTAS API ====================
 
 @app.route('/api/productos', methods=['GET'])
 def get_productos():
@@ -55,19 +67,15 @@ def get_productos():
                 'stock': p.stock if p.stock else 0,
                 'costo_unitario': float(p.costo_unitario) if p.costo_unitario else 0
             })
-        print(f"✅ {len(resultado)} productos encontrados")
         return jsonify(resultado)
     except Exception as e:
-        print(f"❌ Error: {e}")
-        traceback.print_exc()
+        print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/movimientos_stock', methods=['GET'])
 def get_movimientos():
-    print("📊 Llamada a /api/movimientos_stock")
     try:
         producto_id = request.args.get('producto_id', type=int)
-        print(f"Producto ID: {producto_id}")
         
         if producto_id:
             movimientos = MovimientoStock.query.filter_by(producto_id=producto_id).order_by(MovimientoStock.created_at.asc()).all()
@@ -86,26 +94,21 @@ def get_movimientos():
                 'costo_unitario': float(m.costo_unitario) if m.costo_unitario else None,
                 'created_at': m.created_at.isoformat() if m.created_at else None
             })
-        print(f"✅ {len(resultado)} movimientos encontrados")
         return jsonify(resultado)
     except Exception as e:
-        print(f"❌ Error: {e}")
-        traceback.print_exc()
+        print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/movimientos_stock', methods=['POST'])
 def crear_movimiento():
-    print("📝 POST a /api/movimientos_stock")
     try:
         data = request.get_json()
-        print(f"Datos recibidos: {data}")
         
-        # Validaciones
         if not data.get('producto_id'):
             return jsonify({'success': False, 'error': 'Producto ID requerido'}), 400
         
         if not data.get('tipo'):
-            return jsonify({'success': False, 'error': 'Tipo de movimiento requerido'}), 400
+            return jsonify({'success': False, 'error': 'Tipo requerido'}), 400
         
         if not data.get('cantidad') or int(data.get('cantidad')) <= 0:
             return jsonify({'success': False, 'error': 'Cantidad válida requerida'}), 400
@@ -116,11 +119,9 @@ def crear_movimiento():
         
         cantidad = int(data['cantidad'])
         
-        # Validar stock para salidas
         if data['tipo'] == 'SALIDA' and (producto.stock or 0) < cantidad:
             return jsonify({'success': False, 'error': f'Stock insuficiente. Stock actual: {producto.stock or 0}'}), 400
         
-        # Crear movimiento
         nuevo = MovimientoStock(
             producto_id=data['producto_id'],
             tipo=data['tipo'],
@@ -131,7 +132,6 @@ def crear_movimiento():
         )
         db.session.add(nuevo)
         
-        # Actualizar stock
         if data['tipo'] == 'ENTRADA':
             producto.stock = (producto.stock or 0) + cantidad
         elif data['tipo'] == 'SALIDA':
@@ -140,14 +140,12 @@ def crear_movimiento():
             producto.stock = cantidad
         
         db.session.commit()
-        print(f"✅ Movimiento registrado. Nuevo stock: {producto.stock}")
         
         return jsonify({'success': True, 'message': 'Movimiento registrado', 'nuevo_stock': producto.stock}), 201
         
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Error: {e}")
-        traceback.print_exc()
+        print(f"Error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/productos/<int:id>', methods=['GET'])
@@ -164,7 +162,6 @@ def get_producto(id):
             'costo_unitario': float(producto.costo_unitario) if producto.costo_unitario else 0
         })
     except Exception as e:
-        print(f"❌ Error: {e}")
         return jsonify({'error': str(e)}), 500
 
 # ==================== RUTAS DE PÁGINAS ====================
@@ -174,27 +171,25 @@ def gestion_productos():
         productos = Producto.query.all()
         return render_template('gestion_productos.html', productos=productos)
     except Exception as e:
-        print(f"❌ Error: {e}")
         return f"Error: {e}"
+
+@app.route('/')
+def home():
+    return jsonify({'status': 'ok', 'message': 'Servidor funcionando'})
 
 @app.route('/test')
 def test():
-    return jsonify({'status': 'ok', 'message': 'Servidor funcionando'})
+    return jsonify({'status': 'ok', 'message': 'Kardex funcionando'})
 
 # ==================== INICIALIZACIÓN ====================
 if __name__ == "__main__":
     with app.app_context():
         try:
             db.create_all()
-            print("✅ Base de datos inicializada correctamente")
-            
-            # Verificar si hay productos
-            count = Producto.query.count()
-            print(f"📦 Productos en base de datos: {count}")
-            
+            print("✅ Base de datos inicializada")
         except Exception as e:
-            print(f"❌ Error al inicializar base de datos: {e}")
-            traceback.print_exc()
+            print(f"⚠️ Error al crear tablas: {e}")
+            print("Las tablas pueden existir ya")
     
-    print("🚀 Servidor iniciando en http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
