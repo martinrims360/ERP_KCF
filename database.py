@@ -1313,3 +1313,190 @@ def buscar_cliente_por_ruc(ruc: str):
     """, (ruc,))
     
     return rows[0] if rows else None
+
+    # =========================================
+# FUNCIONES PARA KÁRDEX (MOVIMIENTOS DE STOCK)
+# =========================================
+
+def obtener_movimientos_stock_por_producto(producto_id):
+    """Obtener todos los movimientos de stock para un producto"""
+    try:
+        query = """
+            SELECT 
+                id, 
+                producto_id, 
+                tipo, 
+                cantidad, 
+                motivo, 
+                referencia, 
+                costo_unitario, 
+                created_at
+            FROM movimientos_stock 
+            WHERE producto_id = %s
+            ORDER BY created_at ASC
+        """
+        return db_query(query, (producto_id,))
+    except Exception as e:
+        print(f"Error en obtener_movimientos_stock_por_producto: {e}")
+        return []
+
+
+def crear_movimiento_stock_completo(data):
+    """
+    Crear un nuevo movimiento de stock y actualizar el stock del producto
+    """
+    try:
+        producto_id = data.get('producto_id')
+        tipo = data.get('tipo')
+        cantidad = int(data.get('cantidad', 0))
+        motivo = data.get('motivo')
+        referencia = data.get('referencia')
+        costo_unitario = data.get('costo_unitario')
+        
+        if not producto_id or not tipo or not cantidad:
+            raise ValueError("Faltan datos requeridos")
+        
+        with db_tx() as conn:
+            cur = conn.cursor()
+            
+            # Verificar stock actual para SALIDA
+            if tipo == 'SALIDA':
+                cur.execute("SELECT stock FROM productos WHERE id = %s", (producto_id,))
+                row = cur.fetchone()
+                stock_actual = row[0] if row else 0
+                if stock_actual < cantidad:
+                    raise Exception(f'Stock insuficiente. Stock actual: {stock_actual}')
+            
+            # Insertar movimiento
+            cur.execute("""
+                INSERT INTO movimientos_stock 
+                (producto_id, tipo, cantidad, motivo, referencia, costo_unitario, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            """, (producto_id, tipo, cantidad, motivo, referencia, costo_unitario))
+            
+            # Actualizar stock del producto
+            if tipo == 'ENTRADA':
+                cur.execute("UPDATE productos SET stock = stock + %s, updated_at = NOW() WHERE id = %s", (cantidad, producto_id))
+            elif tipo == 'SALIDA':
+                cur.execute("UPDATE productos SET stock = stock - %s, updated_at = NOW() WHERE id = %s", (cantidad, producto_id))
+            else:  # AJUSTE
+                cur.execute("UPDATE productos SET stock = %s, updated_at = NOW() WHERE id = %s", (cantidad, producto_id))
+            
+            return True
+    except Exception as e:
+        print(f"Error en crear_movimiento_stock_completo: {e}")
+        raise e
+
+
+def obtener_producto_por_id(producto_id):
+    """Obtener un producto por su ID (incluyendo todos los campos)"""
+    try:
+        query = """
+            SELECT 
+                id, 
+                codigo, 
+                familia, 
+                descripcion, 
+                descripcion_larga,
+                modelo, 
+                marca, 
+                unidad,
+                peso,
+                volumen,
+                transporte,
+                costo_unitario,
+                precio_unitario,
+                stock,
+                observaciones,
+                activo,
+                fecha_creacion
+            FROM productos
+            WHERE id = %s
+        """
+        results = db_query(query, (producto_id,))
+        return results[0] if results else None
+    except Exception as e:
+        print(f"Error en obtener_producto_por_id: {e}")
+        return None
+
+
+def actualizar_producto_completo(producto_id, data):
+    """Actualizar un producto completo"""
+    try:
+        query = """
+            UPDATE productos
+            SET familia = %s,
+                descripcion = %s,
+                descripcion_larga = %s,
+                modelo = %s,
+                marca = %s,
+                unidad = %s,
+                peso = %s,
+                volumen = %s,
+                transporte = %s,
+                costo_unitario = %s,
+                precio_unitario = %s,
+                stock = %s,
+                observaciones = %s,
+                updated_at = NOW()
+            WHERE id = %s
+        """
+        db_execute(query, (
+            data.get('familia'),
+            data.get('descripcion'),
+            data.get('descripcion_larga'),
+            data.get('modelo'),
+            data.get('marca'),
+            data.get('unidad'),
+            data.get('peso'),
+            data.get('volumen'),
+            data.get('transporte'),
+            data.get('costo_unitario'),
+            data.get('precio_unitario'),
+            data.get('stock'),
+            data.get('observaciones'),
+            producto_id
+        ))
+        return True
+    except Exception as e:
+        print(f"Error en actualizar_producto_completo: {e}")
+        raise e
+
+
+def eliminar_producto_completo(producto_id):
+    """Eliminar un producto (borrado lógico o verificar movimientos)"""
+    try:
+        # Verificar si tiene movimientos asociados
+        movimientos = db_query("SELECT COUNT(*) as total FROM movimientos_stock WHERE producto_id = %s", (producto_id,))
+        count = movimientos[0]['total'] if movimientos else 0
+        
+        if count > 0:
+            raise Exception(f"No se puede eliminar el producto porque tiene {count} movimiento(s) de kárdex asociados")
+        
+        db_execute("DELETE FROM productos WHERE id = %s", (producto_id,))
+        return True
+    except Exception as e:
+        print(f"Error en eliminar_producto_completo: {e}")
+        raise e
+
+
+def obtener_ultimo_codigo_por_prefijo(prefijo):
+    """Obtener el último número de código para un prefijo"""
+    try:
+        query = """
+            SELECT codigo FROM productos 
+            WHERE codigo LIKE %s 
+            ORDER BY id DESC LIMIT 1
+        """
+        results = db_query(query, (f'{prefijo}%',))
+        
+        if results and results[0].get('codigo'):
+            codigo = results[0]['codigo']
+            import re
+            numeros = re.findall(r'\d+', codigo)
+            if numeros:
+                return int(numeros[-1])
+        return 0
+    except Exception as e:
+        print(f"Error en obtener_ultimo_codigo_por_prefijo: {e}")
+        return 0
