@@ -203,4 +203,4 @@ if __name__ == "__main__":
             print("⚠️ Continuando de todos modos...")
     
     port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)4
+    app.run(debug=False, host='0.0.0.0', port=port)
