@@ -5,8 +5,12 @@ import base64
 app = Flask(__name__)
 
 # ==================== CONFIGURACIÓN SUPABASE ====================
-_a = base64.b64decode('cG9zdGdyZXNxbDovLy9wb3N0Z3Jlcy50a2Ztd3ZzZW52Z3B5ZXh2ZGNhdDphZG1pbjM1NjE5NjdrY2ZAYXdzLTEtdXMtZWFzdC0xLnBvb2xlci5zdXBhYmFzZS5jb206NjU0My9wb3N0Z3Jlcw==').decode('utf-8')
-app.config['SQLALCHEMY_DATABASE_URI'] = _a
+# COMENTA O ELIMINA ESTAS LÍNEAS:
+# _a = base64.b64decode('cG9zdGdyZXNxbDovLy9wb3N0Z3Jlcy50a2Ztd3ZzZW52Z3B5ZXh2ZGNhdDphZG1pbjM1NjE5NjdrY2ZAYXdzLTEtdXMtZWFzdC0xLnBvb2xlci5zdXBhYmFzZS5jb206NjU0My9wb3N0Z3Jlcw==').decode('utf-8')
+# app.config['SQLALCHEMY_DATABASE_URI'] = _a
+
+# USA ESTA CONFIGURACIÓN DIRECTA:
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres.tkfmwvsenvgpyexvdcat:admin3561967kcf@aws-1-us-east-1.pooler.supabase.com:6543/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'sb_secret_k56lhPYVINqZMj_BZexRbw_JzeBx8Hx'
 
