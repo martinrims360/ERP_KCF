@@ -33,7 +33,12 @@ def get_productos():
                 'codigo': p.codigo if hasattr(p, 'codigo') else '',
                 'descripcion': p.descripcion,
                 'stock': p.stock if hasattr(p, 'stock') else 0,
-                'costo_unitario': float(p.costo_unitario) if hasattr(p, 'costo_unitario') and p.costo_unitario else 0
+                'costo_unitario': float(p.costo_unitario) if hasattr(p, 'costo_unitario') and p.costo_unitario else 0,
+                'familia': p.familia if hasattr(p, 'familia') else '',
+                'marca': p.marca if hasattr(p, 'marca') else '',
+                'modelo': p.modelo if hasattr(p, 'modelo') else '',
+                'unidad': p.unidad if hasattr(p, 'unidad') else '',
+                'precio_unitario': float(p.precio_unitario) if hasattr(p, 'precio_unitario') and p.precio_unitario else 0
             })
         print(f"✅ Se encontraron {len(resultado)} productos")
         return jsonify(resultado)
@@ -41,7 +46,164 @@ def get_productos():
         print(f"❌ Error: {e}")
         return jsonify({'error': str(e)}), 500
 
-# Ruta para obtener movimientos de stock
+
+# ==================== NUEVA RUTA: Obtener un producto por ID (para editar) ====================
+@app.route('/api/productos/<int:id>', methods=['GET'])
+def get_producto_by_id(id):
+    """Obtener un producto específico por su ID"""
+    print(f"🔍 Llamada a /api/productos/{id}")
+    try:
+        producto = Producto.query.get(id)
+        if not producto:
+            return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
+        
+        resultado = {
+            'id': producto.id,
+            'codigo': producto.codigo if hasattr(producto, 'codigo') else '',
+            'familia': producto.familia if hasattr(producto, 'familia') else '',
+            'descripcion': producto.descripcion if hasattr(producto, 'descripcion') else '',
+            'descripcion_larga': producto.descripcion_larga if hasattr(producto, 'descripcion_larga') else '',
+            'modelo': producto.modelo if hasattr(producto, 'modelo') else '',
+            'marca': producto.marca if hasattr(producto, 'marca') else '',
+            'unidad': producto.unidad if hasattr(producto, 'unidad') else '',
+            'peso': producto.peso if hasattr(producto, 'peso') else '',
+            'volumen': producto.volumen if hasattr(producto, 'volumen') else '',
+            'transporte': producto.transporte if hasattr(producto, 'transporte') else '',
+            'costo_unitario': float(producto.costo_unitario) if hasattr(producto, 'costo_unitario') and producto.costo_unitario else 0,
+            'precio_unitario': float(producto.precio_unitario) if hasattr(producto, 'precio_unitario') and producto.precio_unitario else 0,
+            'stock': producto.stock if hasattr(producto, 'stock') else 0,
+            'observaciones': producto.observaciones if hasattr(producto, 'observaciones') else ''
+        }
+        print(f"✅ Producto encontrado: {resultado['codigo']}")
+        return jsonify(resultado)
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+# ==================== NUEVA RUTA: Actualizar producto (para editar) ====================
+@app.route('/api/productos/<int:id>', methods=['PUT'])
+def update_producto(id):
+    """Actualizar un producto existente"""
+    print(f"✏️ Llamada a PUT /api/productos/{id}")
+    try:
+        producto = Producto.query.get(id)
+        if not producto:
+            return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
+        
+        data = request.get_json()
+        print(f"Datos recibidos para actualizar: {data}")
+        
+        # Actualizar todos los campos
+        if 'familia' in data:
+            producto.familia = data['familia']
+        if 'descripcion' in data:
+            producto.descripcion = data['descripcion']
+        if 'descripcion_larga' in data:
+            producto.descripcion_larga = data['descripcion_larga']
+        if 'modelo' in data:
+            producto.modelo = data['modelo']
+        if 'marca' in data:
+            producto.marca = data['marca']
+        if 'unidad' in data:
+            producto.unidad = data['unidad']
+        if 'peso' in data:
+            producto.peso = data['peso']
+        if 'volumen' in data:
+            producto.volumen = data['volumen']
+        if 'transporte' in data:
+            producto.transporte = data['transporte']
+        if 'costo_unitario' in data:
+            producto.costo_unitario = data['costo_unitario']
+        if 'precio_unitario' in data:
+            producto.precio_unitario = data['precio_unitario']
+        if 'stock' in data:
+            producto.stock = data['stock']
+        if 'observaciones' in data:
+            producto.observaciones = data['observaciones']
+        
+        # Actualizar timestamp
+        if hasattr(producto, 'updated_at'):
+            producto.updated_at = datetime.now()
+        
+        db.session.commit()
+        print(f"✅ Producto {id} actualizado correctamente")
+        return jsonify({'success': True, 'message': 'Producto actualizado correctamente'})
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ==================== NUEVA RUTA: Eliminar producto ====================
+@app.route('/api/productos/<int:id>', methods=['DELETE'])
+def delete_producto(id):
+    """Eliminar un producto"""
+    print(f"🗑️ Llamada a DELETE /api/productos/{id}")
+    try:
+        producto = Producto.query.get(id)
+        if not producto:
+            return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
+        
+        # Verificar si tiene movimientos asociados
+        movimientos = MovimientoStock.query.filter_by(producto_id=id).count()
+        if movimientos > 0:
+            return jsonify({'success': False, 'error': f'No se puede eliminar el producto porque tiene {movimientos} movimiento(s) de kárdex asociados'}), 400
+        
+        # Guardar datos para el log
+        codigo = producto.codigo if hasattr(producto, 'codigo') else 'sin código'
+        
+        db.session.delete(producto)
+        db.session.commit()
+        
+        print(f"✅ Producto {id} ({codigo}) eliminado correctamente")
+        return jsonify({'success': True, 'message': 'Producto eliminado correctamente'})
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ==================== NUEVA RUTA: Obtener último código para prefijo ====================
+@app.route('/api/ultimo_codigo', methods=['GET'])
+def ultimo_codigo():
+    """Obtener el último número de código para un prefijo"""
+    try:
+        prefijo = request.args.get('prefijo', 'GEN')
+        print(f"🔢 Buscando último código para prefijo: {prefijo}")
+        
+        from sqlalchemy import text
+        
+        with db.engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT codigo FROM productos 
+                WHERE codigo LIKE :prefijo 
+                ORDER BY id DESC LIMIT 1
+            """), {"prefijo": f'{prefijo}-%'})
+            
+            row = result.fetchone()
+            
+            if row and row[0]:
+                # Extraer el número del código (ej: ELE-0001 -> 1)
+                try:
+                    numero = int(row[0].split('-')[1])
+                    print(f"📌 Último número encontrado: {numero}")
+                    return jsonify({'success': True, 'ultimo_numero': numero})
+                except (IndexError, ValueError):
+                    print(f"⚠️ No se pudo extraer número de: {row[0]}")
+                    return jsonify({'success': True, 'ultimo_numero': 0})
+            else:
+                print("📌 No se encontraron códigos previos")
+                return jsonify({'success': True, 'ultimo_numero': 0})
+                
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ==================== Ruta para obtener movimientos de stock ====================
 @app.route('/api/movimientos_stock', methods=['GET'])
 def get_movimientos():
     print("📊 Llamada a /api/movimientos_stock")
@@ -49,7 +211,7 @@ def get_movimientos():
         producto_id = request.args.get('producto_id', type=int)
         
         if producto_id:
-            movimientos = MovimientoStock.query.filter_by(producto_id=producto_id).order_by(MovimientoStock.created_at.desc()).all()
+            movimientos = MovimientoStock.query.filter_by(producto_id=producto_id).order_by(MovimientoStock.created_at.asc()).all()
         else:
             movimientos = []
         
@@ -71,7 +233,8 @@ def get_movimientos():
         print(f"❌ Error: {e}")
         return jsonify({'error': str(e)}), 500
 
-# Ruta para crear movimientos
+
+# ==================== Ruta para crear movimientos ====================
 @app.route('/api/movimientos_stock', methods=['POST'])
 def crear_movimiento():
     print("📝 Llamada a POST /api/movimientos_stock")
@@ -80,7 +243,7 @@ def crear_movimiento():
         print(f"Datos recibidos: {data}")
         
         if not data.get('producto_id') or not data.get('tipo') or not data.get('cantidad'):
-            return jsonify({'success': False, 'error': 'Faltan datos'}), 400
+            return jsonify({'success': False, 'error': 'Faltan datos: producto_id, tipo y cantidad son requeridos'}), 400
         
         producto = Producto.query.get(data['producto_id'])
         if not producto:
@@ -88,9 +251,10 @@ def crear_movimiento():
         
         cantidad = int(data['cantidad'])
         
-        if data['tipo'] == 'SALIDA' and producto.stock < cantidad:
-            return jsonify({'success': False, 'error': f'Stock insuficiente. Stock actual: {producto.stock}'}), 400
+        if data['tipo'] == 'SALIDA' and (producto.stock or 0) < cantidad:
+            return jsonify({'success': False, 'error': f'Stock insuficiente. Stock actual: {producto.stock or 0}'}), 400
         
+        # Crear el movimiento
         nuevo = MovimientoStock(
             producto_id=data['producto_id'],
             tipo=data['tipo'],
@@ -102,26 +266,33 @@ def crear_movimiento():
         
         db.session.add(nuevo)
         
+        # Actualizar stock
         if data['tipo'] == 'ENTRADA':
-            producto.stock += cantidad
+            producto.stock = (producto.stock or 0) + cantidad
         elif data['tipo'] == 'SALIDA':
-            producto.stock -= cantidad
+            producto.stock = (producto.stock or 0) - cantidad
         elif data['tipo'] == 'AJUSTE':
             producto.stock = cantidad
         
+        # Actualizar timestamp si existe
+        if hasattr(producto, 'updated_at'):
+            producto.updated_at = datetime.now()
+        
         db.session.commit()
-        print("✅ Movimiento creado exitosamente")
-        return jsonify({'success': True, 'message': 'Movimiento registrado'}), 201
+        print(f"✅ Movimiento creado exitosamente. Nuevo stock: {producto.stock}")
+        return jsonify({'success': True, 'message': 'Movimiento registrado', 'nuevo_stock': producto.stock}), 201
         
     except Exception as e:
         db.session.rollback()
         print(f"❌ Error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# Ruta de prueba
+
+# ==================== Ruta de prueba ====================
 @app.route('/')
 def home():
     return jsonify({'message': 'Servidor funcionando', 'status': 'ok'})
+
 
 # ==================== BLUEPRINTS ORIGINALES ====================
 from routes.usuarios import usuarios_bp
@@ -134,6 +305,14 @@ app.register_blueprint(productos_bp)
 
 print("🔵 Blueprints registrados:", list(app.blueprints.keys()))
 print("🚀 Servidor Flask iniciado")
+print("📋 Rutas de API disponibles:")
+print("   GET    /api/productos")
+print("   GET    /api/productos/<id>")
+print("   PUT    /api/productos/<id>")
+print("   DELETE /api/productos/<id>")
+print("   GET    /api/movimientos_stock")
+print("   POST   /api/movimientos_stock")
+print("   GET    /api/ultimo_codigo")
 
 if __name__ == "__main__":
     with app.app_context():
