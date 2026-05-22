@@ -2,6 +2,7 @@ import os
 import sys
 import pandas as pd
 import requests
+import base64
 sys.dont_write_bytecode = True
 from flask import (
     Flask, render_template, request, redirect, url_for, session, flash, jsonify
@@ -480,6 +481,98 @@ def api_consulta_sunat():
     except Exception as e:
         print(f"❌ Error: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+
+# =========================
+# ENDPOINTS PRODUCTOS API
+# =========================
+
+@app.route("/api/productos/buscar", methods=["GET"])
+def api_buscar_productos():
+    """Buscar productos por código o descripción"""
+    try:
+        q = request.args.get('q', '').strip()
+        print(f"🔎 Buscando productos con: '{q}'")
+        
+        if not q or len(q) < 1:
+            return jsonify({'success': True, 'data': []})
+        
+        # Configuración de Supabase
+        _a = base64.b64decode('cG9zdGdyZXNxbDovLy9wb3N0Z3Jlcy50a2Ztd3ZzZW52Z3B5ZXh2ZGNhdDphZG1pbjM1NjE5NjdrY2ZAYXdzLTEtdXMtZWFzdC0xLnBvb2xlci5zdXBhYmFzZS5jb206NjU0My9wb3N0Z3Jlcw==').decode('utf-8')
+        
+        from sqlalchemy import create_engine, text
+        engine = create_engine(_a)
+        
+        with engine.connect() as conn:
+            # Buscar en la tabla productos
+            query = text("""
+                SELECT id, codigo, descripcion, marca, modelo, stock, costo_unitario, unidad
+                FROM productos 
+                WHERE codigo ILIKE :q OR descripcion ILIKE :q
+                ORDER BY codigo
+                LIMIT 20
+            """)
+            result = conn.execute(query, {"q": f'%{q}%'})
+            
+            productos = []
+            for row in result:
+                productos.append({
+                    'id': row[0],
+                    'codigo': row[1] or '',
+                    'descripcion': row[2] or '',
+                    'marca': row[3] or '',
+                    'modelo': row[4] or '',
+                    'stock': row[5] or 0,
+                    'costo_unitario': float(row[6]) if row[6] else 0,
+                    'unidad': row[7] or 'und'
+                })
+        
+        print(f"✅ Encontrados {len(productos)} productos")
+        return jsonify({'success': True, 'data': productos})
+        
+    except Exception as e:
+        print(f"❌ Error en api_buscar_productos: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/api/productos", methods=["GET"])
+def api_listar_productos():
+    """Listar todos los productos"""
+    try:
+        # Configuración de Supabase
+        _a = base64.b64decode('cG9zdGdyZXNxbDovLy9wb3N0Z3Jlcy50a2Ztd3ZzZW52Z3B5ZXh2ZGNhdDphZG1pbjM1NjE5NjdrY2ZAYXdzLTEtdXMtZWFzdC0xLnBvb2xlci5zdXBhYmFzZS5jb206NjU0My9wb3N0Z3Jlcw==').decode('utf-8')
+        
+        from sqlalchemy import create_engine, text
+        engine = create_engine(_a)
+        
+        with engine.connect() as conn:
+            query = text("""
+                SELECT id, codigo, descripcion, marca, modelo, stock, costo_unitario
+                FROM productos 
+                ORDER BY codigo
+                LIMIT 100
+            """)
+            result = conn.execute(query)
+            
+            productos = []
+            for row in result:
+                productos.append({
+                    'id': row[0],
+                    'codigo': row[1] or '',
+                    'descripcion': row[2] or '',
+                    'marca': row[3] or '',
+                    'modelo': row[4] or '',
+                    'stock': row[5] or 0,
+                    'costo_unitario': float(row[6]) if row[6] else 0
+                })
+        
+        return jsonify({'success': True, 'data': productos})
+        
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # =========================
