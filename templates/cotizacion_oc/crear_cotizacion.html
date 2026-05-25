@@ -1,59 +1,46 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Crear Cotización - ERP KCF</title>
 
     <!-- BOOTSTRAP -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- ICONOS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- FUENTE -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
 
     <style>
         :root {
             --rojo: #d90429;
-            --rojo-dark: #b10322;
             --negro: #111827;
             --gris: #6b7280;
             --fondo: #f4f6f9;
-            --blanco: #ffffff;
-            --borde: #e5e7eb;
-            --verde: #10b981;
-            --verde-dark: #059669;
-            --amarillo: #f59e0b;
-            --azul: #3b82f6;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(to bottom, #f8fafc, #eef2f7);
-            color: var(--negro);
         }
 
-        /* ========================= */
         /* NAVBAR */
-        /* ========================= */
         .erp-navbar {
             background: linear-gradient(135deg, #111827, #1f2937);
-            padding: 18px 35px;
+            padding: 18px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
         }
 
         .erp-logo-section {
@@ -65,30 +52,30 @@
         .erp-logo {
             width: 55px;
             height: 55px;
-            border-radius: 16px;
+            border-radius: 14px;
             background: linear-gradient(135deg, var(--rojo), #ef233c);
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             color: white;
-            font-size: 24px;
+            font-size: 22px;
         }
 
         .erp-company {
             color: white;
-            font-size: 22px;
             font-weight: 800;
+            font-size: 20px;
         }
 
         .erp-system {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 13px;
+            color: #cbd5e1;
+            font-size: 12px;
         }
 
         .erp-right {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
 
         .erp-status {
@@ -102,18 +89,29 @@
             font-weight: 600;
         }
 
-        .estado-en-proceso { background: #f59e0b20; color: #f59e0b; border: 1px solid #f59e0b; }
-        .estado-generada { background: #3b82f620; color: #3b82f6; border: 1px solid #3b82f6; }
-        .estado-aceptada { background: #10b98120; color: #10b981; border: 1px solid #10b981; }
-        .estado-rechazada { background: #d9042920; color: #d90429; border: 1px solid #d90429; }
+        .estado-en-proceso {
+            background: #f59e0b20;
+            color: #f59e0b;
+            border: 1px solid #f59e0b;
+        }
 
-        /* ========================= */
-        /* HERO */
-        /* ========================= */
+        .estado-generada {
+            background: #3b82f620;
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        .estado-aceptada {
+            background: #10b98120;
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+
+        /* HERO CARD */
         .hero-card {
             background: white;
-            border-radius: 24px;
             padding: 30px;
+            border-radius: 20px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
             display: flex;
             justify-content: space-between;
@@ -162,35 +160,19 @@
             font-size: 12px;
         }
 
-        /* ========================= */
-        /* BOTONES */
-        /* ========================= */
-        .action-toolbar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
+        /* BUTTONS */
         .btn-toolbar {
             border-radius: 10px;
             padding: 10px 20px;
             font-weight: 600;
-            transition: all 0.2s ease;
         }
 
-        .btn-toolbar:hover {
-            transform: translateY(-2px);
-        }
-
-        /* ========================= */
         /* CARDS */
-        /* ========================= */
         .erp-card {
             background: white;
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
-            height: 100%;
         }
 
         .card-header-custom {
@@ -216,74 +198,81 @@
             padding: 20px;
         }
 
-        /* ========================= */
-        /* INPUTS */
-        /* ========================= */
-        .form-label {
-            font-weight: 700;
-            font-size: 13px;
-            margin-bottom: 6px;
-        }
-
         .custom-input {
             border-radius: 10px !important;
-            border: 1px solid var(--borde);
+            border: 1px solid #e5e7eb;
             padding: 10px 12px;
-            width: 100%;
         }
 
         .custom-input:focus {
             border-color: var(--rojo);
             box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.1);
-            outline: none;
         }
 
-        /* ========================= */
-        /* TIEMPO DE ENTREGA */
-        /* ========================= */
-        .tiempo-entrega-wrapper {
+        /* TRANSPORT CARD */
+        .transport-card {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-radius: 20px;
+            padding: 20px;
             display: flex;
-            gap: 0;
-            width: 100%;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .tiempo-entrega-wrapper select {
-            flex: 2;
-            border-radius: 10px 0 0 10px;
-            border-right: none;
+        .transport-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        .tiempo-entrega-wrapper input {
-            flex: 1;
-            border-radius: 0 10px 10px 0;
-            border-left: none;
+        .transport-left i {
+            font-size: 32px;
+            color: var(--rojo);
         }
 
-        /* ========================= */
-        /* TABLA DE PRODUCTOS */
-        /* ========================= */
+        .transport-title {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .transport-subtitle {
+            font-size: 12px;
+            color: var(--gris);
+        }
+
+        .transport-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .transport-right input {
+            width: 150px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        /* TABLE */
         .table-modern {
             margin: 0;
-            table-layout: fixed;
-            width: 100%;
         }
 
         .table-modern thead th {
             background: #111827;
             color: white;
             border: none;
-            padding: 12px 8px;
-            font-size: 12px;
-            font-weight: 600;
-            text-align: center;
-            vertical-align: middle;
+            padding: 14px;
+            font-size: 13px;
+            white-space: nowrap;
         }
 
         .table-modern tbody td {
-            padding: 10px 8px;
+            padding: 10px;
             border-color: #f1f1f1;
             vertical-align: middle;
-            text-align: center;
         }
 
         .table-modern tbody tr:hover {
@@ -292,97 +281,12 @@
 
         .table-modern input {
             width: 100%;
-            padding: 6px 8px;
+            padding: 8px;
             border-radius: 8px;
             border: 1px solid #e5e7eb;
-            font-size: 13px;
-            text-align: center;
         }
 
-        .table-modern input:focus {
-            border-color: var(--rojo);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(217, 4, 41, 0.1);
-        }
-
-        /* Anchos fijos para simetría - 12 columnas */
-        .table-modern th:nth-child(1),
-        .table-modern td:nth-child(1) { width: 45px; }
-
-        .table-modern th:nth-child(2),
-        .table-modern td:nth-child(2) { width: 90px; }
-
-        .table-modern th:nth-child(3),
-        .table-modern td:nth-child(3) { width: 140px; }
-
-        .table-modern th:nth-child(4),
-        .table-modern td:nth-child(4) { width: 80px; }
-
-        .table-modern th:nth-child(5),
-        .table-modern td:nth-child(5) { width: 80px; }
-
-        .table-modern th:nth-child(6),
-        .table-modern td:nth-child(6) { width: 65px; }
-
-        .table-modern th:nth-child(7),
-        .table-modern td:nth-child(7) { width: 90px; }
-
-        .table-modern th:nth-child(8),
-        .table-modern td:nth-child(8) { width: 90px; }
-
-        .table-modern th:nth-child(9),
-        .table-modern td:nth-child(9) { width: 90px; }
-
-        .table-modern th:nth-child(10),
-        .table-modern td:nth-child(10) { width: 70px; }
-
-        .table-modern th:nth-child(11),
-        .table-modern td:nth-child(11) { width: 90px; }
-
-        .table-modern th:nth-child(12),
-        .table-modern td:nth-child(12) { width: 60px; }
-
-        /* ========================= */
-        /* BOTÓN ELIMINAR - VERSIÓN COMPACTA */
-        /* ========================= */
-        .table-modern td:last-child {
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .btn-del {
-            background: #fee2e2;
-            border: none;
-            border-radius: 8px;
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            margin: 0 auto;
-            color: var(--rojo);
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .btn-del i {
-            font-size: 14px;
-            margin: 0;
-        }
-
-        .btn-del:hover {
-            background: #fecaca;
-            transform: scale(1.05);
-        }
-
-        .btn-del:active {
-            transform: scale(0.95);
-        }
-
-        /* ========================= */
         /* SUMMARY CARD */
-        /* ========================= */
         .summary-card {
             background: white;
             border-radius: 20px;
@@ -410,9 +314,7 @@
             border-top: 2px solid var(--rojo);
         }
 
-        /* ========================= */
-        /* PORTAL DE SUGERENCIAS */
-        /* ========================= */
+        /* SUGGESTIONS */
         #portalSuggestions {
             position: fixed;
             background: white;
@@ -422,7 +324,6 @@
             display: none;
             max-height: 300px;
             overflow-y: auto;
-            min-width: 280px;
         }
 
         #portalSuggestions .item {
@@ -444,103 +345,34 @@
             color: var(--gris);
         }
 
-        #portalSuggestions .empty {
-            padding: 20px;
-            text-align: center;
-            color: var(--gris);
-        }
-
-        /* ========================= */
-        /* MODALES */
-        /* ========================= */
-        .modal-modern {
-            border-radius: 24px;
+        .btn-del {
+            background: #fee2e2;
             border: none;
+            border-radius: 8px;
+            padding: 5px 10px;
+            color: var(--rojo);
+            cursor: pointer;
         }
 
-        .modal-modern .modal-header {
-            background: linear-gradient(135deg, #111827, #1f2937);
-            color: white;
-            border-radius: 24px 24px 0 0;
+        .btn-del:hover {
+            background: #fecaca;
         }
 
-        .modal-modern .modal-header .btn-close {
-            filter: brightness(0) invert(1);
-        }
-
-        /* ========================= */
-        /* UTILIDADES */
-        /* ========================= */
         .opacity-50 {
             opacity: 0.5;
         }
-
-        /* ========================= */
-        /* RESPONSIVE */
-        /* ========================= */
-        @media (max-width: 768px) {
-            .erp-navbar {
-                flex-direction: column;
-                gap: 15px;
-                padding: 20px;
-            }
-
-            .hero-card {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .hero-number {
-                text-align: center;
-                margin-top: 15px;
-            }
-
-            .action-toolbar {
-                width: 100%;
-            }
-
-            .btn-toolbar {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .tiempo-entrega-wrapper {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .tiempo-entrega-wrapper select,
-            .tiempo-entrega-wrapper input {
-                border-radius: 10px !important;
-                border: 1px solid var(--borde);
-            }
-
-            .table-responsive {
-                overflow-x: auto;
-            }
-
-            .table-modern {
-                min-width: 1000px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero-title {
-                font-size: 24px;
-            }
-
-            .card-body-custom {
-                padding: 15px;
-            }
-        }
     </style>
+
 </head>
+
 <body>
 
     <!-- NAVBAR ERP -->
     <div class="erp-navbar">
         <div class="erp-logo-section">
-            <div class="erp-logo"><i class="bi bi-buildings-fill"></i></div>
+            <div class="erp-logo">
+                <i class="bi bi-buildings-fill"></i>
+            </div>
             <div>
                 <div class="erp-company">KCF CORPORACION</div>
                 <div class="erp-system">ERP Comercial · Gestión de Cotizaciones</div>
@@ -551,11 +383,16 @@
                 <i class="bi bi-circle-fill"></i>
                 <span id="estado_texto">EN PROCESO</span>
             </div>
-            <a href="/cotizacion" class="btn btn-dark"><i class="bi bi-arrow-left"></i> Volver</a>
+            <a href="/cotizacion" class="btn btn-dark">
+                <i class="bi bi-arrow-left"></i>
+                Volver
+            </a>
         </div>
     </div>
 
     <div class="container-fluid py-4">
+
+        <!-- HIDDEN -->
         <input type="hidden" id="cotizacion_id" value="{{ cotizacion_id or '' }}">
         <input type="hidden" id="modo_consulta" value="{{ modo or '' }}">
         <input type="hidden" id="tipo_documento_actual" value="borrador">
@@ -563,47 +400,70 @@
         <!-- HERO -->
         <div class="hero-card mb-4">
             <div class="hero-content">
-                <h1 class="hero-title">Crear Cotización</h1>
-                <div class="hero-subtitle">Sistema ERP Comercial · Gestión moderna de ventas</div>
-            </div>
-            <div class="hero-number">
-                <div class="number-label">NÚMERO DE COTIZACIÓN</div>
-                <div class="number-value" id="numero_cotizacion">Se asigna automáticamente</div>
-                <div class="number-label mt-2">CÓDIGO VENDEDOR</div>
-                <div class="number-value small" id="codigo_vendedor">---</div>
-                <div class="number-label mt-2">TIPO DOCUMENTO</div>
-                <div class="number-value small" id="tipo_documento"><span class="badge-warning">BORRADOR</span></div>
+                <div>
+                    <h1 class="hero-title">Crear Cotización</h1>
+                    <div class="hero-subtitle">Sistema ERP Comercial · Gestión moderna de ventas</div>
+                </div>
+                <div class="hero-number">
+                    <div class="number-label">NÚMERO DE COTIZACIÓN</div>
+                    <div class="number-value" id="numero_cotizacion">Se asigna automáticamente</div>
+                    <div class="number-label mt-2">CÓDIGO VENDEDOR</div>
+                    <div class="number-value small" id="codigo_vendedor">---</div>
+                    <div class="number-label mt-2">TIPO DOCUMENTO</div>
+                    <div class="number-value small" id="tipo_documento">
+                        <span class="badge-warning">BORRADOR</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- BOTONES -->
         <div class="action-toolbar mb-4">
             <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-warning btn-toolbar" id="btnGuardarBorrador"><i class="bi bi-save-fill"></i> Guardar Borrador</button>
-                <button class="btn btn-danger btn-toolbar" id="btnGuardarOficial"><i class="bi bi-floppy-fill"></i> Convertir a Oficial</button>
-                <button class="btn btn-primary btn-toolbar" id="btnPdf" disabled><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
-                <button class="btn btn-warning btn-toolbar" id="btnModificar" disabled><i class="bi bi-pencil-square"></i> Modificar</button>
-                <button class="btn btn-success btn-toolbar" id="btnAceptada" disabled><i class="bi bi-check-circle-fill"></i> Aceptada</button>
+                <button class="btn btn-warning btn-toolbar" id="btnGuardarBorrador">
+                    <i class="bi bi-save-fill"></i>
+                    Guardar Borrador
+                </button>
+                <button class="btn btn-danger btn-toolbar" id="btnGuardarOficial">
+                    <i class="bi bi-floppy-fill"></i>
+                    Convertir a Oficial
+                </button>
+                <button class="btn btn-primary btn-toolbar" id="btnPdf" disabled>
+                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                    PDF
+                </button>
+                <button class="btn btn-warning btn-toolbar" id="btnModificar" disabled>
+                    <i class="bi bi-pencil-square"></i>
+                    Modificar
+                </button>
+                <button class="btn btn-success btn-toolbar" id="btnAceptada" disabled>
+                    <i class="bi bi-check-circle-fill"></i>
+                    Aceptada
+                </button>
             </div>
         </div>
 
-        <!-- SECCIÓN DE DOS COLUMNAS: CLIENTE + CONDICIONES -->
+        <!-- SECCIONES -->
         <div class="row g-4">
-            <!-- COLUMNA IZQUIERDA: INFORMACIÓN DEL CLIENTE -->
+
+            <!-- CLIENTE -->
             <div class="col-xl-6">
                 <div class="erp-card">
                     <div class="card-header-custom">
-                        <i class="bi bi-people-fill"></i> Información del Cliente
+                        <div><i class="bi bi-people-fill"></i> Información del Cliente</div>
                     </div>
                     <div class="card-body-custom">
                         <input type="hidden" id="cliente_id" value="">
                         
-                        <!-- BUSCADOR POR RUC -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Buscar Cliente por RUC</label>
+                        <!-- 🔥 BUSCADOR POR RUC -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label">Buscar Cliente por RUC</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control custom-input" id="buscar_ruc" placeholder="Ingrese RUC de 11 dígitos">
+                                    <input type="text" 
+                                           class="form-control custom-input" 
+                                           id="buscar_ruc" 
+                                           placeholder="Ingrese RUC de 11 dígitos">
                                     <button class="btn btn-primary" type="button" id="btnBuscarClientePorRuc">
                                         <i class="bi bi-search"></i> Buscar Cliente
                                     </button>
@@ -614,27 +474,34 @@
                                 <small class="text-muted">Ingrese el RUC y presione buscar para autocompletar los datos del cliente</small>
                             </div>
                         </div>
-
-                        <!-- DATOS DEL CLIENTE - 2 COLUMNAS SIMÉTRICAS -->
+                        
                         <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label">Señor(es) <span class="text-danger">*</span></label>
+                                <div class="search-container">
+                                    <input type="text" class="form-control custom-input" id="cliente_razon_social"
+                                        placeholder="Escriba para buscar cliente..." autocomplete="off">
+                                    <div id="clienteSuggestions" class="suggestions-dropdown"></div>
+                                </div>
+                            </div>
+                            
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">RUC / DNI</label>
+                                <label class="form-label">RUC / DNI</label>
                                 <input type="text" class="form-control custom-input" id="cliente_doc" placeholder="Documento" readonly>
                             </div>
+                            
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Razón Social <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control custom-input" id="cliente_razon_social" placeholder="Escriba para buscar cliente..." autocomplete="off">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" class="form-control custom-input" id="telefono_contacto">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Teléfono</label>
-                                <input type="text" class="form-control custom-input" id="telefono_contacto" placeholder="Ej: 987654321">
+                            
+                            <div class="col-12">
+                                <label class="form-label">Dirección Fiscal</label>
+                                <input type="text" class="form-control custom-input" id="cliente_direccion">
                             </div>
+                            
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Dirección Fiscal</label>
-                                <input type="text" class="form-control custom-input" id="cliente_direccion" placeholder="Ej: Av. Principal 123">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Estado</label>
+                                <label class="form-label">Estado</label>
                                 <select class="form-select custom-input" id="estado">
                                     <option value="En Proceso">En Proceso</option>
                                     <option value="Generada">Generada</option>
@@ -642,52 +509,72 @@
                                     <option value="Rechazada">Rechazada</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Dirección Entrega</label>
-                                <input type="text" class="form-control custom-input" id="direccion_entrega" placeholder="Dirección de entrega">
+                            
+                            <div class="col-12">
+                                <label class="form-label">Dirección Entrega</label>
+                                <input type="text" class="form-control custom-input" id="direccion_entrega"
+                                    placeholder="Dirección de entrega">
                             </div>
+                            
                         </div>
-
-                        <!-- BOTÓN CREAR CLIENTE -->
                         <div class="mt-4">
                             <button class="btn btn-success w-100" id="btnCrearCliente">
-                                <i class="bi bi-person-plus-fill"></i> Crear nuevo cliente
+                                <i class="bi bi-person-plus-fill"></i>
+                                Crear nuevo cliente
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- COLUMNA DERECHA: CONDICIONES COMERCIALES -->
+            <!-- CONDICIONES -->
             <div class="col-xl-6">
                 <div class="erp-card">
-                    <div class="card-header-custom red"><i class="bi bi-journal-check"></i> Condiciones Comerciales</div>
+                    <div class="card-header-custom red">
+                        <div><i class="bi bi-journal-check"></i> Condiciones Comerciales</div>
+                    </div>
                     <div class="card-body-custom">
                         <input type="hidden" id="usuario_id" value="">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Ejecutiva Comercial</label>
+                                <label class="form-label">Asesor Comercial</label>
                                 <input type="text" class="form-control custom-input" id="asesor_comercial" readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">E-mail</label>
+                                <label class="form-label">E-mail</label>
                                 <input type="text" class="form-control custom-input" id="email_contacto" readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Teléfono</label>
+                                <label class="form-label">Teléfono</label>
                                 <input type="text" class="form-control custom-input" id="telefono_contacto_user" readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Almacén</label>
+                                <label class="form-label">Almacén</label>
                                 <select class="form-select custom-input" id="almacen">
                                     <option>Almacén Breña</option>
                                     <option>Almacén SMP</option>
                                 </select>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tipo Producto</label>
+                                <select class="form-select custom-input" id="tipo_producto">
+                                    <option value="">Seleccionar</option>
+                                    <option value="stock">Stock</option>
+                                    <option value="pedido">Pedido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Forma Pago</label>
+                                <select class="form-select custom-input" id="forma_pago">
+                                    <option value="">Seleccionar</option>
+                                </select>
+                            </div>
                         </div>
+                        
+                        <!-- TIEMPO ENTREGA CON SELECTOR INTELIGENTE -->
                         <div class="row g-3 mt-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Tiempo Entrega</label>
+                                <label class="form-label">Tiempo Entrega</label>
                                 <div class="tiempo-entrega-wrapper">
                                     <select class="form-select custom-input" id="tiempo_entrega_select">
                                         <option value="">-- Seleccionar opción --</option>
@@ -700,25 +587,24 @@
                                         <option value="15 días">📦 15 días hábiles</option>
                                         <option value="personalizado">✏️ Personalizado (escribir)</option>
                                     </select>
-                                    <input type="text" class="form-control custom-input" id="tiempo_entrega" placeholder="Ej: 10 días, 2 semanas, etc." style="display: none;">
+                                    <input type="text" 
+                                           class="form-control custom-input" 
+                                           id="tiempo_entrega" 
+                                           placeholder="Ej: 10 días, 2 semanas, etc."
+                                           style="display: none;">
                                 </div>
                             </div>
+                            
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Validez Oferta</label>
-                                <select class="form-select custom-input" id="validez_oferta">
-                                    <option value="7 días">7 días</option>
-                                    <option value="15 días" selected>15 días</option>
-                                    <option value="30 días">30 días</option>
-                                    <option value="personalizado">✏️ Personalizado (escribir)</option>
-                                </select>
-                                <input type="text" class="form-control custom-input" id="validez_oferta_personalizado" placeholder="Ej: 60 días, 3 meses, etc." style="display: none; margin-top: 8px;">
+                                <label class="form-label">Validez Oferta</label>
+                                <input type="text" class="form-control custom-input" id="validez_oferta" value="15 días">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Descuento %</label>
-                                <input type="number" class="form-control custom-input" id="descuento_porcentaje" value="10" step="0.01">
+                                <label class="form-label">Descuento %</label>
+                                <input type="number" class="form-control custom-input" id="descuento_porcentaje" value="0">
                             </div>
                             <div class="col-12">
-                                <label class="form-label fw-semibold">Nota Comercial</label>
+                                <label class="form-label">Nota Comercial</label>
                                 <textarea class="form-control custom-input" id="nota_cotizacion" rows="4"></textarea>
                             </div>
                         </div>
@@ -727,23 +613,56 @@
             </div>
         </div>
 
-        <!-- TABLA PRODUCTOS SIMÉTRICA -->
+        <!-- TRANSPORTE -->
+        <div class="transport-card mt-4">
+            <div class="transport-left">
+                <i class="bi bi-truck"></i>
+                <div>
+                    <div class="transport-title">Transporte General</div>
+                    <div class="transport-subtitle">Monto logístico total sin IGV</div>
+                </div>
+            </div>
+            <div class="transport-right">
+                <span>S/.</span>
+                <input type="number" id="monto_transporte" value="0" min="0" step="0.01">
+            </div>
+        </div>
+
+        <!-- TABLA PRODUCTOS -->
         <div class="erp-card mt-4">
-            <div class="card-header-custom green"><i class="bi bi-box-seam-fill"></i> Detalle de Productos</div>
+            <div class="card-header-custom green">
+                <div><i class="bi bi-box-seam-fill"></i> Detalle de Productos</div>
+            </div>
             <div class="card-body-custom p-0">
                 <div class="table-responsive">
                     <table class="table table-modern" id="products-table">
                         <thead>
-                            <tr><th>Item</th><th>Código</th><th>Descripción</th><th>Marca</th><th>Modelo</th><th>Cant</th><th>PU Costo</th><th>Subtotal</th><th>PU Venta</th><th>% Desc</th><th>Total Desc</th><th>Eliminar</th></tr>
+                            <tr>
+                                <th>Item</th><th>Código</th><th>Descripción</th><th>Marca</th>
+                                <th>Modelo</th><th>Cant</th><th>PU Costo</th><th>Subtotal</th>
+                                <th>Transporte</th><th>Total</th><th>Margen</th><th>PU Venta</th>
+                                <th>Subtotal Venta</th><th>% Desc</th><th>Total Desc</th><th>Eliminar</th>
+                            </tr>
                         </thead>
                         <tbody id="table-body"></tbody>
                         <tfoot>
-                            <tr><td colspan="7" class="text-end fw-bold">Totales:</td><td id="total_subtotal_costo">0.00</td><td id="total_subtotal_venta">0.00</td><td id="total_subtotal_venta_desc">0.00</td><td colspan="2"></td></tr>
+                            <tr>
+                                <td colspan="7" class="text-end fw-bold">Totales:</td>
+                                <td id="total_subtotal_costo">0.00</td>
+                                <td id="total_transporte_prorrateo">0.00</td>
+                                <td id="total_costo_general">0.00</td>
+                                <td>\n                                <td id="total_subtotal_venta">0.00</td>
+                                <td></td>
+                                <td id="total_subtotal_venta_desc">0.00</td>
+                                <td></td>
+                            </tr>
                         </tfoot>
                     </table>
                 </div>
                 <div class="p-4">
-                    <button class="btn btn-success" type="button" id="btnAgregarItem"><i class="bi bi-plus-circle-fill"></i> Agregar Producto</button>
+                    <button class="btn btn-success" type="button" id="btnAgregarItem">
+                        <i class="bi bi-plus-circle-fill"></i> Agregar Producto
+                    </button>
                 </div>
             </div>
         </div>
@@ -760,18 +679,22 @@
             </div>
         </div>
 
-        <!-- NOTAS INTERNAS -->
+        <!-- NOTAS -->
         <div class="erp-card mt-4">
-            <div class="card-header-custom dark"><i class="bi bi-journal-text"></i> Notas Internas ERP</div>
+            <div class="card-header-custom dark">
+                <div><i class="bi bi-journal-text"></i> Notas Internas ERP</div>
+            </div>
             <div class="card-body-custom">
                 <textarea class="form-control custom-input" id="notas" rows="4" placeholder="Notas internas u observaciones..."></textarea>
             </div>
         </div>
+
     </div>
 
-    <!-- MODALES -->
+    <!-- SUGERENCIAS -->
     <div id="portalSuggestions"></div>
-    
+
+    <!-- MODAL CONFIRMACIÓN POST-TRANSACCIONAL -->
     <div class="modal fade" id="modalConfirmacion" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content modal-modern">
@@ -789,12 +712,16 @@
         </div>
     </div>
 
+    <!-- MODAL CREAR NUEVO CLIENTE CON BOTÓN SUNAT -->
     <div class="modal fade" id="modalNuevoCliente" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content modal-modern">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-person-plus-fill text-success"></i> Nuevo Cliente</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-plus-fill text-success"></i>
+                        Nuevo Cliente
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="formNuevoCliente">
@@ -811,7 +738,9 @@
                                 <label class="form-label">Número Documento <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <input type="text" class="form-control custom-input" id="nuevo_numero_documento" required placeholder="11 dígitos">
-                                    <button class="btn btn-primary" type="button" id="btnBuscarSunat"><i class="bi bi-search"></i> Buscar</button>
+                                    <button class="btn btn-primary" type="button" id="btnBuscarSunat">
+                                        <i class="bi bi-search"></i> Buscar
+                                    </button>
                                 </div>
                                 <small class="text-muted">Para RUC, puede buscar datos en SUNAT</small>
                             </div>
@@ -843,13 +772,18 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cancelar</button>
-                    <button type="button" class="btn btn-success" id="btnGuardarNuevoCliente"><i class="bi bi-save-fill"></i> Guardar Cliente</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" id="btnGuardarNuevoCliente">
+                        <i class="bi bi-save-fill"></i> Guardar Cliente
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- MODAL ACEPTADA -->
     <div class="modal fade" id="modalAceptada" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content modal-modern">
@@ -875,6 +809,7 @@
         </div>
     </div>
 
+    <!-- MODAL MODIFICAR -->
     <div class="modal fade" id="modalModificar" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content modal-modern">
@@ -891,51 +826,10 @@
         </div>
     </div>
 
+    <!-- JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Script para manejar el select de Validez Oferta
-        document.addEventListener('DOMContentLoaded', function() {
-            const validezSelect = document.getElementById('validez_oferta');
-            const validezInput = document.getElementById('validez_oferta_personalizado');
-            
-            if (validezSelect && validezInput) {
-                function toggleValidezInput() {
-                    if (validezSelect.value === 'personalizado') {
-                        validezInput.style.display = 'block';
-                        validezInput.focus();
-                    } else {
-                        validezInput.style.display = 'none';
-                        validezInput.value = '';
-                    }
-                }
-                
-                validezSelect.addEventListener('change', toggleValidezInput);
-                toggleValidezInput();
-            }
-
-            // Script para manejar el select de Tiempo Entrega
-            const tiempoSelect = document.getElementById('tiempo_entrega_select');
-            const tiempoInput = document.getElementById('tiempo_entrega');
-            
-            if (tiempoSelect && tiempoInput) {
-                function toggleTiempoInput() {
-                    if (tiempoSelect.value === 'personalizado') {
-                        tiempoInput.style.display = 'block';
-                        tiempoInput.focus();
-                    } else if (tiempoSelect.value === '') {
-                        tiempoInput.style.display = 'none';
-                        tiempoInput.value = '';
-                    } else {
-                        tiempoInput.style.display = 'none';
-                        tiempoInput.value = tiempoSelect.value;
-                    }
-                }
-                
-                tiempoSelect.addEventListener('change', toggleTiempoInput);
-                toggleTiempoInput();
-            }
-        });
-    </script>
     <script src="/static/js/crear_cotizacion.js"></script>
+
 </body>
+
 </html>

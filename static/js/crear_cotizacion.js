@@ -102,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             codigoCotizacionActual = codigo;
         }
         
+        // Actualizar estado del botón PDF después de cambiar el código
         actualizarEstadoBotonPDF();
     }
 
@@ -127,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const codigo = `COT-${codigoVendedor}-${año}${mes}${dia}-${String(nuevoCorrelativo).padStart(4, '0')}`;
                 
+                // Verificar si el código ya existe
                 const existe = await verificarCodigoExiste(codigo);
                 
                 if (!existe) {
@@ -194,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // CONSULTA A SUNAT (API ORIGINAL QUE FUNCIONA)
+    // CONSULTA A SUNAT (API)
     // =========================
     async function consultarSunat(ruc) {
         try {
@@ -221,6 +223,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error consultando SUNAT:', error);
+            
+            try {
+                const proxyResponse = await fetch(`/api/sunat/consulta?ruc=${ruc}`);
+                const proxyData = await proxyResponse.json();
+                if (proxyData.success) {
+                    return proxyData;
+                }
+            } catch (e) {
+                console.error('Error con proxy:', e);
+            }
+            
             return { success: false, error: error.message };
         }
     }
@@ -270,14 +283,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // BOTÓN BUSCAR CLIENTE POR RUC
+    // BOTÓN BUSCAR CLIENTE POR RUC - CONSULTA DIRECTA A SUNAT
     // =========================
     const btnBuscarClientePorRuc = document.getElementById('btnBuscarClientePorRuc');
     const buscarRucInput = document.getElementById('buscar_ruc');
     const btnLimpiarCliente = document.getElementById('btnLimpiarCliente');
 
     if (btnBuscarClientePorRuc) {
-        console.log('✅ Botón de búsqueda encontrado');
+        console.log('✅ Botón de búsqueda encontrado, consultando SUNAT directamente');
         
         btnBuscarClientePorRuc.addEventListener('click', async function(e) {
             e.preventDefault();
@@ -296,18 +309,22 @@ document.addEventListener('DOMContentLoaded', () => {
             
             mostrarNotificacion('🔍 Consultando SUNAT para RUC: ' + ruc, 'info');
             
+            // Mostrar loading en el botón
             const textoOriginal = btnBuscarClientePorRuc.innerHTML;
             btnBuscarClientePorRuc.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando SUNAT...';
             btnBuscarClientePorRuc.disabled = true;
             
             try {
+                // 🔥 CONSULTAR DIRECTAMENTE A LA API DE SUNAT
                 const resultado = await consultarSunat(ruc);
                 
                 if (resultado.success) {
+                    // Autocompletar el formulario principal
                     document.getElementById('cliente_razon_social').value = resultado.razon_social || '';
                     document.getElementById('cliente_doc').value = ruc;
                     document.getElementById('cliente_direccion').value = resultado.direccion || '';
                     
+                    // También autocompletar el modal de nuevo cliente
                     document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
                     document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
                     document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
@@ -329,6 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('❌ ERROR: Botón con ID "btnBuscarClientePorRuc" NO ENCONTRADO');
     }
 
+    // Botón para limpiar cliente
     if (btnLimpiarCliente) {
         btnLimpiarCliente.addEventListener('click', function() {
             document.getElementById('cliente_id').value = '';
@@ -349,13 +367,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const select = document.getElementById('tiempo_entrega_select');
         const input = document.getElementById('tiempo_entrega');
         
-        if (!select || !input) return;
+        if (!select || !input) {
+            console.warn('⚠️ Elementos de tiempo de entrega no encontrados');
+            return;
+        }
         
         select.addEventListener('change', function() {
             const valor = this.value;
             if (valor === 'personalizado') {
                 input.style.display = 'block';
                 input.value = '';
+                input.placeholder = 'Ej: 10 días hábiles, 2 semanas, etc.';
                 input.focus();
             } else if (valor === '') {
                 input.style.display = 'none';
@@ -364,6 +386,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.style.display = 'none';
                 input.value = valor;
             }
+        });
+        
+        input.addEventListener('focus', function() {
+            select.value = 'personalizado';
+            this.style.display = 'block';
         });
         
         if (input.value && input.value.trim() !== '') {
@@ -401,8 +428,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const opt = document.createElement('option');
                 opt.value = p.id;
                 opt.textContent = p.nombre_punto;
+                opt.dataset.direccion = p.direccion || '';
+                opt.dataset.telefono = p.telefono_contacto || '';
+                opt.dataset.nombre_contacto = p.nombre_contacto || '';
                 select.appendChild(opt);
             });
+            
+            select.onchange = function() {
+                const opt = this.selectedOptions[0];
+                const direccionEntrega = document.getElementById('direccion_entrega');
+                const telefonoContacto = document.getElementById('telefono_contacto');
+                const clienteContacto = document.getElementById('cliente_contacto');
+                
+                if (this.value === 'a_tratar') {
+                    if (direccionEntrega) direccionEntrega.value = 'Por definir (Negociación)';
+                    if (telefonoContacto) telefonoContacto.value = '';
+                    if (clienteContacto) clienteContacto.value = 'A tratar';
+                } else {
+                    if (direccionEntrega) direccionEntrega.value = opt?.dataset?.direccion || '';
+                    if (telefonoContacto) telefonoContacto.value = opt?.dataset?.telefono || '';
+                    if (clienteContacto && opt?.dataset?.nombre_contacto) clienteContacto.value = opt.dataset.nombre_contacto;
+                }
+            };
+
         } catch (e) {
             console.error("Error cargando puntos", e);
         }
@@ -579,10 +627,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 cantidad: Number(getInput('.cantidad')),
                 costo_unitario: Number(getInput('.precio_costo_unitario')),
                 subtotal_costo: Number(getText('.subtotal_costo')),
+                margen_porcentaje: Number(getInput('.margen_venta')),
                 precio_venta_unitario: Number(getInput('.precio_venta_unitario_input')),
                 subtotal_venta: Number(getText('.subtotal_venta_item')),
                 descuento_porcentaje: Number(getInput('.descuento_porcentaje')),
-                subtotal_venta_con_descuento: Number(getText('.subtotal_venta_desc'))
+                precio_venta_con_descuento: Number(getText('.precio_unitario_venta_desc')),
+                subtotal_venta_con_descuento: Number(getText('.subtotal_venta_desc')),
+                descuento_total: Number(getText('.descuento_subtotal')),
+                margen_final: Number(getText('.margen_final'))
             };
 
             listaProductos.push(producto);
@@ -960,51 +1012,91 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================
     function recalculateAll() {
         const rows = document.querySelectorAll("#table-body tr");
-        let totalSubtotalVentaDesc = 0;
+        const montoTransporte = Number(document.getElementById('monto_transporte')?.value || 0);
+        let totalSubtotalCosto = 0;
 
         rows.forEach(r => {
             const cantidad = Number(r.querySelector('.cantidad')?.value || 0);
             const costo = Number(r.querySelector('.precio_costo_unitario')?.value || 0);
-            const subtotalCosto = cantidad * costo;
+            const subtotal = cantidad * costo;
             const sc = r.querySelector('.subtotal_costo');
-            if (sc) sc.textContent = subtotalCosto.toFixed(2);
-
-            const pvUnit = Number(r.querySelector('.precio_venta_unitario_input')?.value || 0);
-            const subtotalVenta = pvUnit * cantidad;
-            const sv = r.querySelector('.subtotal_venta_item');
-            if (sv) sv.textContent = subtotalVenta.toFixed(2);
-
-            const descPct = Number(r.querySelector('.descuento_porcentaje')?.value || 0);
-            const subtotalDesc = subtotalVenta * (1 - descPct / 100);
-            const svd = r.querySelector('.subtotal_venta_desc');
-            if (svd) svd.textContent = subtotalDesc.toFixed(2);
-            totalSubtotalVentaDesc += subtotalDesc;
+            if (sc) sc.textContent = subtotal.toFixed(2);
+            totalSubtotalCosto += subtotal;
         });
-
-        const igv = totalSubtotalVentaDesc * 0.18;
-        const totalFinal = totalSubtotalVentaDesc + igv;
-
-        let totalSubtotalCosto = 0;
+       
         rows.forEach(r => {
-            totalSubtotalCosto += Number(r.querySelector('.subtotal_costo')?.textContent || 0);
+            const cantidad = Number(r.querySelector('.cantidad')?.value || 0);
+            const subtotalCosto = Number(r.querySelector('.subtotal_costo')?.textContent || 0);
+            const prorrateo = totalSubtotalCosto > 0 ? (montoTransporte * (subtotalCosto / totalSubtotalCosto)) : 0;
+            const totalCosto = subtotalCosto + prorrateo;
+            const precioUnitario = cantidad > 0 ? totalCosto / cantidad : 0;
+
+            const set = (cls, val) => { const el = r.querySelector(cls); if (el) el.textContent = val.toFixed(2); };
+            set('.transporte_prorrateo', prorrateo);
+            set('.total_costo', totalCosto);
+            set('.precio_unitario_costo_total', precioUnitario);
+
+            const margen = Number(r.querySelector('.margen_venta')?.value || 0);
+            const pvManual = Number(r.querySelector('.precio_venta_unitario_input')?.value || 0);
+            const pvUnit = pvManual > 0 ? pvManual : precioUnitario * (1 + margen / 100);
+            const subtotalVenta = pvUnit * cantidad;
+            const descPct = Number(r.querySelector('.descuento_porcentaje')?.value || 0);
+            const pvDesc = pvUnit * (1 - descPct / 100);
+            const subtotalDesc = pvDesc * cantidad;
+            
+            set('.precio_venta_unitario_calc', pvUnit);
+            set('.subtotal_venta_item', subtotalVenta);
+            set('.precio_unitario_venta_desc', pvDesc);
+            set('.subtotal_venta_desc', subtotalDesc);
         });
 
-        const totalSubtotalCostoElem = document.getElementById('total_subtotal_costo');
-        if (totalSubtotalCostoElem) totalSubtotalCostoElem.textContent = totalSubtotalCosto.toFixed(2);
-        
-        const totalSubtotalVentaElem = document.getElementById('total_subtotal_venta');
-        if (totalSubtotalVentaElem) totalSubtotalVentaElem.textContent = totalSubtotalVentaDesc.toFixed(2);
-        
-        const totalSubtotalVentaDescElem = document.getElementById('total_subtotal_venta_desc');
-        if (totalSubtotalVentaDescElem) totalSubtotalVentaDescElem.textContent = totalSubtotalVentaDesc.toFixed(2);
+        let totalVentaDesc = 0;
+        rows.forEach(r => { totalVentaDesc += Number(r.querySelector('.subtotal_venta_desc')?.textContent || 0); });
+        const igv = totalVentaDesc * 0.18;
+        const totalFinal = totalVentaDesc + igv;
 
-        document.getElementById('summary_subtotal_venta_desc').textContent = totalSubtotalVentaDesc.toFixed(2);
+        document.getElementById('summary_subtotal_venta_desc').textContent = totalVentaDesc.toFixed(2);
         document.getElementById('summary_igv').textContent = igv.toFixed(2);
         document.getElementById('summary_total_venta').textContent = totalFinal.toFixed(2);
+        
+        // Actualizar totales del footer
+        const totalSubtotalCostoElem = document.getElementById('total_subtotal_costo');
+        const totalTransporteProrrateo = document.getElementById('total_transporte_prorrateo');
+        const totalCostoGeneral = document.getElementById('total_costo_general');
+        const totalSubtotalVenta = document.getElementById('total_subtotal_venta');
+        const totalSubtotalVentaDesc = document.getElementById('total_subtotal_venta_desc');
+        
+        if (totalSubtotalCostoElem) {
+            let sumSubtotalCosto = 0;
+            rows.forEach(r => { sumSubtotalCosto += Number(r.querySelector('.subtotal_costo')?.textContent || 0); });
+            totalSubtotalCostoElem.textContent = sumSubtotalCosto.toFixed(2);
+        }
+        
+        if (totalTransporteProrrateo) {
+            let sumTransporte = 0;
+            rows.forEach(r => { sumTransporte += Number(r.querySelector('.transporte_prorrateo')?.textContent || 0); });
+            totalTransporteProrrateo.textContent = sumTransporte.toFixed(2);
+        }
+        
+        if (totalCostoGeneral) {
+            let sumCosto = 0;
+            rows.forEach(r => { sumCosto += Number(r.querySelector('.total_costo')?.textContent || 0); });
+            totalCostoGeneral.textContent = sumCosto.toFixed(2);
+        }
+        
+        if (totalSubtotalVenta) {
+            let sumVenta = 0;
+            rows.forEach(r => { sumVenta += Number(r.querySelector('.subtotal_venta_item')?.textContent || 0); });
+            totalSubtotalVenta.textContent = sumVenta.toFixed(2);
+        }
+        
+        if (totalSubtotalVentaDesc) {
+            totalSubtotalVentaDesc.textContent = totalVentaDesc.toFixed(2);
+        }
     }
 
     // =========================
-    // AGREGAR ITEMS - VERSIÓN CORREGIDA (BOTÓN ELIMINAR MÁS PEQUEÑO)
+    // AGREGAR ITEMS - VERSIÓN CORREGIDA
     // =========================
     function addItem() {
         if (cotizacionBloqueada) { 
@@ -1014,32 +1106,36 @@ document.addEventListener('DOMContentLoaded', () => {
         itemCounter++;
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td class="col-item text-center">${itemCounter}</td>
+            <td class="col-item">${itemCounter}</td>
             <td class="col-codigo">
-                <input type="text" class="codigo_producto" placeholder="Buscar producto..." style="width:100%;">
+                <input type="text" class="codigo_producto" placeholder="Buscar producto..." style="width:100%; min-width:120px;">
                 <input type="hidden" class="producto_id">
             </td>
             <td class="col-desc"><input type="text" class="descripcion" readonly style="width:100%;"></td>
             <td class="col-marca"><input type="text" class="marca" readonly style="width:100%;"></td>
             <td class="col-modelo"><input type="text" class="modelo" readonly style="width:100%;"></td>
-            <td class="col-cantidad"><input type="number" class="cantidad" value="1" step="1" style="width:100%;"></td>
+            <td class="col-cantidad"><input type="number" class="cantidad" value="1" step="0.01" style="width:100%;"></td>
             <td class="col-monto"><input type="number" class="precio_costo_unitario" value="0" step="0.01" style="width:100%;"></td>
-            <td class="subtotal_costo text-center">0.00</td>
-            <td class="col-pv"><input type="number" class="precio_venta_unitario_input" value="0" step="0.01" style="width:100%;"></td>
-            <td class="subtotal_venta_item text-center">0.00</td>
-            <td class="col-descuento"><input type="number" class="descuento_porcentaje" value="0" step="0.01" style="width:100%;"></td>
-            <td class="subtotal_venta_desc text-center">0.00</td>
-            <td class="text-center">
-                <button class="btn-del" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #fee2e2; border: none; border-radius: 8px; color: #d90429; cursor: pointer;">
-                    <i class="bi bi-trash3"></i>
-                </button>
-            </td>
+            <td class="subtotal_costo">0.00</td>
+            <td class="transporte_prorrateo">0.00</td>
+            <td class="total_costo">0.00</td>
+            <td class="precio_unitario_costo_total">0.00</td>
+            <td><input type="number" class="margen_venta" value="20" step="0.01" style="width:100%;"></td>
+            <td><input type="number" class="precio_venta_unitario_input" value="0" step="0.01" style="width:100%;"></td>
+            <td class="precio_venta_unitario_calc">0.00</td>
+            <td class="subtotal_venta_item">0.00</td>
+            <td><input type="number" class="descuento_porcentaje" value="0" step="0.01" style="width:100%;"></td>
+            <td class="precio_unitario_venta_desc">0.00</td>
+            <td class="subtotal_venta_desc">0.00</td>
+            <td><button class="btn-del">🗑</button></td>
         `;
         
         if (tableBody) tableBody.appendChild(row);
         
+        // Inicializar autocomplete para esta fila
         attachProductoAutocomplete(row);
         
+        // Configurar eventos de recálculo
         const rec = () => { 
             if (!modoConsulta) { 
                 recalculateAll(); 
@@ -1049,6 +1145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         row.querySelector('.cantidad')?.addEventListener('input', rec);
         row.querySelector('.precio_costo_unitario')?.addEventListener('input', rec);
+        row.querySelector('.margen_venta')?.addEventListener('input', rec);
         row.querySelector('.precio_venta_unitario_input')?.addEventListener('input', rec);
         row.querySelector('.descuento_porcentaje')?.addEventListener('input', rec);
         row.querySelector('.btn-del')?.addEventListener('click', () => { 
@@ -1107,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const el = document.getElementById(id);
             if (el) el.disabled = disabled;
         });
-        ['asesor_comercial', 'email_contacto', 'telefono_contacto_user', 'forma_pago', 'tiempo_entrega', 'validez_oferta', 'nota_cotizacion', 'notas'].forEach(id => {
+        ['asesor_comercial', 'email_contacto', 'telefono_contacto_user', 'forma_pago', 'tiempo_entrega', 'validez_oferta', 'nota_cotizacion', 'notas', 'monto_transporte'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = disabled;
         });
@@ -1170,6 +1267,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     row.querySelector('.producto_id').value = item.producto_id || '';
                     row.querySelector('.cantidad').value = item.cantidad || 0;
                     row.querySelector('.precio_costo_unitario').value = item.costo_unitario || 0;
+                    row.querySelector('.margen_venta').value = item.margen_porcentaje || 0;
                     row.querySelector('.precio_venta_unitario_input').value = item.precio_venta_unitario || 0;
                     row.querySelector('.descuento_porcentaje').value = Number(item.descuento_porcentaje || 0);
                     row.querySelector('.codigo_producto').value = item.codigo || '';
@@ -1180,6 +1278,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             recalculateAll();
             configurarTiempoEntrega();
+            
             actualizarEstadoBotonPDF();
         } catch (err) { console.error(err); mostrarNotificacion("Error cargando cotización", "danger"); }
     }
@@ -1201,6 +1300,10 @@ document.addEventListener('DOMContentLoaded', () => {
         filas.forEach((fila, idx) => {
             const codigoInput = fila.querySelector('.codigo_producto');
             console.log(`Fila ${idx + 1} - Input código:`, codigoInput ? '✅ Encontrado' : '❌ NO ENCONTRADO');
+            if (codigoInput) {
+                console.log(`  - Value: ${codigoInput.value}`);
+                console.log(`  - Placeholder: ${codigoInput.placeholder}`);
+            }
         });
         
         mostrarNotificacion('Diagnóstico completo. Revisa la consola (F12)', 'info');
@@ -1246,5 +1349,27 @@ document.addEventListener('DOMContentLoaded', () => {
     } else { 
         esBorrador = true; 
         document.getElementById('estado').value = 'En Proceso'; 
+    }
+
+    // =========================
+    // METODO DE PAGO
+    // =========================
+    const tipoProducto = document.getElementById("tipo_producto");
+    const formaPago = document.getElementById("forma_pago");
+    if (tipoProducto && formaPago) {
+        tipoProducto.addEventListener("change", function () {
+            let valor = this.value;
+            formaPago.innerHTML = '<option value="">-- Seleccione forma de pago --</option>';
+            if (valor === "stock") {
+                formaPago.innerHTML += '<option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option>';
+                formaPago.disabled = false;
+            } else if (valor === "pedido") {
+                formaPago.innerHTML += '<option value="Transferencia">Transferencia</option>';
+                formaPago.value = "Transferencia";
+                formaPago.disabled = true;
+            } else { 
+                formaPago.disabled = false; 
+            }
+        });
     }
 });
