@@ -217,7 +217,7 @@ def editar_cliente(id):
                 razon_social = %s,
                 nombre_comercial = %s,
                 direccion_fiscal = %s
-            WHERE id_cliente = %s
+            WHERE id = %s
         """, (
             data.get('tipo_documento'),
             data.get('numero_documento'),
