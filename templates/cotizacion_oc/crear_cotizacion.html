@@ -140,7 +140,7 @@
             box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.1);
         }
 
-        /* TABLA SIMÉTRICA SIN TRANSPORTE */
+        /* TABLA PRODUCTOS */
         .table-modern { margin: 0; table-layout: fixed; width: 100%; }
         .table-modern thead th {
             background: #111827;
@@ -167,7 +167,7 @@
             font-size: 13px;
             text-align: center;
         }
-        /* Anchos fijos para simetría */
+        
         .table-modern th:nth-child(1) { width: 45px; }
         .table-modern th:nth-child(2) { width: 90px; }
         .table-modern th:nth-child(3) { width: 140px; }
@@ -177,9 +177,10 @@
         .table-modern th:nth-child(7) { width: 90px; }
         .table-modern th:nth-child(8) { width: 90px; }
         .table-modern th:nth-child(9) { width: 90px; }
-        .table-modern th:nth-child(10) { width: 70px; }
-        .table-modern th:nth-child(11) { width: 90px; }
-        .table-modern th:nth-child(12) { width: 60px; }
+        .table-modern th:nth-child(10) { width: 90px; }
+        .table-modern th:nth-child(11) { width: 70px; }
+        .table-modern th:nth-child(12) { width: 90px; }
+        .table-modern th:nth-child(13) { width: 60px; }
 
         /* SUMMARY CARD */
         .summary-card {
@@ -228,14 +229,13 @@
                 <i class="bi bi-circle-fill"></i>
                 <span id="estado_texto">EN PROCESO</span>
             </div>
-            <a href="/cotizacion" class="btn btn-dark"><i class="bi bi-arrow-left"></i> Volver</a>
+            <a href="/listado_cotizaciones" class="btn btn-dark"><i class="bi bi-arrow-left"></i> Volver</a>
         </div>
     </div>
 
     <div class="container-fluid py-4">
         <input type="hidden" id="cotizacion_id" value="{{ cotizacion_id or '' }}">
         <input type="hidden" id="modo_consulta" value="{{ modo or '' }}">
-        <input type="hidden" id="tipo_documento_actual" value="borrador">
 
         <!-- HERO -->
         <div class="hero-card mb-4">
@@ -292,7 +292,7 @@
                             </div>
                         </div>
 
-                        <!-- DATOS DEL CLIENTE - 2 COLUMNAS SIMÉTRICAS -->
+                        <!-- DATOS DEL CLIENTE -->
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">RUC / DNI</label>
@@ -365,34 +365,19 @@
                         <div class="row g-3 mt-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Tiempo Entrega</label>
-                                <div class="tiempo-entrega-wrapper">
-                                    <select class="form-select custom-input" id="tiempo_entrega_select">
-                                        <option value="">-- Seleccionar opción --</option>
-                                        <option value="Inmediato">⚡ Inmediato (24 horas)</option>
-                                        <option value="1 día">📦 1 día hábil</option>
-                                        <option value="2 días">📦 2 días hábiles</option>
-                                        <option value="3 días">📦 3 días hábiles</option>
-                                        <option value="5 días">📦 5 días hábiles</option>
-                                        <option value="7 días">📦 7 días hábiles</option>
-                                        <option value="15 días">📦 15 días hábiles</option>
-                                        <option value="personalizado">✏️ Personalizado (escribir)</option>
-                                    </select>
-                                    <input type="text" class="form-control custom-input" id="tiempo_entrega" placeholder="Ej: 10 días, 2 semanas, etc." style="display: none;">
-                                </div>
+                                <input type="text" class="form-control custom-input" id="tiempo_entrega" placeholder="Ej: 10 días">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Forma de Pago</label>
+                                <input type="text" class="form-control custom-input" id="forma_pago" placeholder="Ej: Contado, Crédito 30 días">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Validez Oferta</label>
-                                <select class="form-select custom-input" id="validez_oferta">
-                                    <option value="7 días">7 días</option>
-                                    <option value="15 días" selected>15 días</option>
-                                    <option value="30 días">30 días</option>
-                                    <option value="personalizado">✏️ Personalizado (escribir)</option>
-                                </select>
-                                <input type="text" class="form-control custom-input" id="validez_oferta_personalizado" placeholder="Ej: 60 días, 3 meses, etc." style="display: none; margin-top: 8px;">
+                                <input type="text" class="form-control custom-input" id="validez_oferta" value="15 días">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Descuento %</label>
-                                <input type="number" class="form-control custom-input" id="descuento_porcentaje" value="10" step="0.01">
+                                <input type="number" class="form-control custom-input" id="descuento_porcentaje" value="0" step="0.01">
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Nota Comercial</label>
@@ -404,14 +389,14 @@
             </div>
         </div>
 
-        <!-- TABLA PRODUCTOS SIMÉTRICA SIN TRANSPORTE -->
+        <!-- TABLA PRODUCTOS -->
         <div class="erp-card mt-4">
             <div class="card-header-custom green"><i class="bi bi-box-seam-fill"></i> Detalle de Productos</div>
             <div class="card-body-custom p-0">
                 <div class="table-responsive">
                     <table class="table table-modern" id="products-table">
                         <thead>
-                            <tr><th>Item</th><th>Código</th><th>Descripción</th><th>Marca</th><th>Modelo</th><th>Cant</th><th>PU Costo</th><th>Subtotal</th><th>Subtotal Venta</th><th>% Desc</th><th>Total Desc</th><th>Eliminar</th></tr>
+                            <tr><th>Item</th><th>Código</th><th>Descripción</th><th>Marca</th><th>Modelo</th><th>Cant</th><th>PU Costo</th><th>Subtotal</th><th>PU Venta</th><th>Subtotal Venta</th><th>% Desc</th><th>Total Desc</th><th>Eliminar</th></tr>
                         </thead>
                         <tbody id="table-body"></tbody>
                         <tfoot>
@@ -448,46 +433,130 @@
 
     <!-- MODALES -->
     <div id="portalSuggestions"></div>
-    <div class="modal fade" id="modalConfirmacion" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-modern"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Cotización Guardada</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="modalConfirmacionBody"></div><div class="modal-footer"><button class="btn btn-primary" id="btnDescargarPDFModal">📄 Descargar PDF</button><button class="btn btn-success" id="btnNuevaCotizacionModal">➕ Nueva Cotización</button><button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div></div></div></div>
-    <div class="modal fade" id="modalNuevoCliente" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content modal-modern"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-person-plus-fill text-success"></i> Nuevo Cliente</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="formNuevoCliente"><div class="row g-3"><div class="col-md-6"><label class="form-label">Tipo Documento <span class="text-danger">*</span></label><select class="form-select custom-input" id="nuevo_tipo_documento" required><option value="RUC">RUC</option><option value="DNI">DNI</option><option value="CE">Carnet de Extranjería</option></select></div><div class="col-md-6"><label class="form-label">Número Documento <span class="text-danger">*</span></label><div class="input-group"><input type="text" class="form-control custom-input" id="nuevo_numero_documento" required placeholder="11 dígitos"><button class="btn btn-primary" type="button" id="btnBuscarSunat"><i class="bi bi-search"></i> Buscar</button></div><small class="text-muted">Para RUC, puede buscar datos en SUNAT</small></div><div class="col-md-12"><label class="form-label">Razón Social / Nombre <span class="text-danger">*</span></label><input type="text" class="form-control custom-input" id="nuevo_razon_social" required></div><div class="col-md-12"><label class="form-label">Nombre Comercial</label><input type="text" class="form-control custom-input" id="nuevo_nombre_comercial"></div><div class="col-md-12"><label class="form-label">Dirección Fiscal</label><input type="text" class="form-control custom-input" id="nuevo_direccion_fiscal"></div><div class="col-md-6"><label class="form-label">Teléfono Contacto</label><input type="text" class="form-control custom-input" id="nuevo_telefono"></div><div class="col-md-6"><label class="form-label">Email Contacto</label><input type="email" class="form-control custom-input" id="nuevo_email"></div><div class="col-md-12"><label class="form-label">Nombre Contacto</label><input type="text" class="form-control custom-input" id="nuevo_nombre_contacto"></div></div></form></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cancelar</button><button type="button" class="btn btn-success" id="btnGuardarNuevoCliente"><i class="bi bi-save-fill"></i> Guardar Cliente</button></div></div></div></div>
-    <div class="modal fade" id="modalAceptada" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-modern"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Confirmar Cotización</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Pedido / Orden Cliente</label><input type="text" class="form-control custom-input" id="pedido_cliente"></div><div><label class="form-label">Fecha Confirmación</label><input type="date" class="form-control custom-input" id="fecha_confirmacion"></div></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-success" id="btn-registrar">Confirmar</button></div></div></div></div>
-    <div class="modal fade" id="modalModificar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-modern"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-pencil-square text-warning"></i> Habilitar Modificación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">¿Desea habilitar nuevamente esta cotización?</div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-warning" id="btn-confirmar-modificar">Sí, habilitar</button></div></div></div></div>
+    
+    <div class="modal fade" id="modalConfirmacion" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Cotización Guardada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalConfirmacionBody"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="btnDescargarPDFModal">📄 Descargar PDF</button>
+                    <button class="btn btn-success" id="btnNuevaCotizacionModal">➕ Nueva Cotización</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalNuevoCliente" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus-fill text-success"></i> Nuevo Cliente</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevoCliente">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Tipo Documento <span class="text-danger">*</span></label>
+                                <select class="form-select custom-input" id="nuevo_tipo_documento" required>
+                                    <option value="RUC">RUC</option>
+                                    <option value="DNI">DNI</option>
+                                    <option value="CE">Carnet de Extranjería</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Número Documento <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control custom-input" id="nuevo_numero_documento" required placeholder="11 dígitos">
+                                    <button class="btn btn-primary" type="button" id="btnBuscarSunat"><i class="bi bi-search"></i> Buscar</button>
+                                </div>
+                                <small class="text-muted">Para RUC, puede buscar datos en SUNAT</small>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Razón Social / Nombre <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control custom-input" id="nuevo_razon_social" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Nombre Comercial</label>
+                                <input type="text" class="form-control custom-input" id="nuevo_nombre_comercial">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Dirección Fiscal</label>
+                                <input type="text" class="form-control custom-input" id="nuevo_direccion_fiscal">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Teléfono Contacto</label>
+                                <input type="text" class="form-control custom-input" id="nuevo_telefono">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Contacto</label>
+                                <input type="email" class="form-control custom-input" id="nuevo_email">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Nombre Contacto</label>
+                                <input type="text" class="form-control custom-input" id="nuevo_nombre_contacto">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnGuardarNuevoCliente"><i class="bi bi-save-fill"></i> Guardar Cliente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAceptada" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Confirmar Cotización</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Pedido / Orden Cliente</label>
+                        <input type="text" class="form-control custom-input" id="pedido_cliente">
+                    </div>
+                    <div>
+                        <label class="form-label">Fecha Confirmación</label>
+                        <input type="date" class="form-control custom-input" id="fecha_confirmacion">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-success" id="btn-registrar">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalModificar" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square text-warning"></i> Habilitar Modificación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">¿Desea habilitar nuevamente esta cotización?</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-warning" id="btn-confirmar-modificar">Sí, habilitar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // Script para manejar el select de Validez Oferta
-        document.addEventListener('DOMContentLoaded', function() {
-            const validezSelect = document.getElementById('validez_oferta');
-            const validezInput = document.getElementById('validez_oferta_personalizado');
-            
-            if (validezSelect && validezInput) {
-                // Función para mostrar/ocultar el input personalizado
-                function toggleValidezInput() {
-                    if (validezSelect.value === 'personalizado') {
-                        validezInput.style.display = 'block';
-                        validezInput.focus();
-                    } else {
-                        validezInput.style.display = 'none';
-                        validezInput.value = '';
-                    }
-                }
-                
-                // Evento cuando cambia el select
-                validezSelect.addEventListener('change', function() {
-                    toggleValidezInput();
-                });
-                
-                // Cuando se escribe en el input personalizado, actualizar un campo oculto o el valor
-                validezInput.addEventListener('input', function() {
-                    // Esto es opcional: podrías actualizar un campo oculto
-                    console.log('Validez personalizada:', validezInput.value);
-                });
-                
-                // Inicializar estado
-                toggleValidezInput();
-            }
-        });
+    // ==================== CÓDIGO JAVASCRIPT COMPLETO - COPIAR ABAJO ====================
     </script>
-    <script src="/static/js/crear_cotizacion.js"></script>
 </body>
 </html>
