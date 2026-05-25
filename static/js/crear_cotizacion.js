@@ -277,6 +277,90 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
+    // CONFIGURAR DIRECCIÓN DE ENTREGA (NUEVO)
+    // =========================
+    function configurarDireccionEntrega() {
+        const select = document.getElementById('direccion_entrega_select');
+        const input = document.getElementById('direccion_entrega');
+        
+        if (!select || !input) {
+            console.warn('⚠️ Elementos de dirección de entrega no encontrados');
+            return;
+        }
+        
+        select.addEventListener('change', function() {
+            const valor = this.value;
+            if (valor === 'personalizado') {
+                input.style.display = 'block';
+                input.value = '';
+                input.placeholder = 'Escriba la dirección completa...';
+                input.focus();
+            } else if (valor === '') {
+                input.style.display = 'none';
+                input.value = '';
+            } else {
+                input.style.display = 'none';
+                input.value = valor;
+            }
+        });
+        
+        input.addEventListener('focus', function() {
+            select.value = 'personalizado';
+            this.style.display = 'block';
+        });
+        
+        if (input.value && input.value.trim() !== '') {
+            let encontrado = false;
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === input.value) {
+                    select.value = input.value;
+                    input.style.display = 'none';
+                    encontrado = true;
+                    break;
+                }
+            }
+            if (!encontrado && input.value !== '') {
+                select.value = 'personalizado';
+                input.style.display = 'block';
+            }
+        }
+    }
+
+    // =========================
+    // CARGAR DIRECCIONES DEL CLIENTE (NUEVO)
+    // =========================
+    async function cargarDireccionesCliente(clienteId) {
+        const select = document.getElementById('direccion_entrega_select');
+        if (!select) return;
+        
+        // Limpiar opciones excepto las primeras (-- Seleccionar -- y personalizado)
+        while (select.options.length > 2) {
+            select.remove(2);
+        }
+        
+        if (!clienteId || clienteId === '') return;
+        
+        try {
+            const response = await fetch(`/api/clientes/${clienteId}/direcciones`);
+            const result = await response.json();
+            
+            if (result.success && result.data && result.data.length > 0) {
+                result.data.forEach(dir => {
+                    const option = document.createElement('option');
+                    option.value = dir.direccion;
+                    option.textContent = dir.direccion.length > 50 ? dir.direccion.substring(0, 47) + '...' : dir.direccion;
+                    if (dir.es_principal) {
+                        option.textContent += ' (Principal)';
+                    }
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error cargando direcciones:', error);
+        }
+    }
+
+    // =========================
     // BOTÓN BUSCAR CLIENTE POR RUC
     // =========================
     const btnBuscarClientePorRuc = document.getElementById('btnBuscarClientePorRuc');
@@ -341,6 +425,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('cliente_direccion').value = '';
             document.getElementById('telefono_contacto').value = '';
             document.getElementById('cliente_contacto').value = '';
+            document.getElementById('email_contacto_cliente').value = '';
+            document.getElementById('requerimiento').value = '';
             if (buscarRucInput) buscarRucInput.value = '';
             mostrarNotificacion('🧹 Cliente limpiado', 'info');
         });
@@ -393,52 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 select.value = 'personalizado';
                 input.style.display = 'block';
             }
-        }
-    }
-
-    // =========================
-    // CARGAR PUNTOS DE ENTREGA
-    // =========================
-    async function cargarPuntosEntrega(clienteId) {
-        const select = document.getElementById('punto_entrega');
-        if (!select) return;
-
-        select.innerHTML = `<option value="a_tratar">📝 A tratar (Negociación)</option>`;
-
-        try {
-            const res = await fetch(`/api/clientes/${clienteId}`);
-            const json = await res.json();
-            const puntos = json.data?.puntos_entrega || [];
-
-            puntos.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = p.nombre_punto;
-                opt.dataset.direccion = p.direccion || '';
-                opt.dataset.telefono = p.telefono_contacto || '';
-                opt.dataset.nombre_contacto = p.nombre_contacto || '';
-                select.appendChild(opt);
-            });
-            
-            select.onchange = function() {
-                const opt = this.selectedOptions[0];
-                const direccionEntrega = document.getElementById('direccion_entrega');
-                const telefonoContacto = document.getElementById('telefono_contacto');
-                const clienteContacto = document.getElementById('cliente_contacto');
-                
-                if (this.value === 'a_tratar') {
-                    if (direccionEntrega) direccionEntrega.value = 'Por definir (Negociación)';
-                    if (telefonoContacto) telefonoContacto.value = '';
-                    if (clienteContacto) clienteContacto.value = 'A tratar';
-                } else {
-                    if (direccionEntrega) direccionEntrega.value = opt?.dataset?.direccion || '';
-                    if (telefonoContacto) telefonoContacto.value = opt?.dataset?.telefono || '';
-                    if (clienteContacto && opt?.dataset?.nombre_contacto) clienteContacto.value = opt.dataset.nombre_contacto;
-                }
-            };
-
-        } catch (e) {
-            console.error("Error cargando puntos", e);
         }
     }
 
@@ -517,8 +557,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
                 document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';
                 document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
+                document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';
                 
-                await cargarPuntosEntrega(cliente.id);
+                // Cargar direcciones guardadas del cliente
+                await cargarDireccionesCliente(cliente.id);
+                
                 mostrarNotificacion('✅ Cliente cargado correctamente', 'success');
             }
         } catch (error) {
@@ -616,7 +659,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 marca: getInput('.marca') || '',
                 unidad_medida: getInput('.unidad_medida') || '',
                 cantidad: Number(getInput('.cantidad')),
-                precio_venta_unitario: Number(getInput('.precio_venta_unitario')),
+                valor_venta_unit: Number(getInput('.precio_venta_unitario')),
+                valor_venta_total: Number(getText('.valor_venta_total')),
                 subtotal: Number(getText('.subtotal')),
                 total_pagar: Number(getText('.total_pagar'))
             };
@@ -701,10 +745,13 @@ document.addEventListener('DOMContentLoaded', () => {
             usuario_id: Number(document.getElementById("usuario_id")?.value || 0),
             estado: document.getElementById("estado")?.value || "En Proceso",
             subtotal: subtotal, igv: igv, total: total,
-            forma_pago: document.getElementById("forma_pago")?.value || "",
+            condicion_pago: document.getElementById("condicion_pago")?.value || "",
             tiempo_entrega: document.getElementById("tiempo_entrega")?.value || "",
             almacen: document.getElementById("almacen")?.value || "",
             validez_oferta: document.getElementById("validez_oferta")?.value || "",
+            direccion_entrega: document.getElementById("direccion_entrega")?.value || "",
+            requerimiento: document.getElementById("requerimiento")?.value || "",
+            nota_cotizacion: document.getElementById("nota_cotizacion")?.value || "",
             notas: document.getElementById('notas')?.value || "",
             productos: listaProductos,
             codigo_cotizacion: codigoCotizacionActual,
@@ -858,7 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const clientes = await buscarClientes(q);
                 if (!clientes.length) { portalShow(input, `<div class="empty">No encontrado</div>`); return; }
 
-                const html = clientes.map(c => `<div class="item" data-id="${c.id}" data-razon="${c.razon_social}" data-doc="${c.numero_documento || ''}" data-direccion="${c.direccion_fiscal || ''}" data-telefono="${c.telefono_contacto || ''}" data-contacto="${c.nombre_contacto || ''}">
+                const html = clientes.map(c => `<div class="item" data-id="${c.id}" data-razon="${c.razon_social}" data-doc="${c.numero_documento || ''}" data-direccion="${c.direccion_fiscal || ''}" data-telefono="${c.telefono_contacto || ''}" data-contacto="${c.nombre_contacto || ''}" data-email="${c.email_contacto || ''}">
                     <strong>🏢 ${c.razon_social}</strong><div class="meta">${c.tipo_documento || 'DNI/RUC'} • ${c.numero_documento || 'Sin documento'}</div></div>`).join('');
                 portalShow(input, html);
 
@@ -870,7 +917,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('cliente_direccion').value = el.dataset.direccion || '';
                         document.getElementById('telefono_contacto').value = el.dataset.telefono || '';
                         document.getElementById('cliente_contacto').value = el.dataset.contacto || '';
-                        await cargarPuntosEntrega(el.dataset.id);
+                        document.getElementById('email_contacto_cliente').value = el.dataset.email || '';
+                        await cargarDireccionesCliente(el.dataset.id);
                         portalHide();
                     });
                 });
@@ -995,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // RECALCULAR - VERSIÓN SIMPLIFICADA
+    // RECALCULAR
     // =========================
     function recalculateAll() {
         const rows = document.querySelectorAll("#table-body tr");
@@ -1005,8 +1053,13 @@ document.addEventListener('DOMContentLoaded', () => {
         rows.forEach(r => {
             const cantidad = Number(r.querySelector('.cantidad')?.value || 0);
             const precioVenta = Number(r.querySelector('.precio_venta_unitario')?.value || 0);
-            const subtotal = cantidad * precioVenta;
-            const totalPagar = subtotal; // Sin descuento por ahora
+            
+            const valorVentaTotal = cantidad * precioVenta;
+            const subtotal = valorVentaTotal;
+            const totalPagar = valorVentaTotal;
+            
+            const valorVentaTotalElem = r.querySelector('.valor_venta_total');
+            if (valorVentaTotalElem) valorVentaTotalElem.textContent = valorVentaTotal.toFixed(2);
             
             const subtotalElem = r.querySelector('.subtotal');
             if (subtotalElem) subtotalElem.textContent = subtotal.toFixed(2);
@@ -1029,11 +1082,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const summarySubtotal = document.getElementById('summary_subtotal_venta');
         if (summarySubtotal) summarySubtotal.textContent = totalTotalPagar.toFixed(2);
         
+        const summaryDescuento = document.getElementById('summary_descuento');
+        if (summaryDescuento) summaryDescuento.textContent = (totalTotalPagar * 0.10).toFixed(2);
+        
+        const summarySubtotalDescuento = document.getElementById('summary_subtotal_descuento');
+        if (summarySubtotalDescuento) summarySubtotalDescuento.textContent = (totalTotalPagar * 0.90).toFixed(2);
+        
         const summaryIgv = document.getElementById('summary_igv');
-        if (summaryIgv) summaryIgv.textContent = (totalTotalPagar * 0.18).toFixed(2);
+        if (summaryIgv) summaryIgv.textContent = (totalTotalPagar * 0.90 * 0.18).toFixed(2);
         
         const summaryTotal = document.getElementById('summary_total_venta');
-        if (summaryTotal) summaryTotal.textContent = (totalTotalPagar * 1.18).toFixed(2);
+        if (summaryTotal) summaryTotal.textContent = (totalTotalPagar * 0.90 * 1.18).toFixed(2);
     }
 
     // =========================
@@ -1058,6 +1117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="col-unidad"><input type="text" class="unidad_medida" value="UNIDAD" style="width:100%;"></td>
             <td class="col-cantidad"><input type="number" class="cantidad" value="1" step="0.01" style="width:100%;"></td>
             <td class="col-precio"><input type="number" class="precio_venta_unitario" value="0" step="0.01" style="width:100%;"></td>
+            <td class="valor_venta_total">0.00</td>
             <td class="subtotal">0.00</td>
             <td class="total_pagar">0.00</td>
             <td><button class="btn-del">🗑</button></td>
@@ -1130,11 +1190,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function aplicarBloqueoUI() {
         const disabled = cotizacionBloqueada;
         document.querySelectorAll('#table-body input').forEach(i => i.disabled = disabled);
-        ['cliente_razon_social', 'cliente_doc', 'telefono_contacto', 'cliente_contacto', 'numero_requerimiento', 'direccion_entrega', 'punto_entrega', 'estado'].forEach(id => {
+        ['cliente_razon_social', 'cliente_doc', 'telefono_contacto', 'cliente_contacto', 'email_contacto_cliente', 'requerimiento', 'direccion_entrega', 'estado'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = disabled;
         });
-        ['asesor_comercial', 'email_contacto', 'telefono_contacto_user', 'forma_pago', 'tiempo_entrega', 'validez_oferta', 'nota_cotizacion', 'notas', 'monto_transporte'].forEach(id => {
+        ['asesor_comercial', 'email_contacto', 'telefono_contacto_user', 'condicion_pago', 'tiempo_entrega', 'validez_oferta', 'nota_cotizacion', 'notas', 'almacen'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = disabled;
         });
@@ -1169,7 +1229,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 esBorrador = data.codigo_cotizacion.startsWith('TMP-');
                 actualizarNumeroCotizacionUI(data.codigo_cotizacion, esBorrador);
             }
-            await cargarPuntosEntrega(data.cliente_id);
             document.getElementById('cliente_id').value = data.cliente_id || '';
             document.getElementById('cliente_razon_social').value = data.cliente || '';
             document.getElementById('estado').value = data.estado || '';
@@ -1177,14 +1236,21 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('cliente_doc').value = data.numero_documento || '';
             document.getElementById('cliente_direccion').value = data.direccion_fiscal || '';
             document.getElementById('cliente_contacto').value = data.nombre_contacto || '';
+            document.getElementById('email_contacto_cliente').value = data.email_contacto || '';
+            document.getElementById('requerimiento').value = data.requerimiento || '';
             document.getElementById('usuario_id').value = data.usuario_id || '';
             document.getElementById('asesor_comercial').value = data.nombre_completo || '';
             document.getElementById('email_contacto').value = data.email || '';
             document.getElementById('telefono_contacto_user').value = data.telefono || '';
-            document.getElementById('forma_pago').value = data.forma_pago || '';
+            document.getElementById('condicion_pago').value = data.condicion_pago || 'Contado';
             document.getElementById('tiempo_entrega').value = data.tiempo_entrega || '';
             document.getElementById('almacen').value = data.almacen || '';
-            document.getElementById('validez_oferta').value = data.validez_oferta || '';
+            document.getElementById('validez_oferta').value = data.validez_oferta || '15 días';
+            document.getElementById('direccion_entrega').value = data.direccion_entrega || '';
+            document.getElementById('nota_cotizacion').value = data.nota_cotizacion || '';
+            
+            // Cargar direcciones del cliente
+            await cargarDireccionesCliente(data.cliente_id);
             
             const total = Number(data.total || 0);
             const totalTotalPagarElem = document.getElementById('total_total_pagar');
@@ -1217,6 +1283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             recalculateAll();
             configurarTiempoEntrega();
+            configurarDireccionEntrega();
             
             actualizarEstadoBotonPDF();
         } catch (err) { console.error(err); mostrarNotificacion("Error cargando cotización", "danger"); }
@@ -1279,6 +1346,7 @@ document.addEventListener('DOMContentLoaded', () => {
     attachAsesorAutocomplete();
     attachContactoAutocomplete();
     configurarTiempoEntrega();
+    configurarDireccionEntrega();
     addItem();
     inicializarCodigo();
 
@@ -1288,27 +1356,5 @@ document.addEventListener('DOMContentLoaded', () => {
     } else { 
         esBorrador = true; 
         document.getElementById('estado').value = 'En Proceso'; 
-    }
-
-    // =========================
-    // METODO DE PAGO
-    // =========================
-    const tipoProducto = document.getElementById("tipo_producto");
-    const formaPago = document.getElementById("forma_pago");
-    if (tipoProducto && formaPago) {
-        tipoProducto.addEventListener("change", function () {
-            let valor = this.value;
-            formaPago.innerHTML = '<option value="">-- Seleccione forma de pago --</option>';
-            if (valor === "stock") {
-                formaPago.innerHTML += '<option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option>';
-                formaPago.disabled = false;
-            } else if (valor === "pedido") {
-                formaPago.innerHTML += '<option value="Transferencia">Transferencia</option>';
-                formaPago.value = "Transferencia";
-                formaPago.disabled = true;
-            } else { 
-                formaPago.disabled = false; 
-            }
-        });
     }
 });
