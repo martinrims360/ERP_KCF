@@ -553,20 +553,23 @@ function inicializarFiltros() {
     const filtroBusqueda = document.getElementById("filtro-busqueda");
     const btnLimpiar = document.getElementById("btn-limpiar-filtros");
     
+    console.log("🔧 Inicializando filtros...", { 
+        filtroTipo: !!filtroTipo, 
+        filtroBusqueda: !!filtroBusqueda 
+    });
+
     if (filtroTipo) {
-        filtroTipo.addEventListener("change", () => {
-            aplicarFiltros();
-        });
+        filtroTipo.addEventListener("change", aplicarFiltros);
     }
     
     if (filtroBusqueda) {
         let timeout;
+        
         filtroBusqueda.addEventListener("input", () => {
             clearTimeout(timeout);
-            timeout = setTimeout(() => aplicarFiltros(), 500);
+            timeout = setTimeout(aplicarFiltros, 600); // un poco más de debounce
         });
         
-        // Permitir búsqueda con Enter
         filtroBusqueda.addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
                 clearTimeout(timeout);
@@ -577,10 +580,9 @@ function inicializarFiltros() {
     
     if (btnLimpiar) {
         btnLimpiar.addEventListener("click", () => {
-            if (filtroTipo) filtroTipo.value = "";
+            if (filtroTipo) filtroTipo.value = "Todos";
             if (filtroBusqueda) filtroBusqueda.value = "";
             aplicarFiltros();
-            mostrarNotificacion("Filtros limpiados", 'info');
         });
     }
 }
@@ -892,3 +894,11 @@ setTimeout(() => {
         // No inicializar aquí para no interferir con la carga de datos
     }
 }, 100);
+// =========================================
+// INICIALIZAR TODO AL CARGAR LA PÁGINA
+// =========================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("✅ Inicializando filtros de clientes...");
+    inicializarFiltros();
+    cargarClientes(); // Carga inicial
+});
