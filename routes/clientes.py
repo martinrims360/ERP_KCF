@@ -281,43 +281,49 @@ def editar_cliente(id):
     
 @clientes_bp.route("/api/clientes/<int:cliente_id>", methods=["DELETE"])
 def eliminar_cliente(cliente_id):
-
     try:
-
         with db_tx() as conn:
-
             cur = conn.cursor()
 
-            # eliminar contactos
+            # =========================================
+            # ELIMINAR EN ORDEN CORRECTO (hijos primero)
+            # =========================================
+
+            # 1. Eliminar contactos
             cur.execute("""
-                DELETE FROM clientes_contactos
+                DELETE FROM clientes_contactos 
                 WHERE cliente_id = %s
             """, (cliente_id,))
 
-            # eliminar puntos
+            # 2. Eliminar puntos de entrega
             cur.execute("""
-                DELETE FROM clientes_puntos_entrega
+                DELETE FROM clientes_puntos_entrega 
                 WHERE cliente_id = %s
             """, (cliente_id,))
 
-            # eliminar cliente
+            # 3. Eliminar el cliente
             cur.execute("""
-                DELETE FROM clientes
+                DELETE FROM clientes 
                 WHERE id = %s
             """, (cliente_id,))
 
+            # Verificar si realmente se eliminó
+            if cur.rowcount == 0:
+                return jsonify({
+                    "success": False,
+                    "error": "Cliente no encontrado"
+                }), 404
+
         return jsonify({
-            "success": True
+            "success": True,
+            "message": "Cliente eliminado correctamente"
         })
+
     except Exception as e:
-
         import traceback
-
-        print("🔥 ERROR ELIMINAR:")
-        print(str(e))
-
+        print("🔥 ERROR al eliminar cliente:")
         traceback.print_exc()
-
+        
         return jsonify({
             "success": False,
             "error": str(e)
