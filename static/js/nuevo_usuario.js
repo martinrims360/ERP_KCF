@@ -86,11 +86,20 @@ function editarUsuario(id, nombre_completo, usuario, rol, email, telefono){
     document.getElementById('email').value           = email;
     document.getElementById('telefono').value        = telefono;
 
-    // Abrir modal de usuario
-    const modal = new bootstrap.Modal(
-        document.getElementById('modalUsuario')
+    // Cerrar modal de lista primero
+    const modalLista = bootstrap.Modal.getInstance(
+        document.getElementById('modalListaUsuarios')
     );
-    modal.show();
+
+    if(modalLista) modalLista.hide();
+
+    // Esperar que cierre y luego abrir el de formulario
+    setTimeout(() => {
+        const modalForm = new bootstrap.Modal(
+            document.getElementById('modalUsuario')
+        );
+        modalForm.show();
+    }, 300);
 
 }
 
