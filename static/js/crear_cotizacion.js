@@ -152,11 +152,10 @@ document.addEventListener('DOMContentLoaded', () => {
             codigoCotizacionActual = codigo;
         }
         
-        // Actualizar estado del botón PDF después de cambiar el código
         actualizarEstadoBotonPDF();
     }
 
-    // Generar código oficial (con verificación de unicidad)
+    // Generar código oficial
     async function generarCodigoOficial() {
         if (!usuarioActual) {
             await obtenerUsuarioActual();
@@ -178,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const codigo = `COT-${codigoVendedor}-${año}${mes}${dia}-${String(nuevoCorrelativo).padStart(4, '0')}`;
                 
-                // Verificar si el código ya existe
                 const existe = await verificarCodigoExiste(codigo);
                 
                 if (!existe) {
@@ -192,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (!codigoGenerado) {
-                console.error('❌ No se pudo generar un código único después de varios intentos');
+                console.error('❌ No se pudo generar un código único');
                 mostrarNotificacion('Error: No se pudo generar un código único. Contacte al administrador.', 'danger');
                 return null;
             }
@@ -202,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-    // Inicializar código (borrador temporal)
+    // Inicializar código
     async function inicializarCodigo() {
         await obtenerUsuarioActual();
         esBorrador = true;
@@ -222,11 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cotizacionId && cotizacionId !== '' && cotizacionId !== 'None' && esBorrador === false) {
                 btnPdf.disabled = false;
                 btnPdf.classList.remove('opacity-50');
-                console.log('✅ Botón PDF habilitado');
             } else {
                 btnPdf.disabled = true;
                 btnPdf.classList.add('opacity-50');
-                console.log('❌ Botón PDF deshabilitado');
             }
         }
     }
@@ -246,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // CONSULTA A SUNAT (API)
+    // CONSULTA A SUNAT
     // =========================
     async function consultarSunat(ruc) {
         try {
@@ -273,17 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error consultando SUNAT:', error);
-            
-            try {
-                const proxyResponse = await fetch(`/api/sunat/consulta?ruc=${ruc}`);
-                const proxyData = await proxyResponse.json();
-                if (proxyData.success) {
-                    return proxyData;
-                }
-            } catch (e) {
-                console.error('Error con proxy:', e);
-            }
-            
             return { success: false, error: error.message };
         }
     }
@@ -333,15 +318,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // BOTÓN BUSCAR CLIENTE POR RUC - CONSULTA DIRECTA A SUNAT
+    // BOTÓN BUSCAR CLIENTE POR RUC
     // =========================
     const btnBuscarClientePorRuc = document.getElementById('btnBuscarClientePorRuc');
     const buscarRucInput = document.getElementById('buscar_ruc');
     const btnLimpiarCliente = document.getElementById('btnLimpiarCliente');
 
     if (btnBuscarClientePorRuc) {
-        console.log('✅ Botón de búsqueda encontrado, consultando SUNAT directamente');
-        
         btnBuscarClientePorRuc.addEventListener('click', async function(e) {
             e.preventDefault();
             
@@ -359,22 +342,18 @@ document.addEventListener('DOMContentLoaded', () => {
             
             mostrarNotificacion('🔍 Consultando SUNAT para RUC: ' + ruc, 'info');
             
-            // Mostrar loading en el botón
             const textoOriginal = btnBuscarClientePorRuc.innerHTML;
             btnBuscarClientePorRuc.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando SUNAT...';
             btnBuscarClientePorRuc.disabled = true;
             
             try {
-                // 🔥 CONSULTAR DIRECTAMENTE A LA API DE SUNAT
                 const resultado = await consultarSunat(ruc);
                 
                 if (resultado.success) {
-                    // Autocompletar el formulario principal
                     document.getElementById('cliente_razon_social').value = resultado.razon_social || '';
                     document.getElementById('cliente_doc').value = ruc;
                     document.getElementById('cliente_direccion').value = resultado.direccion || '';
                     
-                    // También autocompletar el modal de nuevo cliente
                     document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
                     document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
                     document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
@@ -392,8 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnBuscarClientePorRuc.disabled = false;
             }
         });
-    } else {
-        console.error('❌ ERROR: Botón con ID "btnBuscarClientePorRuc" NO ENCONTRADO');
     }
 
     // Botón para limpiar cliente
@@ -417,17 +394,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const select = document.getElementById('tiempo_entrega_select');
         const input = document.getElementById('tiempo_entrega');
         
-        if (!select || !input) {
-            console.warn('⚠️ Elementos de tiempo de entrega no encontrados');
-            return;
-        }
+        if (!select || !input) return;
         
         select.addEventListener('change', function() {
             const valor = this.value;
             if (valor === 'personalizado') {
                 input.style.display = 'block';
                 input.value = '';
-                input.placeholder = 'Ej: 10 días hábiles, 2 semanas, etc.';
                 input.focus();
             } else if (valor === '') {
                 input.style.display = 'none';
@@ -436,11 +409,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.style.display = 'none';
                 input.value = valor;
             }
-        });
-        
-        input.addEventListener('focus', function() {
-            select.value = 'personalizado';
-            this.style.display = 'block';
         });
         
         if (input.value && input.value.trim() !== '') {
@@ -478,29 +446,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const opt = document.createElement('option');
                 opt.value = p.id;
                 opt.textContent = p.nombre_punto;
-                opt.dataset.direccion = p.direccion || '';
-                opt.dataset.telefono = p.telefono_contacto || '';
-                opt.dataset.nombre_contacto = p.nombre_contacto || '';
                 select.appendChild(opt);
             });
-            
-            select.onchange = function() {
-                const opt = this.selectedOptions[0];
-                const direccionEntrega = document.getElementById('direccion_entrega');
-                const telefonoContacto = document.getElementById('telefono_contacto');
-                const clienteContacto = document.getElementById('cliente_contacto');
-                
-                if (this.value === 'a_tratar') {
-                    if (direccionEntrega) direccionEntrega.value = 'Por definir (Negociación)';
-                    if (telefonoContacto) telefonoContacto.value = '';
-                    if (clienteContacto) clienteContacto.value = 'A tratar';
-                } else {
-                    if (direccionEntrega) direccionEntrega.value = opt?.dataset?.direccion || '';
-                    if (telefonoContacto) telefonoContacto.value = opt?.dataset?.telefono || '';
-                    if (clienteContacto && opt?.dataset?.nombre_contacto) clienteContacto.value = opt.dataset.nombre_contacto;
-                }
-            };
-
         } catch (e) {
             console.error("Error cargando puntos", e);
         }
@@ -677,10 +624,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 cantidad: Number(getInput('.cantidad')),
                 costo_unitario: Number(getInput('.precio_costo_unitario')),
                 subtotal_costo: Number(getText('.subtotal_costo')),
-                margen_porcentaje: Number(getInput('.margen_venta')),
-                precio_venta_unitario: Number(getInput('.precio_venta_unitario_input')),
+                margen_porcentaje: Number(getInput('.margen_venta')) || 0,
+                precio_venta_unitario: Number(getInput('.precio_venta_unitario_input')) || 0,
                 subtotal_venta: Number(getText('.subtotal_venta_item')),
-                descuento_porcentaje: Number(getInput('.descuento_porcentaje')),
+                descuento_porcentaje: Number(getInput('.descuento_porcentaje')) || 0,
                 precio_venta_con_descuento: Number(getText('.precio_unitario_venta_desc')),
                 subtotal_venta_con_descuento: Number(getText('.subtotal_venta_desc')),
                 descuento_total: Number(getText('.descuento_subtotal')),
@@ -709,10 +656,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function buscarProductos(q) {
         try {
-            console.log('🔎 Buscando productos con:', q);
             const res = await fetch(`/api/productos/buscar?q=${encodeURIComponent(q)}`);
             const json = await res.json();
-            console.log('📦 Productos encontrados:', json);
             return json.data || [];
         } catch (error) {
             console.error('Error buscando productos:', error);
@@ -902,7 +847,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (marcaInput) marcaInput.value = p.marca || "";
         if (modeloInput) modeloInput.value = p.modelo || "";
         
-        console.log('✅ Producto seleccionado:', p.codigo, p.descripcion);
+        // También actualizar PU Costo si viene del producto
+        if (p.ultimo_costo) {
+            const costoInput = row.querySelector('.precio_costo_unitario');
+            if (costoInput) costoInput.value = p.ultimo_costo;
+        }
+        
+        recalculateAll();
     }
 
     // =========================
@@ -945,17 +896,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function attachProductoAutocomplete(row) {
         const input = row.querySelector('.codigo_producto');
         
-        if (!input) {
-            console.error('❌ No se encontró input .codigo_producto en la fila');
-            return;
-        }
+        if (!input) return;
         
-        console.log('✅ Autocomplete de producto inicializado para fila');
         let timeoutId = null;
 
         input.addEventListener('input', async () => {
             const q = input.value.trim();
-            console.log('📝 Escribiendo en producto:', q);
             
             if (timeoutId) clearTimeout(timeoutId);
             if (q.length < 2) { 
@@ -964,17 +910,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             timeoutId = setTimeout(async () => {
-                console.log('🔎 Buscando producto:', q);
                 const productos = await buscarProductos(q);
-                console.log('📦 Productos encontrados:', productos.length);
                 
                 if (!productos.length) { 
                     portalShow(input, `<div class="empty">❌ No se encontraron productos</div>`); 
                     return; 
                 }
 
-                const html = productos.map(p => `<div class="item" data-id="${p.id}" data-codigo="${p.codigo}" data-descripcion="${p.descripcion}" data-marca="${p.marca || ''}" data-modelo="${p.modelo || ''}">
-                    <strong>📦 ${p.codigo}</strong> - ${p.descripcion}<div class="meta">${p.marca || ''} • Stock: ${p.stock || 0}</div></div>`).join('');
+                const html = productos.map(p => `<div class="item" data-id="${p.id}" data-codigo="${p.codigo}" data-descripcion="${p.descripcion}" data-marca="${p.marca || ''}" data-modelo="${p.modelo || ''}" data-costo="${p.ultimo_costo || 0}">
+                    <strong>📦 ${p.codigo}</strong> - ${p.descripcion}<div class="meta">${p.marca || ''} • Costo: ${p.ultimo_costo || 0}</div></div>`).join('');
                 portalShow(input, html);
 
                 portal.querySelectorAll('.item').forEach(el => {
@@ -984,11 +928,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             codigo: el.dataset.codigo,
                             descripcion: el.dataset.descripcion,
                             marca: el.dataset.marca,
-                            modelo: el.dataset.modelo
+                            modelo: el.dataset.modelo,
+                            ultimo_costo: Number(el.dataset.costo)
                         };
                         setProductoEnFila(row, productoData);
                         portalHide();
-                        recalculateAll();
                     });
                 });
             }, 300);
@@ -1058,95 +1002,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // RECALCULAR
+    // RECALCULAR - VERSIÓN SIMPLIFICADA SIN TRANSPORTE
     // =========================
     function recalculateAll() {
         const rows = document.querySelectorAll("#table-body tr");
-        const montoTransporte = Number(document.getElementById('monto_transporte')?.value || 0);
         let totalSubtotalCosto = 0;
+        let totalSubtotalVentaDesc = 0;
 
         rows.forEach(r => {
             const cantidad = Number(r.querySelector('.cantidad')?.value || 0);
             const costo = Number(r.querySelector('.precio_costo_unitario')?.value || 0);
-            const subtotal = cantidad * costo;
+            const subtotalCosto = cantidad * costo;
             const sc = r.querySelector('.subtotal_costo');
-            if (sc) sc.textContent = subtotal.toFixed(2);
-            totalSubtotalCosto += subtotal;
-        });
-       
-        rows.forEach(r => {
-            const cantidad = Number(r.querySelector('.cantidad')?.value || 0);
-            const subtotalCosto = Number(r.querySelector('.subtotal_costo')?.textContent || 0);
-            const prorrateo = totalSubtotalCosto > 0 ? (montoTransporte * (subtotalCosto / totalSubtotalCosto)) : 0;
-            const totalCosto = subtotalCosto + prorrateo;
-            const precioUnitario = cantidad > 0 ? totalCosto / cantidad : 0;
+            if (sc) sc.textContent = subtotalCosto.toFixed(2);
+            totalSubtotalCosto += subtotalCosto;
 
-            const set = (cls, val) => { const el = r.querySelector(cls); if (el) el.textContent = val.toFixed(2); };
-            set('.transporte_prorrateo', prorrateo);
-            set('.total_costo', totalCosto);
-            set('.precio_unitario_costo_total', precioUnitario);
-
-            const margen = Number(r.querySelector('.margen_venta')?.value || 0);
-            const pvManual = Number(r.querySelector('.precio_venta_unitario_input')?.value || 0);
-            const pvUnit = pvManual > 0 ? pvManual : precioUnitario * (1 + margen / 100);
+            const pvUnit = Number(r.querySelector('.precio_venta_unitario_input')?.value || 0);
             const subtotalVenta = pvUnit * cantidad;
+            const sv = r.querySelector('.subtotal_venta_item');
+            if (sv) sv.textContent = subtotalVenta.toFixed(2);
+
             const descPct = Number(r.querySelector('.descuento_porcentaje')?.value || 0);
             const pvDesc = pvUnit * (1 - descPct / 100);
             const subtotalDesc = pvDesc * cantidad;
+            const svd = r.querySelector('.subtotal_venta_desc');
+            if (svd) svd.textContent = subtotalDesc.toFixed(2);
+            totalSubtotalVentaDesc += subtotalDesc;
             
-            set('.precio_venta_unitario_calc', pvUnit);
-            set('.subtotal_venta_item', subtotalVenta);
-            set('.precio_unitario_venta_desc', pvDesc);
-            set('.subtotal_venta_desc', subtotalDesc);
+            const puDesc = r.querySelector('.precio_unitario_venta_desc');
+            if (puDesc) puDesc.textContent = pvDesc.toFixed(2);
         });
 
-        let totalVentaDesc = 0;
-        rows.forEach(r => { totalVentaDesc += Number(r.querySelector('.subtotal_venta_desc')?.textContent || 0); });
-        const igv = totalVentaDesc * 0.18;
-        const totalFinal = totalVentaDesc + igv;
+        const igv = totalSubtotalVentaDesc * 0.18;
+        const totalFinal = totalSubtotalVentaDesc + igv;
 
-        document.getElementById('summary_subtotal_venta_desc').textContent = totalVentaDesc.toFixed(2);
+        // Actualizar footer
+        const totalSubtotalCostoElem = document.getElementById('total_subtotal_costo');
+        if (totalSubtotalCostoElem) totalSubtotalCostoElem.textContent = totalSubtotalCosto.toFixed(2);
+        
+        const totalSubtotalVentaElem = document.getElementById('total_subtotal_venta');
+        if (totalSubtotalVentaElem) totalSubtotalVentaElem.textContent = totalSubtotalVentaDesc.toFixed(2);
+        
+        const totalSubtotalVentaDescElem = document.getElementById('total_subtotal_venta_desc');
+        if (totalSubtotalVentaDescElem) totalSubtotalVentaDescElem.textContent = totalSubtotalVentaDesc.toFixed(2);
+
+        // Actualizar resumen
+        document.getElementById('summary_subtotal_venta_desc').textContent = totalSubtotalVentaDesc.toFixed(2);
         document.getElementById('summary_igv').textContent = igv.toFixed(2);
         document.getElementById('summary_total_venta').textContent = totalFinal.toFixed(2);
-        
-        // Actualizar totales del footer
-        const totalSubtotalCostoElem = document.getElementById('total_subtotal_costo');
-        const totalTransporteProrrateo = document.getElementById('total_transporte_prorrateo');
-        const totalCostoGeneral = document.getElementById('total_costo_general');
-        const totalSubtotalVenta = document.getElementById('total_subtotal_venta');
-        const totalSubtotalVentaDesc = document.getElementById('total_subtotal_venta_desc');
-        
-        if (totalSubtotalCostoElem) {
-            let sumSubtotalCosto = 0;
-            rows.forEach(r => { sumSubtotalCosto += Number(r.querySelector('.subtotal_costo')?.textContent || 0); });
-            totalSubtotalCostoElem.textContent = sumSubtotalCosto.toFixed(2);
-        }
-        
-        if (totalTransporteProrrateo) {
-            let sumTransporte = 0;
-            rows.forEach(r => { sumTransporte += Number(r.querySelector('.transporte_prorrateo')?.textContent || 0); });
-            totalTransporteProrrateo.textContent = sumTransporte.toFixed(2);
-        }
-        
-        if (totalCostoGeneral) {
-            let sumCosto = 0;
-            rows.forEach(r => { sumCosto += Number(r.querySelector('.total_costo')?.textContent || 0); });
-            totalCostoGeneral.textContent = sumCosto.toFixed(2);
-        }
-        
-        if (totalSubtotalVenta) {
-            let sumVenta = 0;
-            rows.forEach(r => { sumVenta += Number(r.querySelector('.subtotal_venta_item')?.textContent || 0); });
-            totalSubtotalVenta.textContent = sumVenta.toFixed(2);
-        }
-        
-        if (totalSubtotalVentaDesc) {
-            totalSubtotalVentaDesc.textContent = totalVentaDesc.toFixed(2);
-        }
     }
 
     // =========================
-    // AGREGAR ITEMS - VERSIÓN CORREGIDA
+    // AGREGAR ITEMS - VERSIÓN SIMPLIFICADA
     // =========================
     function addItem() {
         if (cotizacionBloqueada) { 
@@ -1158,34 +1065,27 @@ document.addEventListener('DOMContentLoaded', () => {
         row.innerHTML = `
             <td class="col-item">${itemCounter}</td>
             <td class="col-codigo">
-                <input type="text" class="codigo_producto" placeholder="Buscar producto..." style="width:100%; min-width:120px;">
+                <input type="text" class="codigo_producto" placeholder="Buscar producto..." style="width:100%;">
                 <input type="hidden" class="producto_id">
             </td>
             <td class="col-desc"><input type="text" class="descripcion" readonly style="width:100%;"></td>
             <td class="col-marca"><input type="text" class="marca" readonly style="width:100%;"></td>
             <td class="col-modelo"><input type="text" class="modelo" readonly style="width:100%;"></td>
-            <td class="col-cantidad"><input type="number" class="cantidad" value="1" step="0.01" style="width:100%;"></td>
+            <td class="col-cantidad"><input type="number" class="cantidad" value="1" step="1" style="width:100%;"></td>
             <td class="col-monto"><input type="number" class="precio_costo_unitario" value="0" step="0.01" style="width:100%;"></td>
             <td class="subtotal_costo">0.00</td>
-            <td class="transporte_prorrateo">0.00</td>
-            <td class="total_costo">0.00</td>
-            <td class="precio_unitario_costo_total">0.00</td>
-            <td><input type="number" class="margen_venta" value="20" step="0.01" style="width:100%;"></td>
-            <td><input type="number" class="precio_venta_unitario_input" value="0" step="0.01" style="width:100%;"></td>
-            <td class="precio_venta_unitario_calc">0.00</td>
+            <td class="col-pv"><input type="number" class="precio_venta_unitario_input" value="0" step="0.01" style="width:100%;"></td>
             <td class="subtotal_venta_item">0.00</td>
-            <td><input type="number" class="descuento_porcentaje" value="0" step="0.01" style="width:100%;"></td>
-            <td class="precio_unitario_venta_desc">0.00</td>
+            <td class="col-descuento"><input type="number" class="descuento_porcentaje" value="0" step="0.01" style="width:100%;"></td>
             <td class="subtotal_venta_desc">0.00</td>
+            <td class="col-pvdesc"><span class="precio_unitario_venta_desc">0.00</span></td>
             <td><button class="btn-del">🗑</button></td>
         `;
         
         if (tableBody) tableBody.appendChild(row);
         
-        // Inicializar autocomplete para esta fila
         attachProductoAutocomplete(row);
         
-        // Configurar eventos de recálculo
         const rec = () => { 
             if (!modoConsulta) { 
                 recalculateAll(); 
@@ -1195,7 +1095,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         row.querySelector('.cantidad')?.addEventListener('input', rec);
         row.querySelector('.precio_costo_unitario')?.addEventListener('input', rec);
-        row.querySelector('.margen_venta')?.addEventListener('input', rec);
         row.querySelector('.precio_venta_unitario_input')?.addEventListener('input', rec);
         row.querySelector('.descuento_porcentaje')?.addEventListener('input', rec);
         row.querySelector('.btn-del')?.addEventListener('click', () => { 
@@ -1254,7 +1153,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const el = document.getElementById(id);
             if (el) el.disabled = disabled;
         });
-        ['asesor_comercial', 'email_contacto', 'telefono_contacto_user', 'forma_pago', 'tiempo_entrega', 'validez_oferta', 'nota_cotizacion', 'notas', 'monto_transporte'].forEach(id => {
+        ['asesor_comercial', 'email_contacto', 'telefono_contacto_user', 'forma_pago', 'tiempo_entrega', 'validez_oferta', 'nota_cotizacion', 'notas'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = disabled;
         });
@@ -1317,7 +1216,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     row.querySelector('.producto_id').value = item.producto_id || '';
                     row.querySelector('.cantidad').value = item.cantidad || 0;
                     row.querySelector('.precio_costo_unitario').value = item.costo_unitario || 0;
-                    row.querySelector('.margen_venta').value = item.margen_porcentaje || 0;
                     row.querySelector('.precio_venta_unitario_input').value = item.precio_venta_unitario || 0;
                     row.querySelector('.descuento_porcentaje').value = Number(item.descuento_porcentaje || 0);
                     row.querySelector('.codigo_producto').value = item.codigo || '';
@@ -1399,29 +1297,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else { 
         esBorrador = true; 
         document.getElementById('estado').value = 'En Proceso'; 
-        // Asegurar que los valores por defecto se apliquen también aquí
         asignarAsesorPorDefecto();
-    }
-
-    // =========================
-    // METODO DE PAGO
-    // =========================
-    const tipoProducto = document.getElementById("tipo_producto");
-    const formaPago = document.getElementById("forma_pago");
-    if (tipoProducto && formaPago) {
-        tipoProducto.addEventListener("change", function () {
-            let valor = this.value;
-            formaPago.innerHTML = '<option value="">-- Seleccione forma de pago --</option>';
-            if (valor === "stock") {
-                formaPago.innerHTML += '<option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option>';
-                formaPago.disabled = false;
-            } else if (valor === "pedido") {
-                formaPago.innerHTML += '<option value="Transferencia">Transferencia</option>';
-                formaPago.value = "Transferencia";
-                formaPago.disabled = true;
-            } else { 
-                formaPago.disabled = false; 
-            }
-        });
     }
 });

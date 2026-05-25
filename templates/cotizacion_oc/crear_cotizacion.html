@@ -382,7 +382,13 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Validez Oferta</label>
-                                <input type="text" class="form-control custom-input" id="validez_oferta" value="15 días">
+                                <select class="form-select custom-input" id="validez_oferta">
+                                    <option value="7 días">7 días</option>
+                                    <option value="15 días" selected>15 días</option>
+                                    <option value="30 días">30 días</option>
+                                    <option value="personalizado">✏️ Personalizado (escribir)</option>
+                                </select>
+                                <input type="text" class="form-control custom-input" id="validez_oferta_personalizado" placeholder="Ej: 60 días, 3 meses, etc." style="display: none; margin-top: 8px;">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Descuento %</label>
@@ -448,6 +454,40 @@
     <div class="modal fade" id="modalModificar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-modern"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-pencil-square text-warning"></i> Habilitar Modificación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">¿Desea habilitar nuevamente esta cotización?</div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-warning" id="btn-confirmar-modificar">Sí, habilitar</button></div></div></div></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Script para manejar el select de Validez Oferta
+        document.addEventListener('DOMContentLoaded', function() {
+            const validezSelect = document.getElementById('validez_oferta');
+            const validezInput = document.getElementById('validez_oferta_personalizado');
+            
+            if (validezSelect && validezInput) {
+                // Función para mostrar/ocultar el input personalizado
+                function toggleValidezInput() {
+                    if (validezSelect.value === 'personalizado') {
+                        validezInput.style.display = 'block';
+                        validezInput.focus();
+                    } else {
+                        validezInput.style.display = 'none';
+                        validezInput.value = '';
+                    }
+                }
+                
+                // Evento cuando cambia el select
+                validezSelect.addEventListener('change', function() {
+                    toggleValidezInput();
+                });
+                
+                // Cuando se escribe en el input personalizado, actualizar un campo oculto o el valor
+                validezInput.addEventListener('input', function() {
+                    // Esto es opcional: podrías actualizar un campo oculto
+                    console.log('Validez personalizada:', validezInput.value);
+                });
+                
+                // Inicializar estado
+                toggleValidezInput();
+            }
+        });
+    </script>
     <script src="/static/js/crear_cotizacion.js"></script>
 </body>
 </html>
