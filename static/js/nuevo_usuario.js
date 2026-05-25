@@ -116,7 +116,7 @@ async function cargarUsuarios(){
                     <td>${u.usuario}</td>
                     <td>${u.nombre_completo}</td>
                     <td>
-                        <span class="badge bg-danger">
+                        <span class="badge ${getRolClass(u.rol)}">
                             ${u.rol}
                         </span>
                     </td>
@@ -198,3 +198,20 @@ document.getElementById('modalUsuario')
     usuarioEditandoId = null;
     document.getElementById('formUsuario').reset();
 });
+
+// =====================================
+// OBTENER CLASE DE COLOR SEGÚN ROL
+// =====================================
+function getRolClass(rol) {
+    switch(rol.toLowerCase()) {
+        case 'administrador':
+            return 'bg-danger';      // Rojo
+        case 'usuario':
+            return 'bg-success';     // Verde
+        case 'supervisor':
+        case 'editor':
+            return 'bg-warning text-dark'; // Amarillo
+        default:
+            return 'bg-secondary';   // Gris por defecto
+    }
+}
