@@ -69,10 +69,10 @@ def guardar_cliente():
                 "success": False,
                 "error": "Campos obligatorios faltantes"
             }), 400
-        # =========================================
-        # VALIDAR PRINCIPALES
-        # =========================================
 
+        # =========================================
+        # LIMPIAR PRINCIPALES
+        # =========================================
         def limpiar_principales(lista):
             encontrado = False
             for item in lista:
@@ -88,11 +88,8 @@ def guardar_cliente():
         with db_tx() as conn:
             cur = conn.cursor()
 
-            # 🔍 validar duplicado
-            cur.execute("""
-                SELECT id FROM clientes WHERE numero_documento = %s
-            """, (numero_documento,))
-
+            # Validar duplicado
+            cur.execute("SELECT id FROM clientes WHERE numero_documento = %s", (numero_documento,))
             if cur.fetchone():
                 return jsonify({
                     "success": False,
@@ -104,40 +101,22 @@ def guardar_cliente():
             # =========================================
             cur.execute("""
                 INSERT INTO clientes (
-                    tipo_documento,
-                    numero_documento,
-                    razon_social,
-                    nombre_comercial,
-                    direccion_fiscal
-                )
-                VALUES (%s,%s,%s,%s,%s)
+                    tipo_documento, numero_documento, razon_social,
+                    nombre_comercial, direccion_fiscal
+                ) VALUES (%s, %s, %s, %s, %s)
                 RETURNING id
-            """, (
-                tipo_documento,
-                numero_documento,
-                razon_social,
-                nombre_comercial,
-                direccion
-            ))
+            """, (tipo_documento, numero_documento, razon_social, nombre_comercial, direccion))
 
             cliente_id = cur.fetchone()[0]
-
 
             # =========================================
             # INSERTAR CONTACTOS
             # =========================================
             for c in contactos:
-
                 cur.execute("""
                     INSERT INTO clientes_contactos (
-                        cliente_id,
-                        nombre_contacto,
-                        cargo,
-                        email,
-                        telefono,
-                        principal
-                    )
-                    VALUES (%s,%s,%s,%s,%s,%s)
+                        cliente_id, nombre_contacto, cargo, email, telefono, principal
+                    ) VALUES (%s, %s, %s, %s, %s, %s)
                 """, (
                     cliente_id,
                     c.get("nombre_contacto"),
@@ -148,64 +127,52 @@ def guardar_cliente():
                 ))
 
             # =========================================
-            # INSERTAR PUNTOS ENTREGA
+            # INSERTAR PUNTOS DE ENTREGA (CORREGIDO)
             # =========================================
             for p in puntos:
+                nombre_punto = p.get("nombre_punto") or p.get("nombre")
+                if not nombre_punto:  # Validación importante
+                    continue  # Saltar puntos sin nombre
 
                 cur.execute("""
                     INSERT INTO clientes_puntos_entrega (
-                        cliente_id,
-                        nombre_punto,
-                        direccion,
-                        departamento,
-                        provincia,
-                        distrito,
-                        responsable,
-                        telefono_contacto,
-                        principal,
-                        condicion_pago,
-                        tiempo_credito
-                    )
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                        cliente_id, nombre_punto, direccion, departamento,
+                        provincia, distrito, responsable, telefono_contacto,
+                        principal, condicion_pago, tiempo_credito
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     cliente_id,
-                    p.get("nombre"),
+                    nombre_punto,
                     p.get("direccion"),
                     p.get("departamento"),
                     p.get("provincia"),
                     p.get("distrito"),
                     p.get("responsable"),
-                    p.get("telefono_contacto"),
+                    p.get("telefono") or p.get("telefono_punto") or p.get("telefono_contacto"),
                     p.get("principal", False),
                     p.get("condicion_pago"),
                     p.get("tiempo_credito")
                 ))
-    
 
         return jsonify({
             "success": True,
-            "message": "Cliente guardado correctamente"
+            "message": "Cliente guardado correctamente",
+            "cliente_id": cliente_id
         })
+
     except Exception as e:
-
         import traceback
-
-        print("🔥 ERROR ELIMINAR:")
-        print(str(e))
-
+        print("🔥 ERROR al guardar cliente:")
         traceback.print_exc()
-
         return jsonify({
             "success": False,
             "error": str(e)
         }), 500
-    
-
 # =========================================
 # EDITAR CLIENTE
 # =========================================
 @clientes_bp.route('/api/clientes/<int:id>', methods=['PUT'])
-def editar_cliente(id):
+def editar_cliente(id):                                                                 
 
     data = request.get_json()
 
