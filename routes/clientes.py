@@ -172,39 +172,112 @@ def guardar_cliente():
 # EDITAR CLIENTE
 # =========================================
 @clientes_bp.route('/api/clientes/<int:id>', methods=['PUT'])
-def editar_cliente(id):                                                                 
-
+def editar_cliente(id):
     data = request.get_json()
 
     try:
-        db_execute("""
-            UPDATE clientes
-            SET tipo_documento = %s,
-                numero_documento = %s,
-                razon_social = %s,
-                nombre_comercial = %s,
-                direccion_fiscal = %s
-            WHERE id = %s
-        """, (
-            data.get('tipo_documento'),
-            data.get('numero_documento'),
-            data.get('razon_social'),
-            data.get('nombre_comercial'),
-            data.get('direccion_fiscal'),
-            id
-        ))
+        with db_tx() as conn:
+            cur = conn.cursor()
+
+            # =========================================
+            # ACTUALIZAR DATOS BÁSICOS DEL CLIENTE
+            # =========================================
+            cur.execute("""
+                UPDATE clientes
+                SET tipo_documento = %s,
+                    numero_documento = %s,
+                    razon_social = %s,
+                    nombre_comercial = %s,
+                    direccion_fiscal = %s
+                WHERE id = %s
+            """, (
+                data.get('tipo_documento'),
+                data.get('numero_documento'),
+                data.get('razon_social'),
+                data.get('nombre_comercial'),
+                data.get('direccion_fiscal'),
+                id
+            ))
+
+            # =========================================
+            # ELIMINAR CONTACTOS Y PUNTOS ANTIGUOS
+            # =========================================
+            cur.execute("DELETE FROM clientes_contactos WHERE cliente_id = %s", (id,))
+            cur.execute("DELETE FROM clientes_puntos_entrega WHERE cliente_id = %s", (id,))
+
+            # =========================================
+            # LIMPIAR PRINCIPALES
+            # =========================================
+            def limpiar_principales(lista):
+                encontrado = False
+                for item in lista:
+                    if item.get("principal") and not encontrado:
+                        encontrado = True
+                    else:
+                        item["principal"] = False
+                return lista
+
+            contactos = limpiar_principales(data.get("contactos", []))
+            puntos = limpiar_principales(data.get("puntos_entrega", []))
+
+            # =========================================
+            # INSERTAR NUEVOS CONTACTOS
+            # =========================================
+            for c in contactos:
+                cur.execute("""
+                    INSERT INTO clientes_contactos (
+                        cliente_id, nombre_contacto, cargo, email, telefono, principal
+                    ) VALUES (%s, %s, %s, %s, %s, %s)
+                """, (
+                    id,
+                    c.get("nombre_contacto"),
+                    c.get("cargo"),
+                    c.get("email"),
+                    c.get("telefono"),
+                    c.get("principal", False)
+                ))
+
+            # =========================================
+            # INSERTAR NUEVOS PUNTOS DE ENTREGA
+            # =========================================
+            for p in puntos:
+                nombre_punto = p.get("nombre_punto") or p.get("nombre")
+                if not nombre_punto:
+                    continue
+
+                cur.execute("""
+                    INSERT INTO clientes_puntos_entrega (
+                        cliente_id, nombre_punto, direccion, departamento,
+                        provincia, distrito, responsable, telefono_contacto,
+                        principal, condicion_pago, tiempo_credito
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    id,
+                    nombre_punto,
+                    p.get("direccion"),
+                    p.get("departamento"),
+                    p.get("provincia"),
+                    p.get("distrito"),
+                    p.get("responsable"),
+                    p.get("telefono") or p.get("telefono_punto") or p.get("telefono_contacto"),
+                    p.get("principal", False),
+                    p.get("condicion_pago"),
+                    p.get("tiempo_credito")
+                ))
 
         return jsonify({
             "success": True,
-            "message": "Cliente actualizado"
+            "message": "Cliente actualizado correctamente"
         })
 
     except Exception as e:
-
+        import traceback
+        print("🔥 ERROR al editar cliente:")
+        traceback.print_exc()
         return jsonify({
             "success": False,
             "error": str(e)
-        })
+        }), 500
     
 @clientes_bp.route("/api/clientes/<int:cliente_id>", methods=["DELETE"])
 def eliminar_cliente(cliente_id):
