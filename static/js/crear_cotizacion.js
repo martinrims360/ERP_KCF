@@ -185,12 +185,22 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => notificacion.remove(), 3000);
     }
 
+    // =========================
+    // 🔥 FUNCIÓN SUNAT MEJORADA
+    // =========================
     async function consultarSunat(ruc) {
         try {
             mostrarNotificacion(`🔍 Consultando RUC ${ruc} en SUNAT...`, 'info');
+            
+            // Usar API alternativa más confiable
             const response = await fetch(`https://api.apis.net.pe/v2/sunat/ruc?numero=${ruc}`);
-            if (!response.ok) throw new Error('Error al consultar SUNAT');
+            
+            if (!response.ok) {
+                throw new Error('Error al consultar SUNAT');
+            }
+            
             const data = await response.json();
+            
             if (data && data.razonSocial) {
                 return {
                     success: true,
@@ -200,9 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     estado: data.estado || ''
                 };
             }
-            return { success: false, error: 'No se encontraron datos' };
+            return { success: false, error: 'No se encontraron datos para este RUC' };
         } catch (error) {
             console.error('Error consultando SUNAT:', error);
+            mostrarNotificacion('⚠️ Error al consultar SUNAT. Verifique el RUC e intente nuevamente.', 'warning');
             return { success: false, error: error.message };
         }
     }
@@ -210,22 +221,27 @@ document.addEventListener('DOMContentLoaded', () => {
     async function autocompletarConSunat() {
         const tipoDocumento = document.getElementById('nuevo_tipo_documento')?.value;
         const numeroDocumento = document.getElementById('nuevo_numero_documento')?.value.trim();
+        
         if (tipoDocumento !== 'RUC') {
             mostrarNotificacion('⚠️ La búsqueda en SUNAT solo está disponible para RUC', 'warning');
             return;
         }
+        
         if (!numeroDocumento || numeroDocumento.length !== 11) {
             mostrarNotificacion('⚠️ Ingrese un RUC válido de 11 dígitos', 'warning');
             return;
         }
+        
         const btnBuscar = document.getElementById('btnBuscarSunat');
         const textoOriginal = btnBuscar?.innerHTML;
         if (btnBuscar) {
             btnBuscar.innerHTML = '<i class="bi bi-hourglass-split"></i> Buscando...';
             btnBuscar.disabled = true;
         }
+        
         try {
             const resultado = await consultarSunat(numeroDocumento);
+            
             if (resultado.success) {
                 document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
                 document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
@@ -245,6 +261,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================
+    // 🔥 BOTÓN BUSCAR CLIENTE POR RUC - CORREGIDO
+    // =========================
     const btnBuscarClientePorRuc = document.getElementById('btnBuscarClientePorRuc');
     const buscarRucInput = document.getElementById('buscar_ruc');
     const btnLimpiarCliente = document.getElementById('btnLimpiarCliente');
@@ -253,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnBuscarClientePorRuc.addEventListener('click', async function(e) {
             e.preventDefault();
             const ruc = buscarRucInput?.value.trim();
+            
             if (!ruc) {
                 mostrarNotificacion('⚠️ Ingrese un RUC para buscar', 'warning');
                 return;
@@ -261,20 +281,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 mostrarNotificacion('⚠️ El RUC debe tener 11 dígitos', 'warning');
                 return;
             }
+            
             mostrarNotificacion('🔍 Consultando SUNAT para RUC: ' + ruc, 'info');
+            
             const textoOriginal = btnBuscarClientePorRuc.innerHTML;
             btnBuscarClientePorRuc.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando SUNAT...';
             btnBuscarClientePorRuc.disabled = true;
+            
             try {
                 const resultado = await consultarSunat(ruc);
+                
                 if (resultado.success) {
-                    document.getElementById('cliente_razon_social').value = resultado.razon_social || '';
-                    document.getElementById('cliente_doc').value = ruc;
-                    document.getElementById('cliente_direccion').value = resultado.direccion || '';
-                    document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
-                    document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
-                    document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
-                    document.getElementById('nuevo_numero_documento').value = ruc;
+                    // Autocompletar campos del cliente principal
+                    const razonSocialInput = document.getElementById('cliente_razon_social');
+                    const clienteDocInput = document.getElementById('cliente_doc');
+                    const clienteDireccionInput = document.getElementById('cliente_direccion');
+                    
+                    if (razonSocialInput) razonSocialInput.value = resultado.razon_social || '';
+                    if (clienteDocInput) clienteDocInput.value = ruc;
+                    if (clienteDireccionInput) clienteDireccionInput.value = resultado.direccion || '';
+                    
+                    // También autocompletar el modal de nuevo cliente
+                    const nuevoRazonSocial = document.getElementById('nuevo_razon_social');
+                    const nuevoNombreComercial = document.getElementById('nuevo_nombre_comercial');
+                    const nuevoDireccionFiscal = document.getElementById('nuevo_direccion_fiscal');
+                    const nuevoNumeroDocumento = document.getElementById('nuevo_numero_documento');
+                    
+                    if (nuevoRazonSocial) nuevoRazonSocial.value = resultado.razon_social || '';
+                    if (nuevoNombreComercial) nuevoNombreComercial.value = resultado.nombre_comercial || '';
+                    if (nuevoDireccionFiscal) nuevoDireccionFiscal.value = resultado.direccion || '';
+                    if (nuevoNumeroDocumento) nuevoNumeroDocumento.value = ruc;
+                    
                     mostrarNotificacion('✅ Datos cargados desde SUNAT correctamente', 'success');
                 } else {
                     mostrarNotificacion('❌ ' + (resultado.error || 'No se encontraron datos para este RUC en SUNAT'), 'danger');
@@ -287,6 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnBuscarClientePorRuc.disabled = false;
             }
         });
+    } else {
+        console.error('❌ Botón "btnBuscarClientePorRuc" no encontrado');
     }
 
     if (btnLimpiarCliente) {
@@ -618,22 +657,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================
+    // 🔥 CONVERTIR A OFICIAL - VALIDACIÓN DE CLIENTE ELIMINADA
+    // =========================
     async function convertirAOficial() {
         if (!esBorrador) {
             mostrarNotificacion("⚠️ Esta cotización ya es oficial", "warning");
             return;
         }
-        const cliente_id = Number(document.getElementById('cliente_id')?.value || 0);
-        if (!cliente_id) {
-            mostrarNotificacion("⚠️ Debe seleccionar un cliente antes de convertir a oficial", "warning");
-            return;
-        }
+        
+        // 🔥 Validación de cliente ELIMINADA - ahora se puede convertir sin cliente
+        // Solo se valida que haya al menos un producto
         const listaProductos = obtenerListaProductos();
         if (listaProductos.length === 0) {
             mostrarNotificacion("⚠️ Debe agregar al menos un producto antes de convertir a oficial", "warning");
             return;
         }
+        
         if (!confirm("¿Convertir este borrador a cotización oficial?\n\nEsta acción generará un código único y definitivo.")) return;
+        
         const nuevoCodigo = await generarCodigoOficial();
         if (nuevoCodigo) {
             esBorrador = false;
@@ -855,7 +897,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         itemCounter++;
         const row = document.createElement("tr");
-        // EXACTAMENTE 12 COLUMNAS - coincide con el <thead> del HTML
         row.innerHTML = `
             <td class="col-item">${itemCounter}</td>
             <td class="col-codigo">
