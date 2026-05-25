@@ -27,11 +27,188 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
     rel="stylesheet">
 
-    <!-- CSS -->
-    <link rel="stylesheet"
-    href="/static/css/gestion_clientes.css">
-
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
+        }
+
+        /* NAVBAR */
+        .erp-navbar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-box {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem;
+            border-radius: 12px;
+            font-size: 2rem;
+        }
+
+        .empresa-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .empresa-subtitle {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .user-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* CARDS */
+        .hero-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .hero-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-subtitle {
+            opacity: 0.95;
+            font-size: 0.95rem;
+        }
+
+        .btn-erp {
+            padding: 0.6rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-erp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .erp-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .card-header-custom {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-header-custom.red {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom: none;
+        }
+
+        .card-body-custom {
+            padding: 1.5rem;
+        }
+
+        .custom-input {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+
+        .custom-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            z-index: 10;
+        }
+
+        .search-input {
+            padding-left: 40px;
+        }
+
+        /* TABLA */
+        .table-modern {
+            margin-bottom: 0;
+        }
+
+        .table-modern thead th {
+            background: #f8f9fa;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #dee2e6;
+            padding: 1rem;
+        }
+
+        .table-modern tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table-modern tbody tr:hover {
+            background: #f8f9fa;
+            transition: all 0.3s;
+        }
+
         .btn-action {
             border: none;
             background: none;
@@ -68,6 +245,11 @@
             margin-bottom: 15px;
             position: relative;
             border: 1px solid #e9ecef;
+            transition: all 0.3s;
+        }
+
+        .item-agregable:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .btn-eliminar {
@@ -80,10 +262,12 @@
             border-radius: 5px;
             padding: 5px 10px;
             cursor: pointer;
+            transition: all 0.3s;
         }
 
         .btn-eliminar:hover {
             background: #c82333;
+            transform: scale(1.05);
         }
 
         .checkbox-group {
@@ -96,6 +280,25 @@
         .checkbox-group input {
             width: 20px;
             height: 20px;
+            cursor: pointer;
+        }
+
+        .erp-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .erp-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+            color: #333;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
     </style>
 
@@ -105,446 +308,987 @@
 
     <!-- NAVBAR -->
     <div class="erp-navbar">
-
         <div class="navbar-left">
-
             <div class="logo-box">
-
                 <i class="bi bi-buildings-fill"></i>
-
             </div>
-
             <div>
-
-                <div class="empresa-title">
-                    KCF CORPORACION
-                </div>
-
-                <div class="empresa-subtitle">
-                    ERP Comercial · Gestión de Clientes
-                </div>
-
+                <div class="empresa-title">KCF CORPORACION</div>
+                <div class="empresa-subtitle">ERP Comercial · Gestión de Clientes</div>
             </div>
-
         </div>
-
         <div class="navbar-right">
-
             <div class="user-badge">
-
                 <i class="bi bi-person-circle"></i>
                 {{ session.nombre_completo }}
-
             </div>
-
         </div>
-
     </div>
 
     <!-- CONTENIDO -->
     <div class="container-fluid py-4">
-
         <!-- HEADER -->
         <div class="hero-card mb-4">
-
             <div class="hero-content">
-
                 <div>
-
-                    <h1 class="hero-title">
-                        Gestión de Clientes
-                    </h1>
-
-                    <div class="hero-subtitle">
-                        Administración y mantenimiento de clientes ERP
-                    </div>
-
+                    <h1 class="hero-title">Gestión de Clientes</h1>
+                    <div class="hero-subtitle">Administración y mantenimiento de clientes ERP</div>
                 </div>
-
                 <div class="hero-actions">
-
-                   <button class="btn btn-success btn-erp"
-                           data-bs-toggle="modal"
-                           data-bs-target="#modalCliente">
-
-                    <i class="bi bi-plus-circle-fill"></i>
-                     Nuevo Cliente
-
+                    <button class="btn btn-success btn-erp" data-bs-toggle="modal" data-bs-target="#modalCliente">
+                        <i class="bi bi-plus-circle-fill"></i> Nuevo Cliente
                     </button>
-
-                    <a href="/mantenedor"
-                    class="btn btn-dark btn-erp">
-
-                        <i class="bi bi-arrow-left"></i>
-                        Volver
-
+                    <a href="/mantenedor" class="btn btn-dark btn-erp">
+                        <i class="bi bi-arrow-left"></i> Volver
                     </a>
-
                 </div>
-
             </div>
-
         </div>
 
-        <!-- FILTROS -->
+        <!-- FILTROS MEJORADOS -->
         <div class="erp-card mb-4">
-
             <div class="card-header-custom">
-
                 <i class="bi bi-funnel-fill"></i>
                 Filtros de Búsqueda
-
             </div>
-
             <div class="card-body-custom">
-
                 <div class="row g-3">
-
                     <div class="col-lg-3">
-
-                        <label class="form-label">
-                            Tipo Documento
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-file-text"></i> Tipo Documento
                         </label>
-
-                        <select id="filtro-tipo"
-                        class="form-select custom-input">
-
-                            <option value="">
-                                Todos
-                            </option>
-
-                            <option value="RUC">
-                                RUC
-                            </option>
-
-                            <option value="DNI">
-                                DNI
-                            </option>
-
+                        <select id="filtro-tipo" class="form-select custom-input">
+                            <option value="">Todos</option>
+                            <option value="RUC">RUC</option>
+                            <option value="DNI">DNI</option>
                         </select>
-
                     </div>
-
                     <div class="col-lg-5">
-
-                        <label class="form-label">
-                            Buscar Cliente
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-search"></i> Buscar Cliente
                         </label>
-
                         <div class="search-box">
-
                             <i class="bi bi-search"></i>
-
                             <input type="text"
-                            id="filtro-busqueda"
-                            class="form-control custom-input search-input"
-                            placeholder="Buscar por RUC, razón social o contacto...">
-
+                                id="filtro-busqueda"
+                                class="form-control custom-input search-input"
+                                placeholder="Buscar por RUC, DNI, nombre comercial o razón social...">
                         </div>
-
+                        <small class="text-muted mt-1 d-block">
+                            <i class="bi bi-info-circle"></i> 
+                            Puedes buscar por: <strong>RUC</strong> (11 dígitos), <strong>DNI</strong> (8 dígitos), 
+                            <strong>nombre comercial</strong> o <strong>razón social</strong>
+                        </small>
                     </div>
-
+                    <div class="col-lg-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-info-circle"></i> Consejo
+                        </label>
+                        <div class="alert alert-info mb-0 py-2">
+                            <i class="bi bi-lightbulb"></i> La búsqueda es automática y no distingue mayúsculas/minúsculas
+                        </div>
+                    </div>
                 </div>
-
             </div>
-
         </div>
 
         <!-- TABLA -->
         <div class="erp-card">
-
             <div class="card-header-custom red">
-
                 <i class="bi bi-people-fill"></i>
                 Lista de Clientes
-
             </div>
-
             <div class="table-responsive">
-
-                <table class="table table-modern align-middle"
-                id="tabla-clientes">
-
+                <table class="table table-modern align-middle" id="tabla-clientes">
                     <thead>
-
                         <tr>
-
                             <th>ID</th>
                             <th>Código</th>
                             <th>Nombre Comercial</th>
                             <th>Razón Social</th>
-                            <th>RUC</th>
+                            <th>RUC/DNI</th>
                             <th>Dirección Fiscal</th>
                             <th>Condición Pago</th>
                             <th>Contactos</th>
                             <th>Puntos Entrega</th>
-                            <th class="text-center">
-                                Acciones
-                            </th>
-
+                            <th class="text-center">Acciones</th>
                         </tr>
-
                     </thead>
-
                     <tbody id="tbody-clientes">
-
                         <!-- JS llena -->
-
                     </tbody>
-
                 </table>
-
             </div>
-
         </div>
-
     </div>
-
-    <!-- Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- MODAL NUEVO CLIENTE -->
     <div class="modal fade" id="modalCliente" tabindex="-1" aria-hidden="true">
-
         <div class="modal-dialog modal-xl modal-dialog-centered">
-
             <div class="modal-content">
-
                 <div class="modal-header bg-dark text-white">
-
                     <h5 class="modal-title">
-                        👥 Nuevo Cliente
+                        <i class="bi bi-person-plus-fill"></i> Nuevo Cliente
                     </h5>
-
-                    <button type="button"
-                            class="btn-close btn-close-white"
-                            data-bs-dismiss="modal">
-                    </button>
-
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-
                 <div class="modal-body">
-
                     <form id="formCliente">
-
                         <div class="erp-section">
-
                             <div class="erp-section-title">
                                 📋 Información General
                             </div>
-
                             <div class="row g-3">
-
                                 <div class="col-md-4">
-                                    <label class="form-label" id="label_documento">Tipo Documento *:</label>
-                                    <select class="form-select" id="tipo_documento">
+                                    <label class="form-label fw-semibold" id="label_documento">Tipo Documento *:</label>
+                                    <select class="form-select" id="tipo_documento" required>
                                         <option value="">Seleccione</option>
                                         <option value="RUC">RUC</option>
                                         <option value="DNI">DNI</option>
                                     </select>
                                 </div>
-
                                 <div class="col-md-4">
-                                    <label class="form-label">Número Documento *:</label>
-                                    <input type="text" class="form-control" id="numero_documento" placeholder="Ingrese número">
+                                    <label class="form-label fw-semibold">Número Documento *:</label>
+                                    <input type="text" class="form-control" id="numero_documento" placeholder="Ingrese número" required>
                                 </div>
-
                                 <div class="col-md-4">
-                                    <label class="form-label">Razón Social *:</label>
-                                    <input type="text" class="form-control" id="razon_social" placeholder="Nombre del cliente">
+                                    <label class="form-label fw-semibold">Razón Social *:</label>
+                                    <input type="text" class="form-control" id="razon_social" placeholder="Nombre del cliente" required>
                                 </div>
-
                                 <div class="col-md-3">
                                     <label class="form-label">Nombre Comercial</label>
                                     <input type="text" class="form-control" id="nombre_comercial" placeholder="Nombre comercial">
                                 </div>
-
                                 <div class="col-12">
                                     <label class="form-label">Dirección Fiscal</label>
                                     <textarea class="form-control" id="direccion_fiscal" rows="2" placeholder="Dirección completa"></textarea>
                                 </div>
-
                             </div>
-
                             <hr class="my-3">
-
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">📞 Contactos</h6>
+                                <h6 class="mb-0 fw-bold">📞 Contactos</h6>
                                 <button type="button" class="btn btn-sm btn-success" id="btnAgregarContacto">
-                                    + Agregar
+                                    <i class="bi bi-plus-circle"></i> Agregar
                                 </button>
                             </div>
-
                             <div id="listaContactos"></div>
-
                             <hr class="my-3">
-
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">📦 Puntos de Entrega</h6>
+                                <h6 class="mb-0 fw-bold">📦 Puntos de Entrega</h6>
                                 <button type="button" class="btn btn-sm btn-success" id="btnAgregarPunto">
-                                    + Agregar
+                                    <i class="bi bi-plus-circle"></i> Agregar
                                 </button>
                             </div>
-
                             <div id="listaPuntos"></div>
-
                         </div>
-
                     </form>
-
                 </div>
-
                 <div class="modal-footer">
-
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" form="formCliente" class="btn btn-danger">💾 Guardar</button>
-
+                    <button type="submit" form="formCliente" class="btn btn-danger">
+                        <i class="bi bi-save"></i> Guardar
+                    </button>
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
-    <!-- =========================================
-    MODAL EDITAR CLIENTE (IDÉNTICO AL MODAL NUEVO)
-    ========================================= -->
+    <!-- MODAL EDITAR CLIENTE -->
     <div class="modal fade" id="modalEditarCliente" tabindex="-1" aria-hidden="true">
-
         <div class="modal-dialog modal-xl modal-dialog-centered">
-
             <div class="modal-content">
-
                 <div class="modal-header bg-dark text-white">
-
                     <h5 class="modal-title">
-                        ✏️ Editar Cliente
+                        <i class="bi bi-pencil-square"></i> Editar Cliente
                     </h5>
-
-                    <button type="button"
-                            class="btn-close btn-close-white"
-                            data-bs-dismiss="modal">
-                    </button>
-
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-
                 <div class="modal-body">
-
                     <form id="formEditarCliente">
-
                         <input type="hidden" id="edit_id">
-
                         <div class="erp-section">
-
                             <div class="erp-section-title">
                                 📋 Información General
                             </div>
-
                             <div class="row g-3">
-
                                 <div class="col-md-4">
-                                    <label class="form-label" id="edit_label_documento">Tipo Documento *:</label>
+                                    <label class="form-label fw-semibold" id="edit_label_documento">Tipo Documento *:</label>
                                     <select class="form-select" id="edit_tipo_documento">
                                         <option value="">Seleccione</option>
                                         <option value="RUC">RUC</option>
                                         <option value="DNI">DNI</option>
                                     </select>
                                 </div>
-
                                 <div class="col-md-4">
-                                    <label class="form-label">Número Documento *:</label>
+                                    <label class="form-label fw-semibold">Número Documento *:</label>
                                     <input type="text" class="form-control" id="edit_numero_documento" placeholder="Ingrese número">
                                 </div>
-
                                 <div class="col-md-4">
-                                    <label class="form-label">Razón Social *:</label>
+                                    <label class="form-label fw-semibold">Razón Social *:</label>
                                     <input type="text" class="form-control" id="edit_razon_social" placeholder="Nombre del cliente">
                                 </div>
-
                                 <div class="col-md-3">
                                     <label class="form-label">Nombre Comercial</label>
                                     <input type="text" class="form-control" id="edit_nombre_comercial" placeholder="Nombre comercial">
                                 </div>
-
                                 <div class="col-12">
                                     <label class="form-label">Dirección Fiscal</label>
                                     <textarea class="form-control" id="edit_direccion_fiscal" rows="2" placeholder="Dirección completa"></textarea>
                                 </div>
-
                             </div>
-
                             <hr class="my-3">
-
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">📞 Contactos</h6>
+                                <h6 class="mb-0 fw-bold">📞 Contactos</h6>
                                 <button type="button" class="btn btn-sm btn-success" id="btnAgregarContactoEdit">
-                                    + Agregar
+                                    <i class="bi bi-plus-circle"></i> Agregar
                                 </button>
                             </div>
-
                             <div id="edit_listaContactos"></div>
-
                             <hr class="my-3">
-
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">📦 Puntos de Entrega</h6>
+                                <h6 class="mb-0 fw-bold">📦 Puntos de Entrega</h6>
                                 <button type="button" class="btn btn-sm btn-success" id="btnAgregarPuntoEdit">
-                                    + Agregar
+                                    <i class="bi bi-plus-circle"></i> Agregar
                                 </button>
                             </div>
-
                             <div id="edit_listaPuntos"></div>
-
                         </div>
-
                     </form>
-
                 </div>
-
                 <div class="modal-footer">
-
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" form="formEditarCliente" class="btn btn-primary">💾 Guardar Cambios</button>
-
+                    <button type="submit" form="formEditarCliente" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Guardar Cambios
+                    </button>
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
     <!-- MODAL ELIMINAR CLIENTE -->
     <div class="modal fade" id="modalEliminarCliente" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">
                         <i class="bi bi-exclamation-triangle-fill"></i> Eliminar Cliente
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-
                 <div class="modal-body">
                     <input type="hidden" id="delete_id">
                     <p>¿Estás seguro de eliminar este cliente?</p>
-                    <p class="text-danger">Esta acción no se puede deshacer.</p>
+                    <p class="text-danger">⚠️ Esta acción no se puede deshacer.</p>
                 </div>
-
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button id="btnConfirmarEliminar" class="btn btn-danger">
                         <i class="bi bi-trash-fill"></i> Sí, eliminar
                     </button>
                 </div>
-
             </div>
         </div>
     </div>
-    
-    <script src="{{ url_for('static', filename='js/gestion_clientes.js') }}"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // =========================================
+        // SISTEMA DE NOTIFICACIONES
+        // =========================================
+        function mostrarNotificacion(mensaje, tipo = 'exito') {
+            let container = document.getElementById('notificacionesContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'notificacionesContainer';
+                container.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 10000;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                `;
+                document.body.appendChild(container);
+            }
+            
+            const colores = {
+                exito: '#4CAF50',
+                error: '#f44336',
+                info: '#2196F3',
+                warning: '#ff9800'
+            };
+            
+            const iconos = {
+                exito: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+            
+            const notificacion = document.createElement('div');
+            notificacion.style.cssText = `
+                background: ${colores[tipo] || colores.exito};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 15px;
+                min-width: 300px;
+                max-width: 500px;
+                animation: slideIn 0.3s ease;
+                font-family: 'Inter', sans-serif;
+                font-size: 14px;
+            `;
+            
+            notificacion.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">${iconos[tipo] || iconos.exito}</span>
+                    <span style="white-space: pre-line;">${mensaje}</span>
+                </div>
+                <button style="background:none;border:none;color:white;font-size:20px;cursor:pointer;font-weight:bold;">&times;</button>
+            `;
+            
+            container.appendChild(notificacion);
+            
+            const cerrarBtn = notificacion.querySelector('button');
+            cerrarBtn.onclick = () => {
+                notificacion.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notificacion.remove(), 300);
+            };
+            
+            setTimeout(() => {
+                if (notificacion.parentNode) {
+                    notificacion.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notificacion.remove(), 300);
+                }
+            }, 4000);
+        }
+
+        // =========================================
+        // UBIGEO PERÚ COMPLETO
+        // =========================================
+        const ubigeo = {
+            Lima: {
+                Lima: ['Ancón', 'Ate', 'Barranco', 'Breña', 'Carabayllo', 'Chaclacayo', 'Chorrillos', 'Cieneguilla', 'Comas', 'El Agustino', 'Independencia', 'Jesús María', 'La Molina', 'La Victoria', 'Lince', 'Los Olivos', 'Lurigancho', 'Lurín', 'Magdalena del Mar', 'Miraflores', 'Pachacámac', 'Pueblo Libre', 'Puente Piedra', 'Rímac', 'San Borja', 'San Isidro', 'San Juan de Lurigancho', 'San Juan de Miraflores', 'San Martín de Porres', 'San Miguel', 'Santa Anita', 'Santiago de Surco', 'Surquillo', 'Villa El Salvador', 'Villa María del Triunfo'],
+                Huaura: ['Huacho', 'Hualmay', 'Vegueta'],
+                Huaral: ['Huaral', 'Chancay', 'Aucallama']
+            },
+            Arequipa: {
+                Arequipa: ['Cerro Colorado', 'Yanahuara', 'Cayma', 'Miraflores', 'Socabaya', 'José Luis Bustamante y Rivero']
+            },
+            Cusco: {
+                Cusco: ['Wanchaq', 'Santiago', 'San Sebastián', 'San Jerónimo']
+            },
+            LaLibertad: {
+                Trujillo: ['Trujillo', 'Víctor Larco', 'Moche', 'Huanchaco']
+            },
+            Piura: {
+                Piura: ['Piura', 'Castilla', 'Catacaos']
+            }
+        };
+
+        // =========================================
+        // FUNCIONES DE ESCAPE
+        // =========================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function actualizarPlaceholderDocumento(prefix = '') {
+            const tipo = document.getElementById(`${prefix}tipo_documento`);
+            if (!tipo) return;
+            const input = document.getElementById(`${prefix}numero_documento`);
+            const label = document.getElementById(`${prefix}label_documento`);
+            if (!input) return;
+
+            if (tipo.value === 'RUC') {
+                input.placeholder = '11 dígitos';
+                if (label) label.innerHTML = 'RUC *:';
+            } else if (tipo.value === 'DNI') {
+                input.placeholder = '8 dígitos';
+                if (label) label.innerHTML = 'DNI *:';
+            } else {
+                input.placeholder = 'Ingrese el número';
+                if (label) label.innerHTML = 'Número de Documento *:';
+            }
+        }
+
+        // =========================================
+        // INICIALIZACIÓN
+        // =========================================
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarClientes();
+            inicializarFiltros();
+            inicializarContactosPuntos();
+            
+            const tipoDocumento = document.getElementById('tipo_documento');
+            if (tipoDocumento) {
+                tipoDocumento.addEventListener('change', () => actualizarPlaceholderDocumento(''));
+                actualizarPlaceholderDocumento('');
+            }
+            
+            const editTipoDocumento = document.getElementById('edit_tipo_documento');
+            if (editTipoDocumento) {
+                editTipoDocumento.addEventListener('change', () => actualizarPlaceholderDocumento('edit_'));
+                actualizarPlaceholderDocumento('edit_');
+            }
+        });
+
+        // =========================================
+        // INICIALIZAR CONTACTOS Y PUNTOS
+        // =========================================
+        function inicializarContactosPuntos() {
+            const btnAgregarContacto = document.getElementById('btnAgregarContacto');
+            if (btnAgregarContacto) {
+                btnAgregarContacto.addEventListener('click', () => agregarContactoNuevo());
+            }
+            
+            const btnAgregarPunto = document.getElementById('btnAgregarPunto');
+            if (btnAgregarPunto) {
+                btnAgregarPunto.addEventListener('click', () => agregarPuntoNuevo());
+            }
+            
+            const btnAgregarContactoEdit = document.getElementById('btnAgregarContactoEdit');
+            if (btnAgregarContactoEdit) {
+                btnAgregarContactoEdit.addEventListener('click', () => agregarContactoEdicion());
+            }
+            
+            const btnAgregarPuntoEdit = document.getElementById('btnAgregarPuntoEdit');
+            if (btnAgregarPuntoEdit) {
+                btnAgregarPuntoEdit.addEventListener('click', () => agregarPuntoEdicion());
+            }
+            
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-eliminar')) {
+                    e.target.closest('.item-agregable').remove();
+                }
+            });
+            
+            document.addEventListener('change', (e) => {
+                if (e.target.dataset.field === 'principal' || e.target.dataset.field === 'principal_punto') {
+                    const container = e.target.closest('#listaContactos, #edit_listaContactos, #listaPuntos, #edit_listaPuntos');
+                    if (container) {
+                        const checkboxes = container.querySelectorAll('[data-field="principal"], [data-field="principal_punto"]');
+                        checkboxes.forEach(cb => {
+                            if (cb !== e.target) cb.checked = false;
+                        });
+                    }
+                }
+            });
+        }
+
+        // =========================================
+        // AGREGAR CONTACTO - NUEVO CLIENTE
+        // =========================================
+        function agregarContactoNuevo(data = {}) {
+            const container = document.getElementById('listaContactos');
+            if (!container) return;
+            
+            const div = document.createElement('div');
+            div.classList.add('item-agregable');
+            div.innerHTML = `
+                <button type="button" class="btn-eliminar">🗑️</button>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="fw-semibold">Nombre *</label><input class="form-control" data-field="nombre_contacto" value="${escapeHtml(data.nombre_contacto || '')}"></div>
+                    <div class="col-md-6 mb-3"><label>Cargo</label><input class="form-control" data-field="cargo" value="${escapeHtml(data.cargo || '')}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label>Email</label><input class="form-control" data-field="email" value="${escapeHtml(data.email || '')}"></div>
+                    <div class="col-md-6 mb-3"><label>Teléfono</label><input class="form-control" data-field="telefono" value="${escapeHtml(data.telefono || '')}"></div>
+                </div>
+                <div class="checkbox-group"><input type="checkbox" data-field="principal" ${data.principal ? 'checked' : ''}> <label>Contacto Principal</label></div>
+            `;
+            container.appendChild(div);
+        }
+
+        // =========================================
+        // AGREGAR PUNTO - NUEVO CLIENTE
+        // =========================================
+        function agregarPuntoNuevo(data = {}) {
+            const container = document.getElementById('listaPuntos');
+            if (!container) return;
+            
+            const div = document.createElement('div');
+            div.classList.add('item-agregable');
+            div.innerHTML = `
+                <button type="button" class="btn-eliminar">🗑️</button>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="fw-semibold">Punto de Entrega *</label><input class="form-control" data-field="nombre_punto" value="${escapeHtml(data.nombre_punto || '')}"></div>
+                    <div class="col-md-6 mb-3"><label>Dirección</label><input class="form-control" data-field="direccion" value="${escapeHtml(data.direccion || '')}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3"><label>Departamento</label>
+                        <select class="form-select" data-field="departamento">
+                            <option value="">Seleccione</option>
+                            <option value="Lima" ${data.departamento === 'Lima' ? 'selected' : ''}>Lima</option>
+                            <option value="Arequipa" ${data.departamento === 'Arequipa' ? 'selected' : ''}>Arequipa</option>
+                            <option value="Cusco" ${data.departamento === 'Cusco' ? 'selected' : ''}>Cusco</option>
+                            <option value="LaLibertad" ${data.departamento === 'LaLibertad' ? 'selected' : ''}>La Libertad</option>
+                            <option value="Piura" ${data.departamento === 'Piura' ? 'selected' : ''}>Piura</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3"><label>Provincia</label>
+                        <select class="form-select" data-field="provincia"><option value="">Seleccione</option></select>
+                    </div>
+                    <div class="col-md-4 mb-3"><label>Distrito</label>
+                        <select class="form-select" data-field="distrito"><option value="">Seleccione</option></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label>Contacto de Entrega</label><input class="form-control" data-field="responsable" value="${escapeHtml(data.responsable || '')}"></div>
+                    <div class="col-md-6 mb-3"><label>Teléfono</label><input class="form-control" data-field="telefono_punto" value="${escapeHtml(data.telefono_punto || '')}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label>Condición de Pago</label>
+                        <select data-field="condicion_pago" class="form-select select-condicion-pago">
+                            <option value="">Seleccione</option>
+                            <option value="Contado" ${data.condicion_pago === 'Contado' ? 'selected' : ''}>Contado</option>
+                            <option value="Credito" ${data.condicion_pago === 'Credito' ? 'selected' : ''}>Crédito</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3 campo-credito" style="display:${data.condicion_pago === 'Credito' ? 'block' : 'none'}">
+                        <label>Tiempo de Crédito</label><input type="text" class="form-control" data-field="tiempo_credito" placeholder="Ej: 30 días" value="${escapeHtml(data.tiempo_credito || '')}">
+                    </div>
+                </div>
+                <div class="checkbox-group"><input type="checkbox" data-field="principal_punto" ${data.principal_punto ? 'checked' : ''}> <label>Punto Principal</label></div>
+            `;
+            container.appendChild(div);
+            inicializarEventosPunto(div);
+        }
+
+        // =========================================
+        // AGREGAR CONTACTO - EDITAR CLIENTE
+        // =========================================
+        function agregarContactoEdicion(data = {}) {
+            const container = document.getElementById('edit_listaContactos');
+            if (!container) return;
+            
+            const div = document.createElement('div');
+            div.classList.add('item-agregable');
+            div.innerHTML = `
+                <button type="button" class="btn-eliminar">🗑️</button>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="fw-semibold">Nombre *</label><input class="form-control" data-field="edit_nombre_contacto" value="${escapeHtml(data.nombre_contacto || '')}"></div>
+                    <div class="col-md-6 mb-3"><label>Cargo</label><input class="form-control" data-field="edit_cargo" value="${escapeHtml(data.cargo || '')}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label>Email</label><input class="form-control" data-field="edit_email" value="${escapeHtml(data.email || '')}"></div>
+                    <div class="col-md-6 mb-3"><label>Teléfono</label><input class="form-control" data-field="edit_telefono" value="${escapeHtml(data.telefono || '')}"></div>
+                </div>
+                <div class="checkbox-group"><input type="checkbox" data-field="principal" ${data.principal ? 'checked' : ''}> <label>Contacto Principal</label></div>
+            `;
+            container.appendChild(div);
+        }
+
+        // =========================================
+        // AGREGAR PUNTO - EDITAR CLIENTE
+        // =========================================
+        function agregarPuntoEdicion(data = {}) {
+            const container = document.getElementById('edit_listaPuntos');
+            if (!container) return;
+            
+            const div = document.createElement('div');
+            div.classList.add('item-agregable');
+            div.innerHTML = `
+                <button type="button" class="btn-eliminar">🗑️</button>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="fw-semibold">Punto de Entrega *</label><input class="form-control" data-field="edit_nombre_punto" value="${escapeHtml(data.nombre_punto || '')}"></div>
+                    <div class="col-md-6 mb-3"><label>Dirección</label><input class="form-control" data-field="edit_direccion" value="${escapeHtml(data.direccion || '')}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3"><label>Departamento</label>
+                        <select class="form-select" data-field="edit_departamento">
+                            <option value="">Seleccione</option>
+                            <option value="Lima" ${data.departamento === 'Lima' ? 'selected' : ''}>Lima</option>
+                            <option value="Arequipa" ${data.departamento === 'Arequipa' ? 'selected' : ''}>Arequipa</option>
+                            <option value="Cusco" ${data.departamento === 'Cusco' ? 'selected' : ''}>Cusco</option>
+                            <option value="LaLibertad" ${data.departamento === 'LaLibertad' ? 'selected' : ''}>La Libertad</option>
+                            <option value="Piura" ${data.departamento === 'Piura' ? 'selected' : ''}>Piura</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3"><label>Provincia</label>
+                        <select class="form-select" data-field="edit_provincia"><option value="">Seleccione</option></select>
+                    </div>
+                    <div class="col-md-4 mb-3"><label>Distrito</label>
+                        <select class="form-select" data-field="edit_distrito"><option value="">Seleccione</option></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label>Contacto de Entrega</label><input class="form-control" data-field="edit_responsable" value="${escapeHtml(data.responsable || '')}"></div>
+                    <div class="col-md-6 mb-3"><label>Teléfono</label><input class="form-control" data-field="edit_telefono_punto" value="${escapeHtml(data.telefono_punto || '')}"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label>Condición de Pago</label>
+                        <select data-field="edit_condicion_pago" class="form-select select-condicion-pago">
+                            <option value="">Seleccione</option>
+                            <option value="Contado" ${data.condicion_pago === 'Contado' ? 'selected' : ''}>Contado</option>
+                            <option value="Credito" ${data.condicion_pago === 'Credito' ? 'selected' : ''}>Crédito</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3 campo-credito" style="display:${data.condicion_pago === 'Credito' ? 'block' : 'none'}">
+                        <label>Tiempo de Crédito</label><input type="text" class="form-control" data-field="edit_tiempo_credito" placeholder="Ej: 30 días" value="${escapeHtml(data.tiempo_credito || '')}">
+                    </div>
+                </div>
+                <div class="checkbox-group"><input type="checkbox" data-field="principal_punto" ${data.principal_punto ? 'checked' : ''}> <label>Punto Principal</label></div>
+            `;
+            container.appendChild(div);
+            inicializarEventosPunto(div, 'edit_');
+        }
+
+        // =========================================
+        // INICIALIZAR EVENTOS DE PUNTO
+        // =========================================
+        function inicializarEventosPunto(div, prefix = '') {
+            const selectDepartamento = div.querySelector(`[data-field="${prefix}departamento"]`);
+            const selectProvincia = div.querySelector(`[data-field="${prefix}provincia"]`);
+            const selectDistrito = div.querySelector(`[data-field="${prefix}distrito"]`);
+            const selectCondicionPago = div.querySelector('.select-condicion-pago');
+            const campoCredito = div.querySelector('.campo-credito');
+
+            if (selectDepartamento) {
+                selectDepartamento.addEventListener('change', function() {
+                    const departamento = this.value;
+                    if (selectProvincia) selectProvincia.innerHTML = '<option value="">Seleccione</option>';
+                    if (selectDistrito) selectDistrito.innerHTML = '<option value="">Seleccione</option>';
+                    if (!ubigeo[departamento]) return;
+                    Object.keys(ubigeo[departamento]).forEach(provincia => {
+                        if (selectProvincia) selectProvincia.innerHTML += `<option value="${provincia}">${provincia}</option>`;
+                    });
+                });
+                selectDepartamento.dispatchEvent(new Event('change'));
+            }
+
+            if (selectProvincia) {
+                selectProvincia.addEventListener('change', function() {
+                    const departamento = selectDepartamento ? selectDepartamento.value : '';
+                    const provincia = this.value;
+                    if (selectDistrito) selectDistrito.innerHTML = '<option value="">Seleccione</option>';
+                    if (!ubigeo[departamento] || !ubigeo[departamento][provincia]) return;
+                    ubigeo[departamento][provincia].forEach(distrito => {
+                        if (selectDistrito) selectDistrito.innerHTML += `<option value="${distrito}">${distrito}</option>`;
+                    });
+                });
+            }
+
+            if (selectCondicionPago && campoCredito) {
+                selectCondicionPago.addEventListener('change', function() {
+                    campoCredito.style.display = this.value === 'Credito' ? 'block' : 'none';
+                });
+            }
+        }
+
+        // =========================================
+        // LISTAR CLIENTES CON BÚSQUEDA MEJORADA
+        // =========================================
+        async function cargarClientes(filtros = {}) {
+            const tbody = document.getElementById("tbody-clientes");
+            if (!tbody) return;
+            
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <br>Cargando clientes...
+            </td></tr>`;
+            
+            try {
+                let url = "/api/clientes/buscar";
+                const params = new URLSearchParams();
+                if (filtros.tipo) params.append("tipo_documento", filtros.tipo);
+                if (filtros.busqueda) params.append("busqueda", filtros.busqueda);
+                if (params.toString()) url += "?" + params.toString();
+
+                const res = await fetch(url);
+                const json = await res.json();
+                const clientes = json.data || [];
+
+                tbody.innerHTML = "";
+
+                if (clientes.length === 0) {
+                    let mensaje = "No hay clientes registrados";
+                    if (filtros.busqueda) {
+                        mensaje = `No se encontraron clientes con: "${filtros.busqueda}"`;
+                    }
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5">
+                        <i class="bi bi-emoji-frown" style="font-size: 3rem;"></i>
+                        <br>${mensaje}
+                    </td></tr>`;
+                    return;
+                }
+
+                clientes.forEach(c => {
+                    const contactos = (c.contactos?.length) ? c.contactos.map(ct => `📞 ${ct.nombre || ct.nombre_contacto || ''}`).join('<br>') : '<em>Sin contactos</em>';
+                    const puntos = (c.puntos_entrega?.length) ? c.puntos_entrega.map(p => `📦 ${p.nombre_punto || ''}`).join('<br>') : '<em>Sin puntos</em>';
+                    const condicionPago = c.puntos_entrega?.[0]?.condicion_pago || '-';
+                    const codigoCliente = c.codigo_cliente || `---`;
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="text-center">${c.id || '-'}</td>
+                            <td class="text-center"><strong>${escapeHtml(codigoCliente)}</strong></td>
+                            <td>${escapeHtml(c.nombre_comercial) || '-'}</td>
+                            <td><strong>${escapeHtml(c.razon_social) || '-'}</strong></td>
+                            <td class="text-center">${c.numero_documento || '-'}</td>
+                            <td>${escapeHtml(c.direccion_fiscal) || '-'}</td>
+                            <td class="text-center">${condicionPago}</td>
+                            <td>${contactos}</td>
+                            <td>${puntos}</td>
+                            <td class="text-center">
+                                <button class="btn-action btn-edit" onclick="abrirModalEditar(${c.id})" title="Editar cliente">✏️</button>
+                                <button class="btn-action btn-delete" onclick="abrirModalEliminar(${c.id})" title="Eliminar cliente">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error("Error al cargar clientes:", e);
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5 text-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <br>Error al cargar los clientes: ${e.message}
+                </td></tr>`;
+            }
+        }
+
+        // =========================================
+        // INICIALIZAR FILTROS
+        // =========================================
+        function inicializarFiltros() {
+            const filtroTipo = document.getElementById("filtro-tipo");
+            const filtroBusqueda = document.getElementById("filtro-busqueda");
+            
+            if (filtroTipo) filtroTipo.addEventListener("change", () => aplicarFiltros());
+            if (filtroBusqueda) {
+                let timeout;
+                filtroBusqueda.addEventListener("input", () => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => aplicarFiltros(), 500);
+                });
+            }
+        }
+
+        function aplicarFiltros() {
+            const tipo = document.getElementById("filtro-tipo")?.value || "";
+            const busqueda = document.getElementById("filtro-busqueda")?.value || "";
+            cargarClientes({ tipo, busqueda });
+        }
+
+        // =========================================
+        // ABRIR MODAL EDITAR
+        // =========================================
+        window.abrirModalEditar = async function(id) {
+            try {
+                const res = await fetch(`/api/clientes/${id}`);
+                const json = await res.json();
+                
+                if (!json.success || !json.data) throw new Error(json.error || "Error al cargar los datos");
+                
+                const c = json.data;
+                
+                document.getElementById('edit_listaContactos').innerHTML = '';
+                document.getElementById('edit_listaPuntos').innerHTML = '';
+                
+                document.getElementById('edit_id').value = c.id;
+                document.getElementById('edit_tipo_documento').value = c.tipo_documento || '';
+                document.getElementById('edit_numero_documento').value = c.numero_documento || '';
+                document.getElementById('edit_razon_social').value = c.razon_social || '';
+                document.getElementById('edit_nombre_comercial').value = c.nombre_comercial || '';
+                document.getElementById('edit_direccion_fiscal').value = c.direccion_fiscal || '';
+                actualizarPlaceholderDocumento('edit_');
+                
+                if (c.contactos && c.contactos.length > 0) {
+                    c.contactos.forEach(contacto => agregarContactoEdicion(contacto));
+                } else {
+                    agregarContactoEdicion();
+                }
+                
+                if (c.puntos_entrega && c.puntos_entrega.length > 0) {
+                    c.puntos_entrega.forEach(punto => agregarPuntoEdicion(punto));
+                } else {
+                    agregarPuntoEdicion();
+                }
+                
+                new bootstrap.Modal(document.getElementById('modalEditarCliente')).show();
+            } catch (error) {
+                console.error("Error:", error);
+                mostrarNotificacion("Error cargando cliente: " + error.message, 'error');
+            }
+        };
+
+        // =========================================
+        // GUARDAR EDICIÓN
+        // =========================================
+        document.getElementById('formEditarCliente')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('edit_id').value;
+            if (!id) return mostrarNotificacion("ID no encontrado", 'error');
+            
+            const data = {
+                tipo_documento: document.getElementById('edit_tipo_documento').value,
+                numero_documento: document.getElementById('edit_numero_documento').value,
+                razon_social: document.getElementById('edit_razon_social').value,
+                nombre_comercial: document.getElementById('edit_nombre_comercial').value,
+                direccion_fiscal: document.getElementById('edit_direccion_fiscal').value,
+                contactos: [],
+                puntos_entrega: []
+            };
+            
+            document.querySelectorAll('#edit_listaContactos .item-agregable').forEach(item => {
+                data.contactos.push({
+                    nombre_contacto: item.querySelector('[data-field="edit_nombre_contacto"]')?.value.trim() || '',
+                    cargo: item.querySelector('[data-field="edit_cargo"]')?.value.trim() || '',
+                    email: item.querySelector('[data-field="edit_email"]')?.value.trim() || '',
+                    telefono: item.querySelector('[data-field="edit_telefono"]')?.value.trim() || '',
+                    principal: item.querySelector('[data-field="principal"]')?.checked || false
+                });
+            });
+            
+            document.querySelectorAll('#edit_listaPuntos .item-agregable').forEach(item => {
+                data.puntos_entrega.push({
+                    nombre_punto: item.querySelector('[data-field="edit_nombre_punto"]')?.value.trim() || '',
+                    direccion: item.querySelector('[data-field="edit_direccion"]')?.value.trim() || '',
+                    departamento: item.querySelector('[data-field="edit_departamento"]')?.value || '',
+                    provincia: item.querySelector('[data-field="edit_provincia"]')?.value || '',
+                    distrito: item.querySelector('[data-field="edit_distrito"]')?.value || '',
+                    responsable: item.querySelector('[data-field="edit_responsable"]')?.value.trim() || '',
+                    telefono: item.querySelector('[data-field="edit_telefono_punto"]')?.value.trim() || '',
+                    condicion_pago: item.querySelector('[data-field="edit_condicion_pago"]')?.value || '',
+                    tiempo_credito: item.querySelector('[data-field="edit_tiempo_credito"]')?.value.trim() || '',
+                    principal: item.querySelector('[data-field="principal_punto"]')?.checked || false
+                });
+            });
+            
+            try {
+                const res = await fetch(`/api/clientes/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const json = await res.json();
+                
+                if (json.success) {
+                    mostrarNotificacion(`✅ Cliente actualizado exitosamente`, 'exito');
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide();
+                    await cargarClientes();
+                } else {
+                    mostrarNotificacion("❌ Error: " + json.error, 'error');
+                }
+            } catch (error) {
+                mostrarNotificacion("Error al actualizar: " + error.message, 'error');
+            }
+        });
+
+        // =========================================
+        // GUARDAR NUEVO CLIENTE
+        // =========================================
+        document.getElementById('formCliente')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const data = {
+                tipo_documento: document.getElementById('tipo_documento').value,
+                numero_documento: document.getElementById('numero_documento').value,
+                razon_social: document.getElementById('razon_social').value,
+                nombre_comercial: document.getElementById('nombre_comercial').value,
+                direccion_fiscal: document.getElementById('direccion_fiscal').value,
+                contactos: [],
+                puntos_entrega: []
+            };
+            
+            document.querySelectorAll('#listaContactos .item-agregable').forEach(item => {
+                data.contactos.push({
+                    nombre_contacto: item.querySelector('[data-field="nombre_contacto"]')?.value.trim() || '',
+                    cargo: item.querySelector('[data-field="cargo"]')?.value.trim() || '',
+                    email: item.querySelector('[data-field="email"]')?.value.trim() || '',
+                    telefono: item.querySelector('[data-field="telefono"]')?.value.trim() || '',
+                    principal: item.querySelector('[data-field="principal"]')?.checked || false
+                });
+            });
+            
+            document.querySelectorAll('#listaPuntos .item-agregable').forEach(item => {
+                data.puntos_entrega.push({
+                    nombre_punto: item.querySelector('[data-field="nombre_punto"]')?.value.trim() || '',
+                    direccion: item.querySelector('[data-field="direccion"]')?.value.trim() || '',
+                    departamento: item.querySelector('[data-field="departamento"]')?.value || '',
+                    provincia: item.querySelector('[data-field="provincia"]')?.value || '',
+                    distrito: item.querySelector('[data-field="distrito"]')?.value || '',
+                    responsable: item.querySelector('[data-field="responsable"]')?.value.trim() || '',
+                    telefono: item.querySelector('[data-field="telefono_punto"]')?.value.trim() || '',
+                    condicion_pago: item.querySelector('[data-field="condicion_pago"]')?.value || '',
+                    tiempo_credito: item.querySelector('[data-field="tiempo_credito"]')?.value.trim() || '',
+                    principal: item.querySelector('[data-field="principal_punto"]')?.checked || false
+                });
+            });
+            
+            try {
+                const res = await fetch('/api/clientes/guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const json = await res.json();
+                
+                if (json.success) {
+                    const codigoGenerado = json.data?.codigo_cliente || 'Generado';
+                    mostrarNotificacion(`✅ Cliente guardado exitosamente\nCódigo: ${codigoGenerado}\nRazón Social: ${data.razon_social}\nDocumento: ${data.tipo_documento}: ${data.numero_documento}`, 'exito');
+                    bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
+                    cargarClientes();
+                    document.getElementById('formCliente').reset();
+                    document.getElementById('listaContactos').innerHTML = '';
+                    document.getElementById('listaPuntos').innerHTML = '';
+                    agregarContactoNuevo();
+                    agregarPuntoNuevo();
+                } else {
+                    mostrarNotificacion("❌ Error: " + json.error, 'error');
+                }
+            } catch (error) {
+                mostrarNotificacion("Error al guardar: " + error.message, 'error');
+            }
+        });
+
+        // =========================================
+        // ELIMINAR CLIENTE
+        // =========================================
+        window.abrirModalEliminar = function(id) {
+            document.getElementById('delete_id').value = id;
+            new bootstrap.Modal(document.getElementById('modalEliminarCliente')).show();
+        };
+
+        document.getElementById('btnConfirmarEliminar')?.addEventListener('click', async function() {
+            const id = document.getElementById('delete_id').value;
+            try {
+                const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+                const json = await res.json();
+                if (json.success) {
+                    mostrarNotificacion(`✅ Cliente eliminado exitosamente`, 'exito');
+                    bootstrap.Modal.getInstance(document.getElementById('modalEliminarCliente')).hide();
+                    await cargarClientes();
+                } else {
+                    mostrarNotificacion("❌ Error: " + json.error, 'error');
+                }
+            } catch (error) {
+                mostrarNotificacion("Error al eliminar: " + error.message, 'error');
+            }
+        });
+
+        // Inicializar items por defecto
+        setTimeout(() => {
+            if (document.getElementById('listaContactos') && document.getElementById('listaContactos').children.length === 0) {
+                agregarContactoNuevo();
+            }
+            if (document.getElementById('listaPuntos') && document.getElementById('listaPuntos').children.length === 0) {
+                agregarPuntoNuevo();
+            }
+        }, 100);
+    </script>
     
 </body>
 </html>
