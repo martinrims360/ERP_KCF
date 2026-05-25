@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, flash, jsonify
 import pandas as pd
-from database import db_query, db_execute, obtener_productos, crear_producto_con_stock, db_query_dict
+from database import db_query, db_execute, obtener_productos, crear_producto_con_stock
 
 mantenedor_productos_bp = Blueprint("mantenedor_productos", __name__)
 
@@ -156,7 +156,7 @@ def eliminar_producto():
 def api_get_productos():
     """API: Obtener todos los productos"""
     try:
-        productos = db_query_dict("SELECT id, codigo, descripcion, stock, costo_unitario, precio_unitario, familia, marca, modelo, unidad FROM productos")
+        productos = db_query("SELECT id, codigo, descripcion, stock, costo_unitario, precio_unitario, familia, marca, modelo, unidad FROM productos")
         
         for p in productos:
             if p.get('costo_unitario'):
@@ -175,7 +175,7 @@ def api_get_productos():
 def api_get_producto(id):
     """API: Obtener un producto por ID"""
     try:
-        productos = db_query_dict("SELECT id, codigo, descripcion, descripcion_larga, stock, costo_unitario, precio_unitario, familia, marca, modelo, unidad, peso, volumen, transporte, observaciones FROM productos WHERE id = %s", (id,))
+        productos = db_query("SELECT id, codigo, descripcion, descripcion_larga, stock, costo_unitario, precio_unitario, familia, marca, modelo, unidad, peso, volumen, transporte, observaciones FROM productos WHERE id = %s", (id,))
         
         if not productos:
             return jsonify({'error': 'Producto no encontrado'}), 404
@@ -276,7 +276,7 @@ def api_get_kardex(producto_id):
     try:
         # Verificar si la tabla movimientos_stock existe
         try:
-            movimientos = db_query_dict("""
+            movimientos = db_query("""
                 SELECT id, producto_id, tipo, cantidad, costo_unitario, referencia, motivo, created_at
                 FROM movimientos_stock
                 WHERE producto_id = %s
@@ -292,7 +292,7 @@ def api_get_kardex(producto_id):
             })
         
         # Obtener producto para stock actual
-        producto = db_query_dict("SELECT stock, costo_unitario FROM productos WHERE id = %s", (producto_id,))
+        producto = db_query("SELECT stock, costo_unitario FROM productos WHERE id = %s", (producto_id,))
         stock_actual = producto[0]['stock'] if producto else 0
         costo_unitario = float(producto[0]['costo_unitario']) if producto and producto[0].get('costo_unitario') else 0
         
@@ -350,7 +350,7 @@ def api_create_movimiento():
             pass
         
         # Obtener stock actual
-        producto = db_query_dict("SELECT stock FROM productos WHERE id = %s", (producto_id,))
+        producto = db_query("SELECT stock FROM productos WHERE id = %s", (producto_id,))
         if not producto:
             return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
         
@@ -393,7 +393,7 @@ def api_ultimo_codigo():
     try:
         prefijo = request.args.get('prefijo', 'GEN')
         
-        resultados = db_query_dict("""
+        resultados = db_query("""
             SELECT codigo FROM productos 
             WHERE codigo LIKE %s 
             ORDER BY id DESC LIMIT 1
