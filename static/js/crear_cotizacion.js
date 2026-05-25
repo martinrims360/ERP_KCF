@@ -26,25 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const usuarioIdInput = document.getElementById('usuario_id');
         const codigoVendedorSpan = document.getElementById('codigo_vendedor');
         
-        if (asesorInput) {
-            asesorInput.value = 'Hellen Blas Principe';
-        }
-        
-        if (emailContacto) {
-            emailContacto.value = 'ventas@kcfcorporacion.com';
-        }
-        
-        if (telefonoUser) {
-            telefonoUser.value = '999932051';
-        }
-        
-        if (usuarioIdInput) {
-            usuarioIdInput.value = '1';
-        }
-        
-        if (codigoVendedorSpan) {
-            codigoVendedorSpan.textContent = 'HELLEN';
-        }
+        if (asesorInput) asesorInput.value = 'Hellen Blas Principe';
+        if (emailContacto) emailContacto.value = 'ventas@kcfcorporacion.com';
+        if (telefonoUser) telefonoUser.value = '999932051';
+        if (usuarioIdInput) usuarioIdInput.value = '1';
+        if (codigoVendedorSpan) codigoVendedorSpan.textContent = 'HELLEN';
         
         usuarioActual = {
             id: 1,
@@ -53,21 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
             telefono: '999932051',
             codigo_vendedor: 'HELLEN'
         };
-        
-        console.log('✅ Asesor por defecto asignado');
     }
 
     async function obtenerUsuarioActual() {
         try {
             const response = await fetch('/api/usuarios/actual');
             const data = await response.json();
-            
             if (data.success && data.data) {
                 usuarioActual = data.data;
                 const codigoVendedorSpan = document.getElementById('codigo_vendedor');
-                if (codigoVendedorSpan && usuarioActual.codigo_vendedor) {
-                    codigoVendedorSpan.textContent = usuarioActual.codigo_vendedor;
-                }
+                if (codigoVendedorSpan && usuarioActual.codigo_vendedor) codigoVendedorSpan.textContent = usuarioActual.codigo_vendedor;
                 const asesorInput = document.getElementById('asesor_comercial');
                 if (asesorInput && usuarioActual.nombre_completo) {
                     asesorInput.value = usuarioActual.nombre_completo;
@@ -125,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function actualizarNumeroCotizacionUI(codigo, esBorradorActual = esBorrador) {
         const numeroDiv = document.getElementById('numero_cotizacion');
         const tipoDocSpan = document.getElementById('tipo_documento');
-        
         if (numeroDiv && codigo) {
             if (esBorradorActual) {
                 numeroDiv.innerHTML = `<span style="font-size: 1rem; color: #f59e0b;">${codigo}</span><small style="display: block; font-size: 0.7rem; color: #f59e0b;">⚠️ BORRADOR</small>`;
@@ -147,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let codigoGenerado = null;
             let intentos = 0;
             const maxIntentos = 10;
-            
             while (!codigoGenerado && intentos < maxIntentos) {
                 const codigoVendedor = usuarioActual.codigo_vendedor || `V${String(usuarioActual.id).padStart(3, '0')}`;
                 const fecha = new Date();
@@ -584,12 +563,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!listaProductos[i].producto_id) { mostrarNotificacion(`⚠️ Falta seleccionar producto en la fila ${i + 1}`, "warning"); return; }
         }
         
-        // Obtener el valor correcto de validez oferta (puede ser personalizado)
         let validezOferta = document.getElementById("validez_oferta")?.value || "15 días";
         const validezPersonalizado = document.getElementById("validez_oferta_personalizado")?.value;
-        if (validezOferta === "personalizado" && validezPersonalizado) {
-            validezOferta = validezPersonalizado;
-        }
+        if (validezOferta === "personalizado" && validezPersonalizado) validezOferta = validezPersonalizado;
         
         const subtotal = Number(document.getElementById('summary_subtotal_venta_desc')?.textContent || 0);
         const igv = Number(document.getElementById('summary_igv')?.textContent || 0);
@@ -825,12 +801,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // RECALCULAR - VERSIÓN CORREGIDA (12 COLUMNAS)
+    // RECALCULAR
     // =========================
     function recalculateAll() {
         const rows = document.querySelectorAll("#table-body tr");
         let totalSubtotalCosto = 0;
-        let totalSubtotalVenta = 0;
         let totalSubtotalVentaDesc = 0;
 
         rows.forEach(r => {
@@ -845,7 +820,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const subtotalVenta = pvUnit * cantidad;
             const sv = r.querySelector('.subtotal_venta_item');
             if (sv) sv.textContent = subtotalVenta.toFixed(2);
-            totalSubtotalVenta += subtotalVenta;
 
             const descPct = Number(r.querySelector('.descuento_porcentaje')?.value || 0);
             const subtotalDesc = subtotalVenta * (1 - descPct / 100);
@@ -872,7 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // AGREGAR ITEMS - 12 COLUMNAS EXACTAS (coincide con HTML)
+    // AGREGAR ITEMS - CORREGIDO (12 COLUMNAS EXACTAS)
     // =========================
     function addItem() {
         if (cotizacionBloqueada) { 
@@ -881,7 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         itemCounter++;
         const row = document.createElement("tr");
-        // EXACTAMENTE 12 COLUMNAS - coincide con <thead> del HTML
+        // EXACTAMENTE 12 COLUMNAS - coincide con el <thead> del HTML
         row.innerHTML = `
             <td class="col-item">${itemCounter}</td>
             <td class="col-codigo">
@@ -1058,10 +1032,6 @@ document.addEventListener('DOMContentLoaded', () => {
         filas.forEach((fila, idx) => {
             const codigoInput = fila.querySelector('.codigo_producto');
             console.log(`Fila ${idx + 1} - Input código:`, codigoInput ? '✅ Encontrado' : '❌ NO ENCONTRADO');
-            if (codigoInput) {
-                console.log(`  - Value: ${codigoInput.value}`);
-                console.log(`  - Placeholder: ${codigoInput.placeholder}`);
-            }
         });
         mostrarNotificacion('Diagnóstico completo. Revisa la consola (F12)', 'info');
     }
@@ -1080,9 +1050,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnGuardarNuevoCliente')?.addEventListener('click', guardarNuevoCliente);
     
     const btnBuscarSunat = document.getElementById('btnBuscarSunat');
-    if (btnBuscarSunat) {
-        btnBuscarSunat.addEventListener('click', autocompletarConSunat);
-    }
+    if (btnBuscarSunat) btnBuscarSunat.addEventListener('click', autocompletarConSunat);
 
     actualizarEstadoVisual();
     aplicarBloqueoUI();
