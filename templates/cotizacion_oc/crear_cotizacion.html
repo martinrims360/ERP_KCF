@@ -17,23 +17,43 @@
     <style>
         :root {
             --rojo: #d90429;
+            --rojo-dark: #b10322;
             --negro: #111827;
             --gris: #6b7280;
             --fondo: #f4f6f9;
+            --blanco: #ffffff;
+            --borde: #e5e7eb;
+            --verde: #10b981;
+            --verde-dark: #059669;
+            --amarillo: #f59e0b;
+            --azul: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(to bottom, #f8fafc, #eef2f7);
+            color: var(--negro);
         }
 
+        /* ========================= */
         /* NAVBAR */
+        /* ========================= */
         .erp-navbar {
             background: linear-gradient(135deg, #111827, #1f2937);
-            padding: 18px 30px;
+            padding: 18px 35px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .erp-logo-section {
@@ -45,30 +65,30 @@
         .erp-logo {
             width: 55px;
             height: 55px;
-            border-radius: 14px;
+            border-radius: 16px;
             background: linear-gradient(135deg, var(--rojo), #ef233c);
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             color: white;
-            font-size: 22px;
+            font-size: 24px;
         }
 
         .erp-company {
             color: white;
+            font-size: 22px;
             font-weight: 800;
-            font-size: 20px;
         }
 
         .erp-system {
-            color: #cbd5e1;
-            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
         }
 
         .erp-right {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
         }
 
         .erp-status {
@@ -85,12 +105,15 @@
         .estado-en-proceso { background: #f59e0b20; color: #f59e0b; border: 1px solid #f59e0b; }
         .estado-generada { background: #3b82f620; color: #3b82f6; border: 1px solid #3b82f6; }
         .estado-aceptada { background: #10b98120; color: #10b981; border: 1px solid #10b981; }
+        .estado-rechazada { background: #d9042920; color: #d90429; border: 1px solid #d90429; }
 
-        /* HERO CARD */
+        /* ========================= */
+        /* HERO */
+        /* ========================= */
         .hero-card {
             background: white;
+            border-radius: 24px;
             padding: 30px;
-            border-radius: 20px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
             display: flex;
             justify-content: space-between;
@@ -98,18 +121,70 @@
             flex-wrap: wrap;
         }
 
-        .hero-title { font-weight: 900; margin: 0; }
-        .hero-subtitle { color: var(--gris); margin-top: 5px; }
-        .hero-number { text-align: right; }
-        .number-label { font-size: 11px; color: var(--gris); }
-        .number-value { font-size: 18px; font-weight: 700; color: var(--negro); }
-        .badge-warning { background: #f59e0b20; color: #f59e0b; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
-        .badge-success { background: #10b98120; color: #10b981; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .hero-title {
+            font-weight: 900;
+            margin: 0;
+        }
 
-        /* BUTTONS */
-        .btn-toolbar { border-radius: 10px; padding: 10px 20px; font-weight: 600; }
+        .hero-subtitle {
+            color: var(--gris);
+            margin-top: 5px;
+        }
 
+        .hero-number {
+            text-align: right;
+        }
+
+        .number-label {
+            font-size: 11px;
+            color: var(--gris);
+        }
+
+        .number-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--negro);
+        }
+
+        .badge-warning {
+            background: #f59e0b20;
+            color: #f59e0b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .badge-success {
+            background: #10b98120;
+            color: #10b981;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        /* ========================= */
+        /* BOTONES */
+        /* ========================= */
+        .action-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-toolbar {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-toolbar:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ========================= */
         /* CARDS */
+        /* ========================= */
         .erp-card {
             background: white;
             border-radius: 20px;
@@ -124,24 +199,75 @@
             padding: 15px 20px;
             font-weight: 700;
         }
-        .card-header-custom.red { background: linear-gradient(135deg, var(--rojo), #ef233c); }
-        .card-header-custom.green { background: linear-gradient(135deg, #10b981, #059669); }
-        .card-header-custom.dark { background: #1f2937; }
 
-        .card-body-custom { padding: 20px; }
+        .card-header-custom.red {
+            background: linear-gradient(135deg, var(--rojo), #ef233c);
+        }
+
+        .card-header-custom.green {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .card-header-custom.dark {
+            background: #1f2937;
+        }
+
+        .card-body-custom {
+            padding: 20px;
+        }
+
+        /* ========================= */
+        /* INPUTS */
+        /* ========================= */
+        .form-label {
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
 
         .custom-input {
             border-radius: 10px !important;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--borde);
             padding: 10px 12px;
+            width: 100%;
         }
+
         .custom-input:focus {
             border-color: var(--rojo);
             box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.1);
+            outline: none;
         }
 
-        /* TABLA SIMÉTRICA SIN TRANSPORTE */
-        .table-modern { margin: 0; table-layout: fixed; width: 100%; }
+        /* ========================= */
+        /* TIEMPO DE ENTREGA */
+        /* ========================= */
+        .tiempo-entrega-wrapper {
+            display: flex;
+            gap: 0;
+            width: 100%;
+        }
+
+        .tiempo-entrega-wrapper select {
+            flex: 2;
+            border-radius: 10px 0 0 10px;
+            border-right: none;
+        }
+
+        .tiempo-entrega-wrapper input {
+            flex: 1;
+            border-radius: 0 10px 10px 0;
+            border-left: none;
+        }
+
+        /* ========================= */
+        /* TABLA DE PRODUCTOS */
+        /* ========================= */
+        .table-modern {
+            margin: 0;
+            table-layout: fixed;
+            width: 100%;
+        }
+
         .table-modern thead th {
             background: #111827;
             color: white;
@@ -152,14 +278,19 @@
             text-align: center;
             vertical-align: middle;
         }
+
         .table-modern tbody td {
             padding: 10px 8px;
             border-color: #f1f1f1;
             vertical-align: middle;
             text-align: center;
         }
-        .table-modern tbody tr:hover { background: rgba(217, 4, 41, 0.05); }
-        .table-modern input, .table-modern select {
+
+        .table-modern tbody tr:hover {
+            background: rgba(217, 4, 41, 0.05);
+        }
+
+        .table-modern input {
             width: 100%;
             padding: 6px 8px;
             border-radius: 8px;
@@ -167,31 +298,121 @@
             font-size: 13px;
             text-align: center;
         }
-        /* Anchos fijos para simetría */
-        .table-modern th:nth-child(1) { width: 45px; }
-        .table-modern th:nth-child(2) { width: 90px; }
-        .table-modern th:nth-child(3) { width: 140px; }
-        .table-modern th:nth-child(4) { width: 80px; }
-        .table-modern th:nth-child(5) { width: 80px; }
-        .table-modern th:nth-child(6) { width: 65px; }
-        .table-modern th:nth-child(7) { width: 90px; }
-        .table-modern th:nth-child(8) { width: 90px; }
-        .table-modern th:nth-child(9) { width: 90px; }
-        .table-modern th:nth-child(10) { width: 70px; }
-        .table-modern th:nth-child(11) { width: 90px; }
-        .table-modern th:nth-child(12) { width: 60px; }
 
+        .table-modern input:focus {
+            border-color: var(--rojo);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(217, 4, 41, 0.1);
+        }
+
+        /* Anchos fijos para simetría - 12 columnas */
+        .table-modern th:nth-child(1),
+        .table-modern td:nth-child(1) { width: 45px; }
+
+        .table-modern th:nth-child(2),
+        .table-modern td:nth-child(2) { width: 90px; }
+
+        .table-modern th:nth-child(3),
+        .table-modern td:nth-child(3) { width: 140px; }
+
+        .table-modern th:nth-child(4),
+        .table-modern td:nth-child(4) { width: 80px; }
+
+        .table-modern th:nth-child(5),
+        .table-modern td:nth-child(5) { width: 80px; }
+
+        .table-modern th:nth-child(6),
+        .table-modern td:nth-child(6) { width: 65px; }
+
+        .table-modern th:nth-child(7),
+        .table-modern td:nth-child(7) { width: 90px; }
+
+        .table-modern th:nth-child(8),
+        .table-modern td:nth-child(8) { width: 90px; }
+
+        .table-modern th:nth-child(9),
+        .table-modern td:nth-child(9) { width: 90px; }
+
+        .table-modern th:nth-child(10),
+        .table-modern td:nth-child(10) { width: 70px; }
+
+        .table-modern th:nth-child(11),
+        .table-modern td:nth-child(11) { width: 90px; }
+
+        .table-modern th:nth-child(12),
+        .table-modern td:nth-child(12) { width: 60px; }
+
+        /* ========================= */
+        /* BOTÓN ELIMINAR - VERSIÓN COMPACTA */
+        /* ========================= */
+        .table-modern td:last-child {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .btn-del {
+            background: #fee2e2;
+            border: none;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            margin: 0 auto;
+            color: var(--rojo);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-del i {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .btn-del:hover {
+            background: #fecaca;
+            transform: scale(1.05);
+        }
+
+        .btn-del:active {
+            transform: scale(0.95);
+        }
+
+        /* ========================= */
         /* SUMMARY CARD */
+        /* ========================= */
         .summary-card {
             background: white;
             border-radius: 20px;
             padding: 20px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
         }
-        .summary-card h4 { font-weight: 800; margin-bottom: 20px; }
-        .summary-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
-        .summary-row.total { border-bottom: none; font-size: 18px; margin-top: 10px; padding-top: 15px; border-top: 2px solid var(--rojo); }
 
+        .summary-card h4 {
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .summary-row.total {
+            border-bottom: none;
+            font-size: 18px;
+            margin-top: 10px;
+            padding-top: 15px;
+            border-top: 2px solid var(--rojo);
+        }
+
+        /* ========================= */
+        /* PORTAL DE SUGERENCIAS */
+        /* ========================= */
         #portalSuggestions {
             position: fixed;
             background: white;
@@ -201,15 +422,117 @@
             display: none;
             max-height: 300px;
             overflow-y: auto;
+            min-width: 280px;
         }
-        #portalSuggestions .item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f1f1; }
-        #portalSuggestions .item:hover { background: #f8f9fa; }
-        #portalSuggestions .item strong { display: block; }
-        #portalSuggestions .item .meta { font-size: 12px; color: var(--gris); }
 
-        .btn-del { background: #fee2e2; border: none; border-radius: 8px; padding: 5px 10px; color: var(--rojo); cursor: pointer; }
-        .btn-del:hover { background: #fecaca; }
-        .opacity-50 { opacity: 0.5; }
+        #portalSuggestions .item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        #portalSuggestions .item:hover {
+            background: #f8f9fa;
+        }
+
+        #portalSuggestions .item strong {
+            display: block;
+        }
+
+        #portalSuggestions .item .meta {
+            font-size: 12px;
+            color: var(--gris);
+        }
+
+        #portalSuggestions .empty {
+            padding: 20px;
+            text-align: center;
+            color: var(--gris);
+        }
+
+        /* ========================= */
+        /* MODALES */
+        /* ========================= */
+        .modal-modern {
+            border-radius: 24px;
+            border: none;
+        }
+
+        .modal-modern .modal-header {
+            background: linear-gradient(135deg, #111827, #1f2937);
+            color: white;
+            border-radius: 24px 24px 0 0;
+        }
+
+        .modal-modern .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        /* ========================= */
+        /* UTILIDADES */
+        /* ========================= */
+        .opacity-50 {
+            opacity: 0.5;
+        }
+
+        /* ========================= */
+        /* RESPONSIVE */
+        /* ========================= */
+        @media (max-width: 768px) {
+            .erp-navbar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px;
+            }
+
+            .hero-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero-number {
+                text-align: center;
+                margin-top: 15px;
+            }
+
+            .action-toolbar {
+                width: 100%;
+            }
+
+            .btn-toolbar {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .tiempo-entrega-wrapper {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .tiempo-entrega-wrapper select,
+            .tiempo-entrega-wrapper input {
+                border-radius: 10px !important;
+                border: 1px solid var(--borde);
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            .table-modern {
+                min-width: 1000px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 24px;
+            }
+
+            .card-body-custom {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -404,14 +727,14 @@
             </div>
         </div>
 
-        <!-- TABLA PRODUCTOS SIMÉTRICA SIN TRANSPORTE -->
+        <!-- TABLA PRODUCTOS SIMÉTRICA -->
         <div class="erp-card mt-4">
             <div class="card-header-custom green"><i class="bi bi-box-seam-fill"></i> Detalle de Productos</div>
             <div class="card-body-custom p-0">
                 <div class="table-responsive">
                     <table class="table table-modern" id="products-table">
                         <thead>
-                            <tr><th>Item</th><th>Código</th><th>Descripción</th><th>Marca</th><th>Modelo</th><th>Cant</th><th>PU Costo</th><th>Subtotal</th><th>Subtotal Venta</th><th>% Desc</th><th>Total Desc</th><th>Eliminar</th></tr>
+                            <tr><th>Item</th><th>Código</th><th>Descripción</th><th>Marca</th><th>Modelo</th><th>Cant</th><th>PU Costo</th><th>Subtotal</th><th>PU Venta</th><th>% Desc</th><th>Total Desc</th><th>Eliminar</th></tr>
                         </thead>
                         <tbody id="table-body"></tbody>
                         <tfoot>
@@ -448,10 +771,125 @@
 
     <!-- MODALES -->
     <div id="portalSuggestions"></div>
-    <div class="modal fade" id="modalConfirmacion" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-modern"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Cotización Guardada</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="modalConfirmacionBody"></div><div class="modal-footer"><button class="btn btn-primary" id="btnDescargarPDFModal">📄 Descargar PDF</button><button class="btn btn-success" id="btnNuevaCotizacionModal">➕ Nueva Cotización</button><button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div></div></div></div>
-    <div class="modal fade" id="modalNuevoCliente" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content modal-modern"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-person-plus-fill text-success"></i> Nuevo Cliente</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="formNuevoCliente"><div class="row g-3"><div class="col-md-6"><label class="form-label">Tipo Documento <span class="text-danger">*</span></label><select class="form-select custom-input" id="nuevo_tipo_documento" required><option value="RUC">RUC</option><option value="DNI">DNI</option><option value="CE">Carnet de Extranjería</option></select></div><div class="col-md-6"><label class="form-label">Número Documento <span class="text-danger">*</span></label><div class="input-group"><input type="text" class="form-control custom-input" id="nuevo_numero_documento" required placeholder="11 dígitos"><button class="btn btn-primary" type="button" id="btnBuscarSunat"><i class="bi bi-search"></i> Buscar</button></div><small class="text-muted">Para RUC, puede buscar datos en SUNAT</small></div><div class="col-md-12"><label class="form-label">Razón Social / Nombre <span class="text-danger">*</span></label><input type="text" class="form-control custom-input" id="nuevo_razon_social" required></div><div class="col-md-12"><label class="form-label">Nombre Comercial</label><input type="text" class="form-control custom-input" id="nuevo_nombre_comercial"></div><div class="col-md-12"><label class="form-label">Dirección Fiscal</label><input type="text" class="form-control custom-input" id="nuevo_direccion_fiscal"></div><div class="col-md-6"><label class="form-label">Teléfono Contacto</label><input type="text" class="form-control custom-input" id="nuevo_telefono"></div><div class="col-md-6"><label class="form-label">Email Contacto</label><input type="email" class="form-control custom-input" id="nuevo_email"></div><div class="col-md-12"><label class="form-label">Nombre Contacto</label><input type="text" class="form-control custom-input" id="nuevo_nombre_contacto"></div></div></form></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cancelar</button><button type="button" class="btn btn-success" id="btnGuardarNuevoCliente"><i class="bi bi-save-fill"></i> Guardar Cliente</button></div></div></div></div>
-    <div class="modal fade" id="modalAceptada" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-modern"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Confirmar Cotización</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Pedido / Orden Cliente</label><input type="text" class="form-control custom-input" id="pedido_cliente"></div><div><label class="form-label">Fecha Confirmación</label><input type="date" class="form-control custom-input" id="fecha_confirmacion"></div></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-success" id="btn-registrar">Confirmar</button></div></div></div></div>
-    <div class="modal fade" id="modalModificar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-modern"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-pencil-square text-warning"></i> Habilitar Modificación</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">¿Desea habilitar nuevamente esta cotización?</div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-warning" id="btn-confirmar-modificar">Sí, habilitar</button></div></div></div></div>
+    
+    <div class="modal fade" id="modalConfirmacion" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-modern">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Cotización Guardada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalConfirmacionBody"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="btnDescargarPDFModal">📄 Descargar PDF</button>
+                    <button class="btn btn-success" id="btnNuevaCotizacionModal">➕ Nueva Cotización</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalNuevoCliente" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content modal-modern">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus-fill text-success"></i> Nuevo Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevoCliente">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Tipo Documento <span class="text-danger">*</span></label>
+                                <select class="form-select custom-input" id="nuevo_tipo_documento" required>
+                                    <option value="RUC">RUC</option>
+                                    <option value="DNI">DNI</option>
+                                    <option value="CE">Carnet de Extranjería</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Número Documento <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control custom-input" id="nuevo_numero_documento" required placeholder="11 dígitos">
+                                    <button class="btn btn-primary" type="button" id="btnBuscarSunat"><i class="bi bi-search"></i> Buscar</button>
+                                </div>
+                                <small class="text-muted">Para RUC, puede buscar datos en SUNAT</small>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Razón Social / Nombre <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control custom-input" id="nuevo_razon_social" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Nombre Comercial</label>
+                                <input type="text" class="form-control custom-input" id="nuevo_nombre_comercial">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Dirección Fiscal</label>
+                                <input type="text" class="form-control custom-input" id="nuevo_direccion_fiscal">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Teléfono Contacto</label>
+                                <input type="text" class="form-control custom-input" id="nuevo_telefono">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Contacto</label>
+                                <input type="email" class="form-control custom-input" id="nuevo_email">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Nombre Contacto</label>
+                                <input type="text" class="form-control custom-input" id="nuevo_nombre_contacto">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnGuardarNuevoCliente"><i class="bi bi-save-fill"></i> Guardar Cliente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAceptada" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-modern">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Confirmar Cotización</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Pedido / Orden Cliente</label>
+                        <input type="text" class="form-control custom-input" id="pedido_cliente">
+                    </div>
+                    <div>
+                        <label class="form-label">Fecha Confirmación</label>
+                        <input type="date" class="form-control custom-input" id="fecha_confirmacion">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-success" id="btn-registrar">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalModificar" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-modern">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square text-warning"></i> Habilitar Modificación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">¿Desea habilitar nuevamente esta cotización?</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-warning" id="btn-confirmar-modificar">Sí, habilitar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -461,7 +899,6 @@
             const validezInput = document.getElementById('validez_oferta_personalizado');
             
             if (validezSelect && validezInput) {
-                // Función para mostrar/ocultar el input personalizado
                 function toggleValidezInput() {
                     if (validezSelect.value === 'personalizado') {
                         validezInput.style.display = 'block';
@@ -472,19 +909,30 @@
                     }
                 }
                 
-                // Evento cuando cambia el select
-                validezSelect.addEventListener('change', function() {
-                    toggleValidezInput();
-                });
-                
-                // Cuando se escribe en el input personalizado, actualizar un campo oculto o el valor
-                validezInput.addEventListener('input', function() {
-                    // Esto es opcional: podrías actualizar un campo oculto
-                    console.log('Validez personalizada:', validezInput.value);
-                });
-                
-                // Inicializar estado
+                validezSelect.addEventListener('change', toggleValidezInput);
                 toggleValidezInput();
+            }
+
+            // Script para manejar el select de Tiempo Entrega
+            const tiempoSelect = document.getElementById('tiempo_entrega_select');
+            const tiempoInput = document.getElementById('tiempo_entrega');
+            
+            if (tiempoSelect && tiempoInput) {
+                function toggleTiempoInput() {
+                    if (tiempoSelect.value === 'personalizado') {
+                        tiempoInput.style.display = 'block';
+                        tiempoInput.focus();
+                    } else if (tiempoSelect.value === '') {
+                        tiempoInput.style.display = 'none';
+                        tiempoInput.value = '';
+                    } else {
+                        tiempoInput.style.display = 'none';
+                        tiempoInput.value = tiempoSelect.value;
+                    }
+                }
+                
+                tiempoSelect.addEventListener('change', toggleTiempoInput);
+                toggleTiempoInput();
             }
         });
     </script>

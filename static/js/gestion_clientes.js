@@ -450,67 +450,65 @@ function inicializarEventosPunto(div) {
 }
 
 // =========================================
-// LISTAR CLIENTES CON BÚSQUEDA MEJORADA + DEBUG
+// FILTROS Y BÚSQUEDA DE CLIENTES (VERSIÓN LIMPIA)
 // =========================================
+
+let timeoutBusqueda = null;
+
+// Cargar clientes (principal)
 async function cargarClientes(filtros = {}) {
     const tbody = document.getElementById("tbody-clientes");
     if (!tbody) return;
-    
-    // Mostrar indicador de carga
+
     tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Cargando...</span>
-        </div>
+        <div class="spinner-border text-primary" role="status"></div>
         <br>Cargando clientes...
     </td></tr>`;
-    
+
     try {
         let url = "/api/clientes/buscar";
         const params = new URLSearchParams();
-        
+
         if (filtros.tipo) params.append("tipo_documento", filtros.tipo);
         if (filtros.busqueda && filtros.busqueda.trim()) {
             params.append("busqueda", filtros.busqueda.trim());
         }
-        
+
         if (params.toString()) url += "?" + params.toString();
 
-        // ==================== DEBUG ====================
-        console.log("🔍 URL de búsqueda:", url);
-        console.log("🔍 Filtros enviados:", filtros);
-        // ===============================================
+        console.log("🔍 Buscando →", url);
 
         const res = await fetch(url);
         const json = await res.json();
-        
-        // ==================== DEBUG ====================
-        console.log("📥 Respuesta del servidor:", json);
-        // ===============================================
+
+        console.log("📥 Respuesta:", json);
 
         if (!json.success) {
             throw new Error(json.error || "Error al cargar clientes");
         }
-        
+
         const clientes = json.data || [];
 
         tbody.innerHTML = "";
 
         if (clientes.length === 0) {
-            let mensaje = "No hay clientes registrados";
-            if (filtros.busqueda && filtros.busqueda.trim()) {
-                mensaje = `No se encontraron clientes que coincidan con: "${filtros.busqueda}"`;
-            }
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5">
-                <i class="bi bi-emoji-frown" style="font-size: 3rem;"></i>
-                <br>${mensaje}
-                <br><small class="text-muted">Intenta buscar por RUC, DNI, nombre comercial o razón social</small>
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5 text-muted">
+                <i class="bi bi-search" style="font-size: 3rem;"></i><br>
+                No se encontraron resultados
             </td></tr>`;
             return;
         }
 
+        // Rellenar tabla
         clientes.forEach(c => {
-            const contactos = (c.contactos?.length) ? c.contactos.map(ct => `📞 ${escapeHtml(ct.nombre_contacto || ct.nombre || '')}`).join('<br>') : '<em class="text-muted">Sin contactos</em>';
-            const puntos = (c.puntos_entrega?.length) ? c.puntos_entrega.map(p => `📦 ${escapeHtml(p.nombre_punto || '')}`).join('<br>') : '<em class="text-muted">Sin puntos</em>';
+            const contactos = (c.contactos?.length) 
+                ? c.contactos.map(ct => `📞 ${escapeHtml(ct.nombre_contacto || '')}`).join('<br>') 
+                : '<em class="text-muted">Sin contactos</em>';
+
+            const puntos = (c.puntos_entrega?.length) 
+                ? c.puntos_entrega.map(p => `📦 ${escapeHtml(p.nombre_punto || '')}`).join('<br>') 
+                : '<em class="text-muted">Sin puntos</em>';
+
             const condicionPago = c.puntos_entrega?.[0]?.condicion_pago || '-';
             const codigoCliente = c.codigo_cliente || `---`;
 
@@ -526,82 +524,60 @@ async function cargarClientes(filtros = {}) {
                     <td>${contactos}</td>
                     <td>${puntos}</td>
                     <td class="text-center">
-                        <button class="btn-action btn-edit" onclick="abrirModalEditar(${c.id})" title="Editar cliente">
+                        <button class="btn-action btn-edit" onclick="abrirModalEditar(${c.id})" title="Editar">
                             <i class="bi bi-pencil-square"></i>
                         </button>
-                        <button class="btn-action btn-delete" onclick="abrirModalEliminar(${c.id})" title="Eliminar cliente">
+                        <button class="btn-action btn-delete" onclick="abrirModalEliminar(${c.id})" title="Eliminar">
                             <i class="bi bi-trash-fill"></i>
                         </button>
                     </td>
                 </tr>
             `;
         });
-        
-        // Actualizar contador de resultados
-        const contador = document.querySelector('.resultados-contador');
-        if (contador) {
-            contador.textContent = `${clientes.length} cliente${clientes.length !== 1 ? 's' : ''} encontrado${clientes.length !== 1 ? 's' : ''}`;
-        }
-        
+
     } catch (e) {
-        console.error("Error al cargar clientes:", e);
+        console.error("Error:", e);
         tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5 text-danger">
-            <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem;"></i>
-            <br>Error al cargar los clientes: ${e.message}
-            <br><small>Verifica la conexión con el servidor</small>
+            Error al cargar clientes: ${e.message}
         </td></tr>`;
-        mostrarNotificacion("Error al cargar clientes: " + e.message, 'error');
     }
 }
 
+
+
 // =========================================
-// INICIALIZAR FILTROS CON BÚSQUEDA MEJORADA
+// INICIALIZAR FILTROS
 // =========================================
 function inicializarFiltros() {
     const filtroTipo = document.getElementById("filtro-tipo");
     const filtroBusqueda = document.getElementById("filtro-busqueda");
-    const btnLimpiar = document.getElementById("btn-limpiar-filtros");
-    
-    console.log("🔧 Inicializando filtros...", { 
-        filtroTipo: !!filtroTipo, 
-        filtroBusqueda: !!filtroBusqueda 
-    });
 
     if (filtroTipo) {
-        filtroTipo.addEventListener("change", aplicarFiltros);
+        filtroTipo.addEventListener("change", () => aplicarFiltros());
     }
-    
+
     if (filtroBusqueda) {
-        let timeout;
-        
         filtroBusqueda.addEventListener("input", () => {
-            clearTimeout(timeout);
-            timeout = setTimeout(aplicarFiltros, 600); // un poco más de debounce
+            clearTimeout(timeoutBusqueda);
+            timeoutBusqueda = setTimeout(aplicarFiltros, 500);
         });
-        
+
         filtroBusqueda.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                clearTimeout(timeout);
-                aplicarFiltros();
-            }
+            if (e.key === "Enter") aplicarFiltros();
         });
     }
-    
-    if (btnLimpiar) {
-        btnLimpiar.addEventListener("click", () => {
-            if (filtroTipo) filtroTipo.value = "Todos";
-            if (filtroBusqueda) filtroBusqueda.value = "";
-            aplicarFiltros();
-        });
-    }
+
+    // Carga inicial
+    cargarClientes();
 }
 
+// =========================================
+// APLICAR FILTROS
+// =========================================
 function aplicarFiltros() {
     const tipo = document.getElementById("filtro-tipo")?.value || "";
     const busqueda = document.getElementById("filtro-busqueda")?.value || "";
-    
-    console.log(`🔎 Aplicando filtros: tipo=${tipo || 'todos'}, busqueda="${busqueda || 'vacía'}"`);
-    
+
     cargarClientes({ tipo, busqueda });
 }
 
@@ -904,10 +880,6 @@ setTimeout(() => {
     }
 }, 100);
 // =========================================
-// INICIALIZAR TODO AL CARGAR LA PÁGINA
+// INICIALIZAR AL CARGAR LA PÁGINA
 // =========================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("✅ Inicializando filtros de clientes...");
-    inicializarFiltros();
-    cargarClientes(); // Carga inicial
-});
+document.addEventListener("DOMContentLoaded", inicializarFiltros);

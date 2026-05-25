@@ -16,60 +16,41 @@ document.addEventListener('DOMContentLoaded', () => {
     let usuarioActual = null;
     let esBorrador = true;
 
-    // 🔥 Función para asignar valores por defecto de HELLEN
-    function asignarAsesorPorDefecto() {
-        console.log('📌 Asignando valores por defecto: Hellen Blas Principe');
-        
-        const asesorInput = document.getElementById('asesor_comercial');
-        const emailContacto = document.getElementById('email_contacto');
-        const telefonoUser = document.getElementById('telefono_contacto_user');
-        const usuarioIdInput = document.getElementById('usuario_id');
-        const codigoVendedorSpan = document.getElementById('codigo_vendedor');
-        
-        if (asesorInput) asesorInput.value = 'Hellen Blas Principe';
-        if (emailContacto) emailContacto.value = 'ventas@kcfcorporacion.com';
-        if (telefonoUser) telefonoUser.value = '999932051';
-        if (usuarioIdInput) usuarioIdInput.value = '1';
-        if (codigoVendedorSpan) codigoVendedorSpan.textContent = 'HELLEN';
-        
-        usuarioActual = {
-            id: 1,
-            nombre_completo: 'Hellen Blas Principe',
-            email: 'ventas@kcfcorporacion.com',
-            telefono: '999932051',
-            codigo_vendedor: 'HELLEN'
-        };
-    }
-
+    // Obtener usuario actual
     async function obtenerUsuarioActual() {
         try {
             const response = await fetch('/api/usuarios/actual');
             const data = await response.json();
             if (data.success && data.data) {
                 usuarioActual = data.data;
+                
                 const codigoVendedorSpan = document.getElementById('codigo_vendedor');
-                if (codigoVendedorSpan && usuarioActual.codigo_vendedor) codigoVendedorSpan.textContent = usuarioActual.codigo_vendedor;
+                if (codigoVendedorSpan && usuarioActual.codigo_vendedor) {
+                    codigoVendedorSpan.textContent = usuarioActual.codigo_vendedor;
+                }
+                
                 const asesorInput = document.getElementById('asesor_comercial');
                 if (asesorInput && usuarioActual.nombre_completo) {
                     asesorInput.value = usuarioActual.nombre_completo;
                     const usuarioIdInput = document.getElementById('usuario_id');
                     const emailContacto = document.getElementById('email_contacto');
                     const telefonoUser = document.getElementById('telefono_contacto_user');
+                    
                     if (usuarioIdInput) usuarioIdInput.value = usuarioActual.id;
                     if (emailContacto) emailContacto.value = usuarioActual.email || '';
                     if (telefonoUser) telefonoUser.value = usuarioActual.telefono || '';
                 }
+                
                 return usuarioActual;
             }
-            asignarAsesorPorDefecto();
-            return usuarioActual;
+            return null;
         } catch (error) {
             console.error('Error obteniendo usuario:', error);
-            asignarAsesorPorDefecto();
-            return usuarioActual;
+            return null;
         }
     }
 
+    // Obtener último correlativo del usuario
     async function obtenerUltimoCorrelativo(usuarioId) {
         try {
             const response = await fetch(`/api/cotizacion/ultimo-correlativo?usuario_id=${usuarioId}`);
@@ -85,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Verificar si un código ya existe en la base de datos
     async function verificarCodigoExiste(codigo) {
         try {
             const response = await fetch(`/api/cotizacion/verificar-codigo?codigo=${encodeURIComponent(codigo)}`);
@@ -96,16 +78,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Generar código temporal para borrador
     function generarCodigoTemporal() {
         const fecha = new Date();
         const timestamp = `${fecha.getFullYear()}${String(fecha.getMonth() + 1).padStart(2, '0')}${String(fecha.getDate()).padStart(2, '0')}_${String(fecha.getHours()).padStart(2, '0')}${String(fecha.getMinutes()).padStart(2, '0')}${String(fecha.getSeconds()).padStart(2, '0')}`;
-        const codigoVendedor = usuarioActual?.codigo_vendedor || 'HELLEN';
+        const codigoVendedor = usuarioActual?.codigo_vendedor || 'TMP';
         return `TMP-${codigoVendedor}-${timestamp}`;
     }
 
+    // Actualizar número de cotización en UI
     function actualizarNumeroCotizacionUI(codigo, esBorradorActual = esBorrador) {
         const numeroDiv = document.getElementById('numero_cotizacion');
         const tipoDocSpan = document.getElementById('tipo_documento');
+        
         if (numeroDiv && codigo) {
             if (esBorradorActual) {
                 numeroDiv.innerHTML = `<span style="font-size: 1rem; color: #f59e0b;">${codigo}</span><small style="display: block; font-size: 0.7rem; color: #f59e0b;">⚠️ BORRADOR</small>`;
@@ -116,42 +101,56 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             codigoCotizacionActual = codigo;
         }
+        
         actualizarEstadoBotonPDF();
     }
 
+    // Generar código oficial (con verificación de unicidad)
     async function generarCodigoOficial() {
-        if (!usuarioActual) await obtenerUsuarioActual();
+        if (!usuarioActual) {
+            await obtenerUsuarioActual();
+        }
+        
         if (usuarioActual) {
             await obtenerUltimoCorrelativo(usuarioActual.id);
             let nuevoCorrelativo = correlativoActual + 1;
             let codigoGenerado = null;
             let intentos = 0;
             const maxIntentos = 10;
+            
             while (!codigoGenerado && intentos < maxIntentos) {
                 const codigoVendedor = usuarioActual.codigo_vendedor || `V${String(usuarioActual.id).padStart(3, '0')}`;
                 const fecha = new Date();
                 const año = fecha.getFullYear();
                 const mes = String(fecha.getMonth() + 1).padStart(2, '0');
                 const dia = String(fecha.getDate()).padStart(2, '0');
+                
                 const codigo = `COT-${codigoVendedor}-${año}${mes}${dia}-${String(nuevoCorrelativo).padStart(4, '0')}`;
+                
                 const existe = await verificarCodigoExiste(codigo);
+                
                 if (!existe) {
                     codigoGenerado = codigo;
                     correlativoActual = nuevoCorrelativo;
                 } else {
+                    console.warn(`⚠️ Código ${codigo} ya existe, intentando con correlativo ${nuevoCorrelativo + 1}`);
                     nuevoCorrelativo++;
                 }
                 intentos++;
             }
+            
             if (!codigoGenerado) {
-                mostrarNotificacion('Error: No se pudo generar un código único', 'danger');
+                console.error('❌ No se pudo generar un código único después de varios intentos');
+                mostrarNotificacion('Error: No se pudo generar un código único. Contacte al administrador.', 'danger');
                 return null;
             }
+            
             return codigoGenerado;
         }
         return null;
     }
 
+    // Inicializar código (borrador temporal)
     async function inicializarCodigo() {
         await obtenerUsuarioActual();
         esBorrador = true;
@@ -160,20 +159,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return codigoTemporal;
     }
 
+    // =========================
+    // HABILITAR/DESHABILITAR BOTÓN PDF
+    // =========================
     function actualizarEstadoBotonPDF() {
         const btnPdf = document.getElementById('btnPdf');
         const cotizacionId = document.getElementById('cotizacion_id')?.value;
+        
         if (btnPdf) {
             if (cotizacionId && cotizacionId !== '' && cotizacionId !== 'None' && esBorrador === false) {
                 btnPdf.disabled = false;
                 btnPdf.classList.remove('opacity-50');
+                console.log('✅ Botón PDF habilitado');
             } else {
                 btnPdf.disabled = true;
                 btnPdf.classList.add('opacity-50');
+                console.log('❌ Botón PDF deshabilitado');
             }
         }
     }
 
+    // =========================
+    // NOTIFICACIONES
+    // =========================
     function mostrarNotificacion(mensaje, tipo) {
         const notificacion = document.createElement('div');
         notificacion.className = `alert alert-${tipo} position-fixed top-0 end-0 m-3`;
@@ -186,13 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // 🔥 FUNCIÓN SUNAT MEJORADA
+    // CONSULTA A SUNAT (API ORIGINAL QUE FUNCIONA)
     // =========================
     async function consultarSunat(ruc) {
         try {
             mostrarNotificacion(`🔍 Consultando RUC ${ruc} en SUNAT...`, 'info');
             
-            // Usar API alternativa más confiable
             const response = await fetch(`https://api.apis.net.pe/v2/sunat/ruc?numero=${ruc}`);
             
             if (!response.ok) {
@@ -209,11 +216,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     direccion: data.direccion || '',
                     estado: data.estado || ''
                 };
+            } else {
+                return { success: false, error: 'No se encontraron datos' };
             }
-            return { success: false, error: 'No se encontraron datos para este RUC' };
         } catch (error) {
             console.error('Error consultando SUNAT:', error);
-            mostrarNotificacion('⚠️ Error al consultar SUNAT. Verifique el RUC e intente nuevamente.', 'warning');
             return { success: false, error: error.message };
         }
     }
@@ -246,6 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
                 document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
                 document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
+                
                 mostrarNotificacion('✅ Datos cargados desde SUNAT correctamente', 'success');
             } else {
                 mostrarNotificacion('❌ ' + (resultado.error || 'No se encontraron datos para este RUC'), 'danger');
@@ -262,21 +270,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // 🔥 BOTÓN BUSCAR CLIENTE POR RUC - CORREGIDO
+    // BOTÓN BUSCAR CLIENTE POR RUC
     // =========================
     const btnBuscarClientePorRuc = document.getElementById('btnBuscarClientePorRuc');
     const buscarRucInput = document.getElementById('buscar_ruc');
     const btnLimpiarCliente = document.getElementById('btnLimpiarCliente');
 
     if (btnBuscarClientePorRuc) {
+        console.log('✅ Botón de búsqueda encontrado');
+        
         btnBuscarClientePorRuc.addEventListener('click', async function(e) {
             e.preventDefault();
+            
             const ruc = buscarRucInput?.value.trim();
             
             if (!ruc) {
                 mostrarNotificacion('⚠️ Ingrese un RUC para buscar', 'warning');
                 return;
             }
+            
             if (ruc.length !== 11) {
                 mostrarNotificacion('⚠️ El RUC debe tener 11 dígitos', 'warning');
                 return;
@@ -292,25 +304,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const resultado = await consultarSunat(ruc);
                 
                 if (resultado.success) {
-                    // Autocompletar campos del cliente principal
-                    const razonSocialInput = document.getElementById('cliente_razon_social');
-                    const clienteDocInput = document.getElementById('cliente_doc');
-                    const clienteDireccionInput = document.getElementById('cliente_direccion');
+                    document.getElementById('cliente_razon_social').value = resultado.razon_social || '';
+                    document.getElementById('cliente_doc').value = ruc;
+                    document.getElementById('cliente_direccion').value = resultado.direccion || '';
                     
-                    if (razonSocialInput) razonSocialInput.value = resultado.razon_social || '';
-                    if (clienteDocInput) clienteDocInput.value = ruc;
-                    if (clienteDireccionInput) clienteDireccionInput.value = resultado.direccion || '';
-                    
-                    // También autocompletar el modal de nuevo cliente
-                    const nuevoRazonSocial = document.getElementById('nuevo_razon_social');
-                    const nuevoNombreComercial = document.getElementById('nuevo_nombre_comercial');
-                    const nuevoDireccionFiscal = document.getElementById('nuevo_direccion_fiscal');
-                    const nuevoNumeroDocumento = document.getElementById('nuevo_numero_documento');
-                    
-                    if (nuevoRazonSocial) nuevoRazonSocial.value = resultado.razon_social || '';
-                    if (nuevoNombreComercial) nuevoNombreComercial.value = resultado.nombre_comercial || '';
-                    if (nuevoDireccionFiscal) nuevoDireccionFiscal.value = resultado.direccion || '';
-                    if (nuevoNumeroDocumento) nuevoNumeroDocumento.value = ruc;
+                    document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
+                    document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
+                    document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
+                    document.getElementById('nuevo_numero_documento').value = ruc;
                     
                     mostrarNotificacion('✅ Datos cargados desde SUNAT correctamente', 'success');
                 } else {
@@ -325,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     } else {
-        console.error('❌ Botón "btnBuscarClientePorRuc" no encontrado');
+        console.error('❌ ERROR: Botón con ID "btnBuscarClientePorRuc" NO ENCONTRADO');
     }
 
     if (btnLimpiarCliente) {
@@ -341,10 +342,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // =========================
+    // CONFIGURAR TIEMPO DE ENTREGA
+    // =========================
     function configurarTiempoEntrega() {
         const select = document.getElementById('tiempo_entrega_select');
         const input = document.getElementById('tiempo_entrega');
+        
         if (!select || !input) return;
+        
         select.addEventListener('change', function() {
             const valor = this.value;
             if (valor === 'personalizado') {
@@ -359,6 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.value = valor;
             }
         });
+        
         if (input.value && input.value.trim() !== '') {
             let encontrado = false;
             for (let i = 0; i < select.options.length; i++) {
@@ -376,14 +383,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================
+    // CARGAR PUNTOS DE ENTREGA
+    // =========================
     async function cargarPuntosEntrega(clienteId) {
         const select = document.getElementById('punto_entrega');
         if (!select) return;
+
         select.innerHTML = `<option value="a_tratar">📝 A tratar (Negociación)</option>`;
+
         try {
             const res = await fetch(`/api/clientes/${clienteId}`);
             const json = await res.json();
             const puntos = json.data?.puntos_entrega || [];
+
             puntos.forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = p.id;
@@ -395,22 +408,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================
+    // CREAR NUEVO CLIENTE
+    // =========================
     async function guardarNuevoCliente() {
         const tipoDocumento = document.getElementById('nuevo_tipo_documento')?.value;
         const numeroDocumento = document.getElementById('nuevo_numero_documento')?.value.trim();
         const razonSocial = document.getElementById('nuevo_razon_social')?.value.trim();
+        
         if (!numeroDocumento) {
             mostrarNotificacion('⚠️ Ingrese el número de documento', 'warning');
             return;
         }
+        
         if (!razonSocial) {
             mostrarNotificacion('⚠️ Ingrese la razón social', 'warning');
             return;
         }
+        
         const btnGuardar = document.getElementById('btnGuardarNuevoCliente');
         const textoOriginal = btnGuardar.innerHTML;
         btnGuardar.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
         btnGuardar.disabled = true;
+        
         try {
             const payload = {
                 tipo_documento: tipoDocumento,
@@ -422,12 +442,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 email_contacto: document.getElementById('nuevo_email')?.value.trim() || '',
                 nombre_contacto: document.getElementById('nuevo_nombre_contacto')?.value.trim() || ''
             };
+            
             const response = await fetch('/api/clientes/crear', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+            
             const result = await response.json();
+            
             if (result.success) {
                 document.getElementById('formNuevoCliente')?.reset();
                 const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente'));
@@ -450,14 +473,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`/api/clientes/${clienteId}`);
             const result = await response.json();
+            
             if (result.success && result.data) {
                 const cliente = result.data;
+                
                 document.getElementById('cliente_id').value = cliente.id;
                 document.getElementById('cliente_razon_social').value = cliente.razon_social;
                 document.getElementById('cliente_doc').value = cliente.numero_documento || '';
                 document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
                 document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';
                 document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
+                
                 await cargarPuntosEntrega(cliente.id);
                 mostrarNotificacion('✅ Cliente cargado correctamente', 'success');
             }
@@ -466,21 +492,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================
+    // MODAL DE CONFIRMACIÓN
+    // =========================
     function mostrarModalConfirmacion(datos) {
         const modalBody = document.getElementById('modalConfirmacionBody');
         if (!modalBody) return;
+        
         const fecha = new Date();
         modalBody.innerHTML = `
             <div class="text-center mb-3"><i class="bi bi-check-circle-fill" style="font-size: 48px; color: #10b981;"></i></div>
             <div class="alert alert-success"><strong>✅ ¡Cotización guardada exitosamente!</strong></div>
             <div class="row"><div class="col-6"><strong>Número:</strong></div><div class="col-6">${datos.numero || datos.codigo_cotizacion}</div></div>
             <div class="row mt-2"><div class="col-6"><strong>Tipo:</strong></div><div class="col-6">${datos.tipo || (esBorrador ? 'BORRADOR' : 'OFICIAL')}</div></div>
-            <div class="row mt-2"><div class="col-6"><strong>Asesor:</strong></div><div class="col-6">${usuarioActual?.nombre_completo || 'Hellen Blas Principe'}</div></div>
+            <div class="row mt-2"><div class="col-6"><strong>Asesor:</strong></div><div class="col-6">${usuarioActual?.nombre_completo || 'No asignado'}</div></div>
             <div class="row mt-2"><div class="col-6"><strong>Fecha:</strong></div><div class="col-6">${fecha.toLocaleDateString()}</div></div>
             <hr><div class="text-muted small"><i class="bi bi-info-circle"></i> El código es único y quedará registrado.</div>
         `;
+        
         const modal = new bootstrap.Modal(document.getElementById('modalConfirmacion'));
         modal.show();
+        
         document.getElementById('btnDescargarPDFModal').onclick = () => {
             const cotId = document.getElementById('cotizacion_id')?.value;
             if (cotId && !esBorrador) {
@@ -489,11 +521,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 mostrarNotificacion('⚠️ Debe convertir a oficial antes de generar PDF', 'warning');
             }
         };
+        
         document.getElementById('btnNuevaCotizacionModal').onclick = () => {
             window.location.href = '/cotizacion/nueva';
         };
     }
 
+    // =========================
+    // ESTADO GLOBAL
+    // =========================
     let estadoCotizacion = 'En Proceso';
     let cotizacionBloqueada = false;
     let datosModificados = false;
@@ -520,33 +556,44 @@ document.addEventListener('DOMContentLoaded', () => {
         portal.style.display = 'block';
     }
 
+    // =========================
+    // OBTENER LISTA DE PRODUCTOS
+    // =========================
     function obtenerListaProductos() {
         const filas = document.querySelectorAll("#table-body tr");
         let listaProductos = [];
+
         filas.forEach(row => {
             const getInput = (selector) => {
                 const el = row.querySelector(selector);
                 return el ? el.value : 0;
             };
+
             const getText = (selector) => {
                 const el = row.querySelector(selector);
                 return el ? el.textContent : 0;
             };
+
             const producto = {
                 producto_id: Number(getInput('.producto_id')) || null,
                 cantidad: Number(getInput('.cantidad')),
                 costo_unitario: Number(getInput('.precio_costo_unitario')),
                 subtotal_costo: Number(getText('.subtotal_costo')),
-                precio_venta_unitario: Number(getInput('.precio_venta_unitario_input')) || 0,
+                precio_venta_unitario: Number(getInput('.precio_venta_unitario_input')),
                 subtotal_venta: Number(getText('.subtotal_venta_item')),
-                descuento_porcentaje: Number(getInput('.descuento_porcentaje')) || 0,
+                descuento_porcentaje: Number(getInput('.descuento_porcentaje')),
                 subtotal_venta_con_descuento: Number(getText('.subtotal_venta_desc'))
             };
+
             listaProductos.push(producto);
         });
+
         return listaProductos;
     }
 
+    // =========================
+    // FUNCIONES DE BÚSQUEDA
+    // =========================
     async function buscarClientes(q) {
         try {
             const res = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
@@ -560,8 +607,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function buscarProductos(q) {
         try {
+            console.log('🔎 Buscando productos con:', q);
             const res = await fetch(`/api/productos/buscar?q=${encodeURIComponent(q)}`);
             const json = await res.json();
+            console.log('📦 Productos encontrados:', json);
             return json.data || [];
         } catch (error) {
             console.error('Error buscando productos:', error);
@@ -593,18 +642,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================
+    // GUARDAR COTIZACIÓN
+    // =========================
     async function guardarCotizacion() {
         const cliente_id = Number(document.getElementById('cliente_id')?.value || 0);
         if (!cliente_id) { mostrarNotificacion("⚠️ Selecciona cliente", "warning"); return; }
+
         const listaProductos = obtenerListaProductos();
         if (listaProductos.length === 0) { mostrarNotificacion("⚠️ Agrega items", "warning"); return; }
+        
         for (let i = 0; i < listaProductos.length; i++) {
             if (!listaProductos[i].producto_id) { mostrarNotificacion(`⚠️ Falta seleccionar producto en la fila ${i + 1}`, "warning"); return; }
         }
-        
-        let validezOferta = document.getElementById("validez_oferta")?.value || "15 días";
-        const validezPersonalizado = document.getElementById("validez_oferta_personalizado")?.value;
-        if (validezOferta === "personalizado" && validezPersonalizado) validezOferta = validezPersonalizado;
         
         const subtotal = Number(document.getElementById('summary_subtotal_venta_desc')?.textContent || 0);
         const igv = Number(document.getElementById('summary_igv')?.textContent || 0);
@@ -618,19 +668,21 @@ document.addEventListener('DOMContentLoaded', () => {
             forma_pago: document.getElementById("forma_pago")?.value || "",
             tiempo_entrega: document.getElementById("tiempo_entrega")?.value || "",
             almacen: document.getElementById("almacen")?.value || "",
-            validez_oferta: validezOferta,
+            validez_oferta: document.getElementById("validez_oferta")?.value || "",
             notas: document.getElementById('notas')?.value || "",
             productos: listaProductos,
             codigo_cotizacion: codigoCotizacionActual,
             correlativo: esBorrador ? 0 : correlativoActual,
             es_borrador: esBorrador
         };
+
         const btnGuardar = esBorrador ? document.getElementById('btnGuardarBorrador') : document.getElementById('btnGuardarOficial');
         const textoOriginal = btnGuardar?.innerHTML;
         if (btnGuardar) {
             btnGuardar.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
             btnGuardar.disabled = true;
         }
+        
         try {
             const res = await fetch('/api/cotizacion/guardar', {
                 method: 'POST',
@@ -638,16 +690,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(payload)
             });
             const json = await res.json();
-            if (!json.success) {
+            
+            if (!json.success) { 
                 mostrarNotificacion("❌ Error: " + (json.error || "Error desconocido"), "danger");
-                return;
+                return; 
             }
+            
             document.getElementById('cotizacion_id').value = json.data.id;
-            if (!esBorrador) correlativoActual++;
-            if (!esBorrador) actualizarEstadoBotonPDF();
-            mostrarModalConfirmacion({ id: json.data.id, numero: json.data.codigo_cotizacion, tipo: esBorrador ? 'BORRADOR' : 'OFICIAL' });
-        } catch (err) {
-            console.error(err);
+            
+            if (!esBorrador) {
+                correlativoActual++;
+            }
+            
+            if (!esBorrador) {
+                actualizarEstadoBotonPDF();
+            }
+            
+            mostrarModalConfirmacion({ 
+                id: json.data.id, 
+                numero: json.data.codigo_cotizacion, 
+                tipo: esBorrador ? 'BORRADOR' : 'OFICIAL' 
+            });
+            
+        } catch (err) { 
+            console.error(err); 
             mostrarNotificacion("❌ Error de conexión con el servidor", "danger");
         } finally {
             if (btnGuardar) {
@@ -658,16 +724,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // 🔥 CONVERTIR A OFICIAL - VALIDACIÓN DE CLIENTE ELIMINADA
+    // CONVERTIR A OFICIAL
     // =========================
     async function convertirAOficial() {
-        if (!esBorrador) {
-            mostrarNotificacion("⚠️ Esta cotización ya es oficial", "warning");
+        if (!esBorrador) { 
+            mostrarNotificacion("⚠️ Esta cotización ya es oficial", "warning"); 
+            return; 
+        }
+        
+        const cliente_id = Number(document.getElementById('cliente_id')?.value || 0);
+        if (!cliente_id) {
+            mostrarNotificacion("⚠️ Debe seleccionar un cliente antes de convertir a oficial", "warning");
             return;
         }
         
-        // 🔥 Validación de cliente ELIMINADA - ahora se puede convertir sin cliente
-        // Solo se valida que haya al menos un producto
         const listaProductos = obtenerListaProductos();
         if (listaProductos.length === 0) {
             mostrarNotificacion("⚠️ Debe agregar al menos un producto antes de convertir a oficial", "warning");
@@ -688,16 +758,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================
+    // GENERAR PDF
+    // =========================
     function generatePdf() {
         const cotId = document.getElementById('cotizacion_id')?.value;
+        
         if (!cotId || cotId === '' || cotId === 'None') {
             mostrarNotificacion("⚠️ Debe guardar la cotización primero", "warning");
             return;
         }
+        
         if (esBorrador) {
             mostrarNotificacion("⚠️ Debe convertir la cotización a OFICIAL antes de generar PDF", "warning");
             return;
         }
+        
         try {
             mostrarNotificacion("📄 Generando PDF, espere...", "info");
             const pdfUrl = `/api/cotizacion/pdf/${cotId}`;
@@ -708,38 +784,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function setProductoEnFila(row, p) {
+    // =========================
+    // SET PRODUCTO EN FILA
+    // =========================
+    function setProductoEnFila(row, p) {  
         const productoIdInput = row.querySelector('.producto_id');
         const codigoInput = row.querySelector('.codigo_producto');
         const descripcionInput = row.querySelector('.descripcion');
         const marcaInput = row.querySelector('.marca');
         const modeloInput = row.querySelector('.modelo');
+        
         if (productoIdInput) productoIdInput.value = p.id;
         if (codigoInput) codigoInput.value = p.codigo || "";
         if (descripcionInput) descripcionInput.value = p.descripcion || "";
         if (marcaInput) marcaInput.value = p.marca || "";
         if (modeloInput) modeloInput.value = p.modelo || "";
-        if (p.ultimo_costo) {
-            const costoInput = row.querySelector('.precio_costo_unitario');
-            if (costoInput) costoInput.value = p.ultimo_costo;
-        }
-        recalculateAll();
+        
+        console.log('✅ Producto seleccionado:', p.codigo, p.descripcion);
     }
 
+    // =========================
+    // AUTOCOMPLETES
+    // =========================
     function attachClienteAutocomplete(idInput) {
         const input = document.getElementById(idInput);
         if (!input) return;
         let timeoutId = null;
+
         input.addEventListener('input', async () => {
             const q = input.value.trim();
             if (timeoutId) clearTimeout(timeoutId);
             if (q.length < 2) { portalHide(); return; }
+            
             timeoutId = setTimeout(async () => {
                 const clientes = await buscarClientes(q);
                 if (!clientes.length) { portalShow(input, `<div class="empty">No encontrado</div>`); return; }
+
                 const html = clientes.map(c => `<div class="item" data-id="${c.id}" data-razon="${c.razon_social}" data-doc="${c.numero_documento || ''}" data-direccion="${c.direccion_fiscal || ''}" data-telefono="${c.telefono_contacto || ''}" data-contacto="${c.nombre_contacto || ''}">
                     <strong>🏢 ${c.razon_social}</strong><div class="meta">${c.tipo_documento || 'DNI/RUC'} • ${c.numero_documento || 'Sin documento'}</div></div>`).join('');
                 portalShow(input, html);
+
                 portal.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', async () => {
                         document.getElementById('cliente_id').value = el.dataset.id;
@@ -758,18 +842,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function attachProductoAutocomplete(row) {
         const input = row.querySelector('.codigo_producto');
-        if (!input) return;
+        
+        if (!input) {
+            console.error('❌ No se encontró input .codigo_producto en la fila');
+            return;
+        }
+        
+        console.log('✅ Autocomplete de producto inicializado para fila');
         let timeoutId = null;
+
         input.addEventListener('input', async () => {
             const q = input.value.trim();
+            console.log('📝 Escribiendo en producto:', q);
+            
             if (timeoutId) clearTimeout(timeoutId);
-            if (q.length < 2) { portalHide(); return; }
+            if (q.length < 2) { 
+                portalHide(); 
+                return; 
+            }
+            
             timeoutId = setTimeout(async () => {
+                console.log('🔎 Buscando producto:', q);
                 const productos = await buscarProductos(q);
-                if (!productos.length) { portalShow(input, `<div class="empty">❌ No se encontraron productos</div>`); return; }
-                const html = productos.map(p => `<div class="item" data-id="${p.id}" data-codigo="${p.codigo}" data-descripcion="${p.descripcion}" data-marca="${p.marca || ''}" data-modelo="${p.modelo || ''}" data-costo="${p.ultimo_costo || 0}">
-                    <strong>📦 ${p.codigo}</strong> - ${p.descripcion}<div class="meta">${p.marca || ''} • Costo: ${p.ultimo_costo || 0}</div></div>`).join('');
+                console.log('📦 Productos encontrados:', productos.length);
+                
+                if (!productos.length) { 
+                    portalShow(input, `<div class="empty">❌ No se encontraron productos</div>`); 
+                    return; 
+                }
+
+                const html = productos.map(p => `<div class="item" data-id="${p.id}" data-codigo="${p.codigo}" data-descripcion="${p.descripcion}" data-marca="${p.marca || ''}" data-modelo="${p.modelo || ''}">
+                    <strong>📦 ${p.codigo}</strong> - ${p.descripcion}<div class="meta">${p.marca || ''} • Stock: ${p.stock || 0}</div></div>`).join('');
                 portalShow(input, html);
+
                 portal.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', () => {
                         const productoData = {
@@ -777,11 +882,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             codigo: el.dataset.codigo,
                             descripcion: el.dataset.descripcion,
                             marca: el.dataset.marca,
-                            modelo: el.dataset.modelo,
-                            ultimo_costo: Number(el.dataset.costo)
+                            modelo: el.dataset.modelo
                         };
                         setProductoEnFila(row, productoData);
                         portalHide();
+                        recalculateAll();
                     });
                 });
             }, 300);
@@ -792,16 +897,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('asesor_comercial');
         if (!input) return;
         let timeoutId = null;
+
         input.addEventListener('input', async () => {
             const q = input.value.trim();
             if (timeoutId) clearTimeout(timeoutId);
             if (q.length < 2) { portalHide(); return; }
+            
             timeoutId = setTimeout(async () => {
                 const asesores = await buscarAsesores(q);
                 if (!asesores.length) { portalShow(input, `<div class="empty">Asesor no encontrado</div>`); return; }
+
                 const html = asesores.map(a => `<div class="item" data-id="${a.id}" data-nombre="${a.nombre_completo}" data-email="${a.email || ''}" data-telefono="${a.telefono || ''}">
                     <strong>👨‍💼 ${a.nombre_completo}</strong><div class="meta">${a.rol || 'Asesor'} • ${a.codigo_vendedor || ''}</div></div>`).join('');
                 portalShow(input, html);
+
                 portal.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', () => {
                         document.getElementById("usuario_id").value = el.dataset.id;
@@ -819,14 +928,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('cliente_contacto');
         if (!input) return;
         let timeoutId = null;
+        
         input.addEventListener('input', async () => {
             const q = input.value.trim();
             const clienteId = document.getElementById('cliente_id')?.value;
             if (timeoutId) clearTimeout(timeoutId);
+            
             if (!clienteId) {
                 portalShow(input, `<div class="item" data-value="A tratar"><strong>📝 A tratar</strong><div class="meta">Contacto por definir</div></div>`);
                 return;
             }
+            
             timeoutId = setTimeout(async () => {
                 const contactos = await buscarContactos(clienteId, q);
                 let html = '';
@@ -835,6 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 html += `<div class="item" data-value="A tratar"><strong>📝 A tratar</strong><div class="meta">Negociación</div></div>`;
                 portalShow(input, html);
+                
                 portal.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', () => { input.value = el.dataset.value; portalHide(); });
                 });
@@ -847,7 +960,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================
     function recalculateAll() {
         const rows = document.querySelectorAll("#table-body tr");
-        let totalSubtotalCosto = 0;
         let totalSubtotalVentaDesc = 0;
 
         rows.forEach(r => {
@@ -856,7 +968,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const subtotalCosto = cantidad * costo;
             const sc = r.querySelector('.subtotal_costo');
             if (sc) sc.textContent = subtotalCosto.toFixed(2);
-            totalSubtotalCosto += subtotalCosto;
 
             const pvUnit = Number(r.querySelector('.precio_venta_unitario_input')?.value || 0);
             const subtotalVenta = pvUnit * cantidad;
@@ -873,6 +984,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const igv = totalSubtotalVentaDesc * 0.18;
         const totalFinal = totalSubtotalVentaDesc + igv;
 
+        let totalSubtotalCosto = 0;
+        rows.forEach(r => {
+            totalSubtotalCosto += Number(r.querySelector('.subtotal_costo')?.textContent || 0);
+        });
+
         const totalSubtotalCostoElem = document.getElementById('total_subtotal_costo');
         if (totalSubtotalCostoElem) totalSubtotalCostoElem.textContent = totalSubtotalCosto.toFixed(2);
         
@@ -888,7 +1004,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // AGREGAR ITEMS - CORREGIDO (12 COLUMNAS EXACTAS)
+    // AGREGAR ITEMS - VERSIÓN CORREGIDA (BOTÓN ELIMINAR MÁS PEQUEÑO)
     // =========================
     function addItem() {
         if (cotizacionBloqueada) { 
@@ -898,7 +1014,7 @@ document.addEventListener('DOMContentLoaded', () => {
         itemCounter++;
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td class="col-item">${itemCounter}</td>
+            <td class="col-item text-center">${itemCounter}</td>
             <td class="col-codigo">
                 <input type="text" class="codigo_producto" placeholder="Buscar producto..." style="width:100%;">
                 <input type="hidden" class="producto_id">
@@ -908,12 +1024,16 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="col-modelo"><input type="text" class="modelo" readonly style="width:100%;"></td>
             <td class="col-cantidad"><input type="number" class="cantidad" value="1" step="1" style="width:100%;"></td>
             <td class="col-monto"><input type="number" class="precio_costo_unitario" value="0" step="0.01" style="width:100%;"></td>
-            <td class="subtotal_costo">0.00</td>
+            <td class="subtotal_costo text-center">0.00</td>
             <td class="col-pv"><input type="number" class="precio_venta_unitario_input" value="0" step="0.01" style="width:100%;"></td>
-            <td class="subtotal_venta_item">0.00</td>
+            <td class="subtotal_venta_item text-center">0.00</td>
             <td class="col-descuento"><input type="number" class="descuento_porcentaje" value="0" step="0.01" style="width:100%;"></td>
-            <td class="subtotal_venta_desc">0.00</td>
-            <td><button class="btn-del">🗑</button></td>
+            <td class="subtotal_venta_desc text-center">0.00</td>
+            <td class="text-center">
+                <button class="btn-del" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #fee2e2; border: none; border-radius: 8px; color: #d90429; cursor: pointer;">
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </td>
         `;
         
         if (tableBody) tableBody.appendChild(row);
@@ -939,6 +1059,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(recalculateAll, 50);
     }
 
+    // =========================
+    // ESTADO VISUAL
+    // =========================
     function actualizarEstadoVisual() {
         const estadoElement = document.getElementById('estado_fixed');
         const estadoTexto = document.getElementById('estado_texto');
@@ -1061,6 +1184,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) { console.error(err); mostrarNotificacion("Error cargando cotización", "danger"); }
     }
 
+    // =========================
+    // DIAGNÓSTICO
+    // =========================
     function diagnosticar() {
         console.log('=== DIAGNÓSTICO ===');
         console.log('Estado cotización:', estadoCotizacion);
@@ -1068,15 +1194,21 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Modo consulta:', modoConsulta);
         console.log('Es borrador:', esBorrador);
         console.log('Item counter:', itemCounter);
+        
         const filas = document.querySelectorAll("#table-body tr");
         console.log('Filas en tabla:', filas.length);
+        
         filas.forEach((fila, idx) => {
             const codigoInput = fila.querySelector('.codigo_producto');
             console.log(`Fila ${idx + 1} - Input código:`, codigoInput ? '✅ Encontrado' : '❌ NO ENCONTRADO');
         });
+        
         mostrarNotificacion('Diagnóstico completo. Revisa la consola (F12)', 'info');
     }
     
+    // =========================
+    // EVENTOS
+    // =========================
     document.getElementById('btnGuardarBorrador')?.addEventListener('click', guardarCotizacion);
     document.getElementById('btnGuardarOficial')?.addEventListener('click', convertirAOficial);
     document.getElementById('btnPdf')?.addEventListener('click', generatePdf);
@@ -1091,8 +1223,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnGuardarNuevoCliente')?.addEventListener('click', guardarNuevoCliente);
     
     const btnBuscarSunat = document.getElementById('btnBuscarSunat');
-    if (btnBuscarSunat) btnBuscarSunat.addEventListener('click', autocompletarConSunat);
+    if (btnBuscarSunat) {
+        btnBuscarSunat.addEventListener('click', autocompletarConSunat);
+    }
 
+    // =========================
+    // INIT
+    // =========================
     actualizarEstadoVisual();
     aplicarBloqueoUI();
     attachClienteAutocomplete('cliente_doc');
@@ -1109,6 +1246,5 @@ document.addEventListener('DOMContentLoaded', () => {
     } else { 
         esBorrador = true; 
         document.getElementById('estado').value = 'En Proceso'; 
-        asignarAsesorPorDefecto();
     }
 });
