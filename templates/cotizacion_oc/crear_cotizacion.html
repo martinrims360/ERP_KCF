@@ -1,75 +1,107 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Crear Cotización - ERP KCF</title>
 
     <!-- BOOTSTRAP -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- ICONOS -->
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- FUENTE -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --rojo: #d90429;
+            --rojo-oscuro: #b00223;
             --negro: #111827;
             --gris: #6b7280;
-            --fondo: #f4f6f9;
+            --gris-claro: #f3f4f6;
+            --fondo: #f8fafc;
+            --verde: #10b981;
+            --azul: #3b82f6;
+            --amarillo: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(to bottom, #f8fafc, #eef2f7);
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            min-height: 100vh;
         }
 
-        /* NAVBAR */
+        /* SCROLLBAR PERSONALIZADA */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--rojo);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--rojo-oscuro);
+        }
+
+        /* NAVBAR MODERNO */
         .erp-navbar {
-            background: linear-gradient(135deg, #111827, #1f2937);
-            padding: 18px 30px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         .erp-logo-section {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
         }
 
         .erp-logo {
-            width: 55px;
-            height: 55px;
+            width: 50px;
+            height: 50px;
             border-radius: 14px;
-            background: linear-gradient(135deg, var(--rojo), #ef233c);
+            background: linear-gradient(135deg, var(--rojo), #ff4d6d);
             display: flex;
             justify-content: center;
             align-items: center;
             color: white;
-            font-size: 22px;
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        .erp-logo:hover {
+            transform: scale(1.05);
         }
 
         .erp-company {
             color: white;
             font-weight: 800;
-            font-size: 20px;
+            font-size: 22px;
+            letter-spacing: -0.5px;
         }
 
         .erp-system {
-            color: #cbd5e1;
+            color: #94a3b8;
             font-size: 12px;
+            margin-top: 2px;
         }
 
         .erp-right {
@@ -80,299 +112,442 @@
 
         .erp-status {
             background: rgba(255, 255, 255, 0.1);
-            padding: 8px 16px;
-            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 40px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 12px;
+            gap: 10px;
+            font-size: 13px;
             font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .estado-en-proceso {
-            background: #f59e0b20;
-            color: #f59e0b;
-            border: 1px solid #f59e0b;
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
-
         .estado-generada {
-            background: #3b82f620;
-            color: #3b82f6;
-            border: 1px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
-
         .estado-aceptada {
-            background: #10b98120;
-            color: #10b981;
-            border: 1px solid #10b981;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
-        /* HERO CARD */
+        /* HERO CARD MODERNA */
         .hero-card {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+            background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .hero-title {
-            font-weight: 900;
+            font-weight: 800;
+            font-size: 28px;
             margin: 0;
+            background: linear-gradient(135deg, var(--negro), #374151);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .hero-subtitle {
             color: var(--gris);
-            margin-top: 5px;
+            margin-top: 8px;
+            font-size: 14px;
         }
 
         .hero-number {
             text-align: right;
+            background: var(--gris-claro);
+            padding: 15px 25px;
+            border-radius: 20px;
         }
 
         .number-label {
             font-size: 11px;
             color: var(--gris);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
         .number-value {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
             color: var(--negro);
         }
 
         .badge-warning {
-            background: #f59e0b20;
-            color: #f59e0b;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 12px;
-        }
-
-        .badge-success {
-            background: #10b98120;
-            color: #10b981;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-
-        /* BUTTONS */
-        .btn-toolbar {
-            border-radius: 10px;
-            padding: 10px 20px;
+            font-size: 11px;
             font-weight: 600;
         }
 
-        /* CARDS */
+        .badge-success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* BOTONES MODERNOS */
+        .btn-toolbar {
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        .btn-toolbar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .btn-toolbar:active {
+            transform: translateY(0);
+        }
+
+        /* CARDS MODERNAS */
         .erp-card {
             background: white;
-            border-radius: 20px;
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .erp-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1);
         }
 
         .card-header-custom {
-            background: #111827;
+            background: linear-gradient(135deg, #1f2937, #111827);
             color: white;
-            padding: 15px 20px;
+            padding: 16px 24px;
             font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-
+        .card-header-custom i {
+            font-size: 20px;
+        }
         .card-header-custom.red {
             background: linear-gradient(135deg, var(--rojo), #ef233c);
         }
-
         .card-header-custom.green {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, #059669, var(--verde));
         }
-
         .card-header-custom.dark {
-            background: #1f2937;
+            background: linear-gradient(135deg, #1f2937, #0f172a);
         }
 
         .card-body-custom {
-            padding: 20px;
+            padding: 24px;
         }
 
         .custom-input {
-            border-radius: 10px !important;
-            border: 1px solid #e5e7eb;
-            padding: 10px 12px;
+            border-radius: 12px !important;
+            border: 1.5px solid #e5e7eb;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: all 0.2s ease;
         }
-
         .custom-input:focus {
             border-color: var(--rojo);
             box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.1);
+            outline: none;
+        }
+        .custom-input:hover:not(:focus) {
+            border-color: #cbd5e1;
         }
 
-        /* TRANSPORT CARD */
+        /* TABLA PRODUCTOS MEJORADA */
+        .table-modern {
+            margin: 0;
+            width: 100%;
+        }
+        .table-modern thead th {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            border: none;
+            padding: 14px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        .table-modern tbody td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 13px;
+        }
+        .table-modern tbody tr:hover {
+            background: linear-gradient(90deg, rgba(217, 4, 41, 0.03), rgba(217, 4, 41, 0.06));
+        }
+        .table-modern input, .table-modern select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1.5px solid #e5e7eb;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .table-modern input:focus, .table-modern select:focus {
+            border-color: var(--rojo);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(217, 4, 41, 0.1);
+        }
+        
+        /* ANCHOS DE COLUMNA OPTIMIZADOS */
+        .table-modern th:nth-child(1) { width: 50px; }
+        .table-modern th:nth-child(2) { width: 100px; }
+        .table-modern th:nth-child(3) { width: 180px; }
+        .table-modern th:nth-child(4) { width: 90px; }
+        .table-modern th:nth-child(5) { width: 90px; }
+        .table-modern th:nth-child(6) { width: 70px; }
+        .table-modern th:nth-child(7) { width: 100px; }
+        .table-modern th:nth-child(8) { width: 100px; }
+        .table-modern th:nth-child(9) { width: 100px; }
+        .table-modern th:nth-child(10) { width: 100px; }
+        .table-modern th:nth-child(11) { width: 80px; }
+        .table-modern th:nth-child(12) { width: 100px; }
+        .table-modern th:nth-child(13) { width: 70px; }
+
+        /* SUMMARY CARD MODERNA */
+        .summary-card {
+            background: linear-gradient(135deg, #ffffff, #fefefe);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .summary-card h4 {
+            font-weight: 800;
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: var(--negro);
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .summary-row.total {
+            border-bottom: none;
+            font-size: 18px;
+            margin-top: 10px;
+            padding-top: 18px;
+            border-top: 2px solid var(--rojo);
+            color: var(--rojo);
+        }
+
+        /* TRANSPORT CARD MODERNA */
         .transport-card {
             background: linear-gradient(135deg, #fef2f2, #fee2e2);
             border-radius: 20px;
-            padding: 20px;
+            padding: 20px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid rgba(217, 4, 41, 0.2);
         }
-
         .transport-left {
             display: flex;
             align-items: center;
             gap: 15px;
         }
-
         .transport-left i {
-            font-size: 32px;
+            font-size: 36px;
             color: var(--rojo);
         }
-
         .transport-title {
             font-weight: 700;
             font-size: 18px;
+            color: var(--negro);
         }
-
         .transport-subtitle {
             font-size: 12px;
-            color: var(--gris);
+            color: #dc2626;
         }
-
-        .transport-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
         .transport-right input {
-            width: 150px;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #e5e7eb;
+            width: 180px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1.5px solid #fecaca;
             font-size: 18px;
             font-weight: 700;
+            text-align: right;
+        }
+        .transport-right input:focus {
+            border-color: var(--rojo);
+            outline: none;
         }
 
-        /* TABLE */
-        .table-modern {
-            margin: 0;
-        }
-
-        .table-modern thead th {
-            background: #111827;
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-
-        .table-modern tbody td {
-            padding: 10px;
-            border-color: #f1f1f1;
-            vertical-align: middle;
-        }
-
-        .table-modern tbody tr:hover {
-            background: rgba(217, 4, 41, 0.05);
-        }
-
-        .table-modern input {
-            width: 100%;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-        }
-
-        /* SUMMARY CARD */
-        .summary-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
-        }
-
-        .summary-card h4 {
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .summary-row.total {
-            border-bottom: none;
-            font-size: 18px;
-            margin-top: 10px;
-            padding-top: 15px;
-            border-top: 2px solid var(--rojo);
-        }
-
-        /* SUGGESTIONS */
+        /* SUGERENCIAS MODERNAS */
         #portalSuggestions {
             position: fixed;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.2);
             z-index: 10000;
             display: none;
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
+            border: 1px solid #e5e7eb;
         }
-
         #portalSuggestions .item {
-            padding: 12px 15px;
+            padding: 14px 18px;
             cursor: pointer;
-            border-bottom: 1px solid #f1f1f1;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.2s ease;
         }
-
         #portalSuggestions .item:hover {
-            background: #f8f9fa;
+            background: linear-gradient(90deg, #fef2f2, #fee2e2);
         }
-
         #portalSuggestions .item strong {
             display: block;
+            font-size: 14px;
+            color: var(--negro);
         }
-
         #portalSuggestions .item .meta {
             font-size: 12px;
             color: var(--gris);
+            margin-top: 4px;
         }
 
+        /* BOTONES DE ELIMINAR */
         .btn-del {
             background: #fee2e2;
             border: none;
-            border-radius: 8px;
-            padding: 5px 10px;
+            border-radius: 10px;
+            padding: 6px 12px;
             color: var(--rojo);
             cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
         }
-
         .btn-del:hover {
             background: #fecaca;
+            transform: scale(1.05);
+        }
+
+        /* MODALES MODERNOS */
+        .modal-modern .modal-content {
+            border-radius: 24px;
+            border: none;
+            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.25);
+        }
+        .modal-modern .modal-header {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            color: white;
+            border-radius: 24px 24px 0 0;
+            padding: 20px 24px;
+        }
+
+        /* ANIMACIONES */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .erp-navbar {
+                padding: 12px 16px;
+                flex-direction: column;
+                gap: 12px;
+            }
+            .hero-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            .hero-number {
+                text-align: center;
+                width: 100%;
+            }
+            .transport-card {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .transport-left {
+                flex-direction: column;
+            }
+            .table-modern {
+                font-size: 11px;
+            }
+            .table-modern thead th,
+            .table-modern tbody td {
+                padding: 8px 4px;
+            }
         }
 
         .opacity-50 {
             opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--negro);
+        }
+
+        .btn-dark {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: none;
+            border-radius: 12px;
+            padding: 8px 20px;
+            transition: all 0.2s ease;
+        }
+        .btn-dark:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #334155, #1e293b);
         }
     </style>
-
 </head>
-
 <body>
 
     <!-- NAVBAR ERP -->
     <div class="erp-navbar">
         <div class="erp-logo-section">
-            <div class="erp-logo">
-                <i class="bi bi-buildings-fill"></i>
-            </div>
+            <div class="erp-logo"><i class="bi bi-building"></i></div>
             <div>
                 <div class="erp-company">KCF CORPORACION</div>
                 <div class="erp-system">ERP Comercial · Gestión de Cotizaciones</div>
@@ -383,229 +558,185 @@
                 <i class="bi bi-circle-fill"></i>
                 <span id="estado_texto">EN PROCESO</span>
             </div>
-            <a href="/cotizacion" class="btn btn-dark">
-                <i class="bi bi-arrow-left"></i>
-                Volver
-            </a>
+            <a href="/listado_cotizaciones" class="btn btn-dark"><i class="bi bi-arrow-left"></i> Volver</a>
         </div>
     </div>
 
     <div class="container-fluid py-4">
-
-        <!-- HIDDEN -->
         <input type="hidden" id="cotizacion_id" value="{{ cotizacion_id or '' }}">
         <input type="hidden" id="modo_consulta" value="{{ modo or '' }}">
-        <input type="hidden" id="tipo_documento_actual" value="borrador">
 
         <!-- HERO -->
-        <div class="hero-card mb-4">
+        <div class="hero-card mb-4 fade-in-up">
             <div class="hero-content">
-                <div>
-                    <h1 class="hero-title">Crear Cotización</h1>
-                    <div class="hero-subtitle">Sistema ERP Comercial · Gestión moderna de ventas</div>
+                <h1 class="hero-title">Crear Cotización</h1>
+                <div class="hero-subtitle">
+                    <i class="bi bi-building"></i> Sistema ERP Comercial · Gestión moderna de ventas
                 </div>
-                <div class="hero-number">
-                    <div class="number-label">NÚMERO DE COTIZACIÓN</div>
-                    <div class="number-value" id="numero_cotizacion">Se asigna automáticamente</div>
-                    <div class="number-label mt-2">CÓDIGO VENDEDOR</div>
-                    <div class="number-value small" id="codigo_vendedor">---</div>
-                    <div class="number-label mt-2">TIPO DOCUMENTO</div>
-                    <div class="number-value small" id="tipo_documento">
-                        <span class="badge-warning">BORRADOR</span>
-                    </div>
+            </div>
+            <div class="hero-number">
+                <div class="number-label">
+                    <i class="bi bi-hash"></i> NÚMERO DE COTIZACIÓN
+                </div>
+                <div class="number-value" id="numero_cotizacion">Se asigna automáticamente</div>
+                <div class="number-label mt-2">
+                    <i class="bi bi-person-badge"></i> CÓDIGO VENDEDOR
+                </div>
+                <div class="number-value small" id="codigo_vendedor">---</div>
+                <div class="number-label mt-2">
+                    <i class="bi bi-file-text"></i> TIPO DOCUMENTO
+                </div>
+                <div class="number-value small" id="tipo_documento">
+                    <span class="badge-warning"><i class="bi bi-pencil"></i> BORRADOR</span>
                 </div>
             </div>
         </div>
 
-        <!-- BOTONES -->
-        <div class="action-toolbar mb-4">
+        <!-- BOTONES DE ACCIÓN -->
+        <div class="action-toolbar mb-4 fade-in-up">
             <div class="d-flex flex-wrap gap-2">
                 <button class="btn btn-warning btn-toolbar" id="btnGuardarBorrador">
-                    <i class="bi bi-save-fill"></i>
-                    Guardar Borrador
+                    <i class="bi bi-save-fill"></i> Guardar Borrador
                 </button>
                 <button class="btn btn-danger btn-toolbar" id="btnGuardarOficial">
-                    <i class="bi bi-floppy-fill"></i>
-                    Convertir a Oficial
+                    <i class="bi bi-file-check-fill"></i> Convertir a Oficial
                 </button>
                 <button class="btn btn-primary btn-toolbar" id="btnPdf" disabled>
-                    <i class="bi bi-file-earmark-pdf-fill"></i>
-                    PDF
+                    <i class="bi bi-file-earmark-pdf-fill"></i> PDF
                 </button>
                 <button class="btn btn-warning btn-toolbar" id="btnModificar" disabled>
-                    <i class="bi bi-pencil-square"></i>
-                    Modificar
+                    <i class="bi bi-pencil-square"></i> Modificar
                 </button>
                 <button class="btn btn-success btn-toolbar" id="btnAceptada" disabled>
-                    <i class="bi bi-check-circle-fill"></i>
-                    Aceptada
+                    <i class="bi bi-check-circle-fill"></i> Aceptada
                 </button>
             </div>
         </div>
 
-        <!-- SECCIONES -->
+        <!-- SECCIÓN DE DOS COLUMNAS: CLIENTE + CONDICIONES -->
         <div class="row g-4">
-
-            <!-- CLIENTE -->
+            <!-- COLUMNA IZQUIERDA: INFORMACIÓN DEL CLIENTE -->
             <div class="col-xl-6">
                 <div class="erp-card">
                     <div class="card-header-custom">
-                        <div><i class="bi bi-people-fill"></i> Información del Cliente</div>
+                        <i class="bi bi-people-fill"></i> Información del Cliente
                     </div>
                     <div class="card-body-custom">
                         <input type="hidden" id="cliente_id" value="">
                         
-                        <!-- 🔥 BUSCADOR POR RUC -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-12">
-                                <label class="form-label">Buscar Cliente por RUC</label>
+                        <!-- BUSCADOR POR RUC -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <label class="form-label">
+                                    <i class="bi bi-search"></i> Buscar Cliente por RUC
+                                </label>
                                 <div class="input-group">
-                                    <input type="text" 
-                                           class="form-control custom-input" 
-                                           id="buscar_ruc" 
-                                           placeholder="Ingrese RUC de 11 dígitos">
+                                    <input type="text" class="form-control custom-input" id="buscar_ruc" placeholder="Ingrese RUC de 11 dígitos">
                                     <button class="btn btn-primary" type="button" id="btnBuscarClientePorRuc">
-                                        <i class="bi bi-search"></i> Buscar Cliente
+                                        <i class="bi bi-search"></i> Buscar
                                     </button>
                                     <button class="btn btn-outline-secondary" type="button" id="btnLimpiarCliente" title="Limpiar cliente">
                                         <i class="bi bi-x-circle"></i> Limpiar
                                     </button>
                                 </div>
-                                <small class="text-muted">Ingrese el RUC y presione buscar para autocompletar los datos del cliente</small>
+                                <small class="text-muted mt-2 d-block">
+                                    <i class="bi bi-info-circle"></i> Ingrese el RUC y presione buscar para autocompletar los datos del cliente
+                                </small>
                             </div>
                         </div>
-                        
+
+                        <!-- DATOS DEL CLIENTE -->
                         <div class="row g-3">
-                            <div class="col-md-12">
-                                <label class="form-label">Señor(es) <span class="text-danger">*</span></label>
-                                <div class="search-container">
-                                    <input type="text" class="form-control custom-input" id="cliente_razon_social"
-                                        placeholder="Escriba para buscar cliente..." autocomplete="off">
-                                    <div id="clienteSuggestions" class="suggestions-dropdown"></div>
-                                </div>
-                            </div>
-                            
                             <div class="col-md-6">
-                                <label class="form-label">RUC / DNI</label>
+                                <label class="form-label"><i class="bi bi-card-text"></i> RUC / DNI</label>
                                 <input type="text" class="form-control custom-input" id="cliente_doc" placeholder="Documento" readonly>
                             </div>
-                            
                             <div class="col-md-6">
-                                <label class="form-label">Teléfono</label>
-                                <input type="text" class="form-control custom-input" id="telefono_contacto">
+                                <label class="form-label"><i class="bi bi-building"></i> Razón Social <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control custom-input" id="cliente_razon_social" placeholder="Escriba para buscar cliente..." autocomplete="off">
                             </div>
-                            
-                            <div class="col-12">
-                                <label class="form-label">Dirección Fiscal</label>
-                                <input type="text" class="form-control custom-input" id="cliente_direccion">
-                            </div>
-                            
                             <div class="col-md-6">
-                                <label class="form-label">Estado</label>
+                                <label class="form-label"><i class="bi bi-telephone"></i> Teléfono</label>
+                                <input type="text" class="form-control custom-input" id="telefono_contacto" placeholder="Ej: 987654321">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-geo-alt"></i> Dirección Fiscal</label>
+                                <input type="text" class="form-control custom-input" id="cliente_direccion" placeholder="Ej: Av. Principal 123">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-flag"></i> Estado</label>
                                 <select class="form-select custom-input" id="estado">
-                                    <option value="En Proceso">En Proceso</option>
-                                    <option value="Generada">Generada</option>
-                                    <option value="Aceptada por Cliente">Aceptada</option>
-                                    <option value="Rechazada">Rechazada</option>
+                                    <option value="En Proceso">🟡 En Proceso</option>
+                                    <option value="Generada">🔵 Generada</option>
+                                    <option value="Aceptada por Cliente">🟢 Aceptada</option>
+                                    <option value="Rechazada">🔴 Rechazada</option>
                                 </select>
                             </div>
-                            
-                            <div class="col-12">
-                                <label class="form-label">Dirección Entrega</label>
-                                <input type="text" class="form-control custom-input" id="direccion_entrega"
-                                    placeholder="Dirección de entrega">
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-truck"></i> Dirección Entrega</label>
+                                <input type="text" class="form-control custom-input" id="direccion_entrega" placeholder="Dirección de entrega">
                             </div>
-                            
                         </div>
+
+                        <!-- BOTÓN CREAR CLIENTE -->
                         <div class="mt-4">
                             <button class="btn btn-success w-100" id="btnCrearCliente">
-                                <i class="bi bi-person-plus-fill"></i>
-                                Crear nuevo cliente
+                                <i class="bi bi-person-plus-fill"></i> Crear nuevo cliente
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- CONDICIONES -->
+            <!-- COLUMNA DERECHA: CONDICIONES COMERCIALES -->
             <div class="col-xl-6">
                 <div class="erp-card">
                     <div class="card-header-custom red">
-                        <div><i class="bi bi-journal-check"></i> Condiciones Comerciales</div>
+                        <i class="bi bi-journal-check"></i> Condiciones Comerciales
                     </div>
                     <div class="card-body-custom">
                         <input type="hidden" id="usuario_id" value="">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Asesor Comercial</label>
+                                <label class="form-label"><i class="bi bi-person-circle"></i> Ejecutiva Comercial</label>
                                 <input type="text" class="form-control custom-input" id="asesor_comercial" readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">E-mail</label>
+                                <label class="form-label"><i class="bi bi-envelope"></i> E-mail</label>
                                 <input type="text" class="form-control custom-input" id="email_contacto" readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Teléfono</label>
+                                <label class="form-label"><i class="bi bi-telephone"></i> Teléfono</label>
                                 <input type="text" class="form-control custom-input" id="telefono_contacto_user" readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Almacén</label>
+                                <label class="form-label"><i class="bi bi-box-seam"></i> Almacén</label>
                                 <select class="form-select custom-input" id="almacen">
-                                    <option>Almacén Breña</option>
-                                    <option>Almacén SMP</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Tipo Producto</label>
-                                <select class="form-select custom-input" id="tipo_producto">
-                                    <option value="">Seleccionar</option>
-                                    <option value="stock">Stock</option>
-                                    <option value="pedido">Pedido</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Forma Pago</label>
-                                <select class="form-select custom-input" id="forma_pago">
-                                    <option value="">Seleccionar</option>
+                                    <option>🏭 Almacén Breña</option>
+                                    <option>🏢 Almacén SMP</option>
                                 </select>
                             </div>
                         </div>
-                        
-                        <!-- TIEMPO ENTREGA CON SELECTOR INTELIGENTE -->
                         <div class="row g-3 mt-3">
                             <div class="col-md-6">
-                                <label class="form-label">Tiempo Entrega</label>
-                                <div class="tiempo-entrega-wrapper">
-                                    <select class="form-select custom-input" id="tiempo_entrega_select">
-                                        <option value="">-- Seleccionar opción --</option>
-                                        <option value="Inmediato">⚡ Inmediato (24 horas)</option>
-                                        <option value="1 día">📦 1 día hábil</option>
-                                        <option value="2 días">📦 2 días hábiles</option>
-                                        <option value="3 días">📦 3 días hábiles</option>
-                                        <option value="5 días">📦 5 días hábiles</option>
-                                        <option value="7 días">📦 7 días hábiles</option>
-                                        <option value="15 días">📦 15 días hábiles</option>
-                                        <option value="personalizado">✏️ Personalizado (escribir)</option>
-                                    </select>
-                                    <input type="text" 
-                                           class="form-control custom-input" 
-                                           id="tiempo_entrega" 
-                                           placeholder="Ej: 10 días, 2 semanas, etc."
-                                           style="display: none;">
-                                </div>
+                                <label class="form-label"><i class="bi bi-clock"></i> Tiempo Entrega</label>
+                                <input type="text" class="form-control custom-input" id="tiempo_entrega" placeholder="Ej: 10 días">
                             </div>
-                            
                             <div class="col-md-6">
-                                <label class="form-label">Validez Oferta</label>
+                                <label class="form-label"><i class="bi bi-credit-card"></i> Forma de Pago</label>
+                                <input type="text" class="form-control custom-input" id="forma_pago" placeholder="Ej: Contado, Crédito 30 días">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-calendar-check"></i> Validez Oferta</label>
                                 <input type="text" class="form-control custom-input" id="validez_oferta" value="15 días">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Descuento %</label>
-                                <input type="number" class="form-control custom-input" id="descuento_porcentaje" value="0">
+                                <label class="form-label"><i class="bi bi-percent"></i> Descuento %</label>
+                                <input type="number" class="form-control custom-input" id="descuento_porcentaje" value="0" step="0.01">
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Nota Comercial</label>
-                                <textarea class="form-control custom-input" id="nota_cotizacion" rows="4"></textarea>
+                                <label class="form-label"><i class="bi bi-chat-text"></i> Nota Comercial</label>
+                                <textarea class="form-control custom-input" id="nota_cotizacion" rows="4" placeholder="Escriba notas adicionales..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -613,8 +744,8 @@
             </div>
         </div>
 
-        <!-- TRANSPORTE -->
-        <div class="transport-card mt-4">
+        <!-- TRANSPORTE CARD -->
+        <div class="transport-card mt-4 fade-in-up">
             <div class="transport-left">
                 <i class="bi bi-truck"></i>
                 <div>
@@ -623,15 +754,15 @@
                 </div>
             </div>
             <div class="transport-right">
-                <span>S/.</span>
+                <span class="fw-bold me-2">S/.</span>
                 <input type="number" id="monto_transporte" value="0" min="0" step="0.01">
             </div>
         </div>
 
         <!-- TABLA PRODUCTOS -->
-        <div class="erp-card mt-4">
+        <div class="erp-card mt-4 fade-in-up">
             <div class="card-header-custom green">
-                <div><i class="bi bi-box-seam-fill"></i> Detalle de Productos</div>
+                <i class="bi bi-box-seam-fill"></i> Detalle de Productos
             </div>
             <div class="card-body-custom p-0">
                 <div class="table-responsive">
@@ -640,21 +771,19 @@
                             <tr>
                                 <th>Item</th><th>Código</th><th>Descripción</th><th>Marca</th>
                                 <th>Modelo</th><th>Cant</th><th>PU Costo</th><th>Subtotal</th>
-                                <th>Transporte</th><th>Total</th><th>Margen</th><th>PU Venta</th>
-                                <th>Subtotal Venta</th><th>% Desc</th><th>Total Desc</th><th>Eliminar</th>
+                                <th>PU Venta</th><th>Subtotal Venta</th><th>% Desc</th><th>Total Desc</th><th>Eliminar</th>
                             </tr>
                         </thead>
-                        <tbody id="table-body"></tbody>
+                        <tbody id="table-body">
+                            <!-- Los productos se agregarán dinámicamente aquí -->
+                        </tbody>
                         <tfoot>
-                            <tr>
-                                <td colspan="7" class="text-end fw-bold">Totales:</td>
+                            <tr class="fw-bold bg-light">
+                                <td colspan="7" class="text-end">Totales:</td>
                                 <td id="total_subtotal_costo">0.00</td>
-                                <td id="total_transporte_prorrateo">0.00</td>
-                                <td id="total_costo_general">0.00</td>
-                                <td>\n                                <td id="total_subtotal_venta">0.00</td>
-                                <td></td>
+                                <td id="total_subtotal_venta">0.00</td>
                                 <td id="total_subtotal_venta_desc">0.00</td>
-                                <td></td>
+                                <td colspan="3"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -670,57 +799,65 @@
         <!-- RESUMEN -->
         <div class="row mt-4">
             <div class="col-lg-4 ms-auto">
-                <div class="summary-card">
-                    <h4>Resumen Venta</h4>
-                    <div class="summary-row"><span>Subtotal:</span><strong>S/. <span id="summary_subtotal_venta_desc">0.00</span></strong></div>
-                    <div class="summary-row"><span>IGV 18%:</span><strong>S/. <span id="summary_igv">0.00</span></strong></div>
-                    <div class="summary-row total"><span>Total Venta:</span><strong>S/. <span id="summary_total_venta">0.00</span></strong></div>
+                <div class="summary-card fade-in-up">
+                    <h4><i class="bi bi-calculator-fill"></i> Resumen Venta</h4>
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <strong>S/. <span id="summary_subtotal_venta_desc">0.00</span></strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>IGV 18%:</span>
+                        <strong>S/. <span id="summary_igv">0.00</span></strong>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total Venta:</span>
+                        <strong>S/. <span id="summary_total_venta">0.00</span></strong>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- NOTAS -->
-        <div class="erp-card mt-4">
+        <!-- NOTAS INTERNAS -->
+        <div class="erp-card mt-4 fade-in-up">
             <div class="card-header-custom dark">
-                <div><i class="bi bi-journal-text"></i> Notas Internas ERP</div>
+                <i class="bi bi-journal-text"></i> Notas Internas ERP
             </div>
             <div class="card-body-custom">
                 <textarea class="form-control custom-input" id="notas" rows="4" placeholder="Notas internas u observaciones..."></textarea>
             </div>
         </div>
-
     </div>
 
     <!-- SUGERENCIAS -->
     <div id="portalSuggestions"></div>
 
-    <!-- MODAL CONFIRMACIÓN POST-TRANSACCIONAL -->
+    <!-- MODALES -->
     <div class="modal fade" id="modalConfirmacion" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content modal-modern">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Cotización Guardada</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="modalConfirmacionBody"></div>
                 <div class="modal-footer">
-                    <button class="btn btn-primary" id="btnDescargarPDFModal">📄 Descargar PDF</button>
-                    <button class="btn btn-success" id="btnNuevaCotizacionModal">➕ Nueva Cotización</button>
+                    <button class="btn btn-primary" id="btnDescargarPDFModal">
+                        <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+                    </button>
+                    <button class="btn btn-success" id="btnNuevaCotizacionModal">
+                        <i class="bi bi-plus-circle"></i> Nueva Cotización
+                    </button>
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL CREAR NUEVO CLIENTE CON BOTÓN SUNAT -->
     <div class="modal fade" id="modalNuevoCliente" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content modal-modern">
                 <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-person-plus-fill text-success"></i>
-                        Nuevo Cliente
-                    </h5>
+                    <h5 class="modal-title"><i class="bi bi-person-plus-fill text-success"></i> Nuevo Cliente</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -729,9 +866,9 @@
                             <div class="col-md-6">
                                 <label class="form-label">Tipo Documento <span class="text-danger">*</span></label>
                                 <select class="form-select custom-input" id="nuevo_tipo_documento" required>
-                                    <option value="RUC">RUC</option>
-                                    <option value="DNI">DNI</option>
-                                    <option value="CE">Carnet de Extranjería</option>
+                                    <option value="RUC">📄 RUC</option>
+                                    <option value="DNI">🪪 DNI</option>
+                                    <option value="CE">🛂 Carnet de Extranjería</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -783,18 +920,17 @@
         </div>
     </div>
 
-    <!-- MODAL ACEPTADA -->
     <div class="modal fade" id="modalAceptada" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content modal-modern">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-check-circle-fill text-success"></i> Confirmar Cotización</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Pedido / Orden Cliente</label>
-                        <input type="text" class="form-control custom-input" id="pedido_cliente">
+                        <input type="text" class="form-control custom-input" id="pedido_cliente" placeholder="Ingrese número de pedido">
                     </div>
                     <div>
                         <label class="form-label">Fecha Confirmación</label>
@@ -809,15 +945,17 @@
         </div>
     </div>
 
-    <!-- MODAL MODIFICAR -->
     <div class="modal fade" id="modalModificar" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content modal-modern">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-pencil-square text-warning"></i> Habilitar Modificación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">¿Desea habilitar nuevamente esta cotización?</div>
+                <div class="modal-body text-center py-4">
+                    <i class="bi bi-question-circle-fill fs-1 text-warning mb-3 d-block"></i>
+                    ¿Desea habilitar nuevamente esta cotización?
+                </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button class="btn btn-warning" id="btn-confirmar-modificar">Sí, habilitar</button>
@@ -826,10 +964,7 @@
         </div>
     </div>
 
-    <!-- JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/crear_cotizacion.js"></script>
-
 </body>
-
 </html>
