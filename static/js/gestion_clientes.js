@@ -450,7 +450,7 @@ function inicializarEventosPunto(div) {
 }
 
 // =========================================
-// LISTAR CLIENTES CON BÚSQUEDA MEJORADA
+// LISTAR CLIENTES CON BÚSQUEDA MEJORADA + DEBUG
 // =========================================
 async function cargarClientes(filtros = {}) {
     const tbody = document.getElementById("tbody-clientes");
@@ -467,17 +467,26 @@ async function cargarClientes(filtros = {}) {
     try {
         let url = "/api/clientes/buscar";
         const params = new URLSearchParams();
+        
         if (filtros.tipo) params.append("tipo_documento", filtros.tipo);
         if (filtros.busqueda && filtros.busqueda.trim()) {
             params.append("busqueda", filtros.busqueda.trim());
         }
+        
         if (params.toString()) url += "?" + params.toString();
 
-        console.log("🔍 Buscando clientes:", url); // Debug
-        
+        // ==================== DEBUG ====================
+        console.log("🔍 URL de búsqueda:", url);
+        console.log("🔍 Filtros enviados:", filtros);
+        // ===============================================
+
         const res = await fetch(url);
         const json = await res.json();
         
+        // ==================== DEBUG ====================
+        console.log("📥 Respuesta del servidor:", json);
+        // ===============================================
+
         if (!json.success) {
             throw new Error(json.error || "Error al cargar clientes");
         }
