@@ -583,9 +583,18 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < listaProductos.length; i++) {
             if (!listaProductos[i].producto_id) { mostrarNotificacion(`⚠️ Falta seleccionar producto en la fila ${i + 1}`, "warning"); return; }
         }
+        
+        // Obtener el valor correcto de validez oferta (puede ser personalizado)
+        let validezOferta = document.getElementById("validez_oferta")?.value || "15 días";
+        const validezPersonalizado = document.getElementById("validez_oferta_personalizado")?.value;
+        if (validezOferta === "personalizado" && validezPersonalizado) {
+            validezOferta = validezPersonalizado;
+        }
+        
         const subtotal = Number(document.getElementById('summary_subtotal_venta_desc')?.textContent || 0);
         const igv = Number(document.getElementById('summary_igv')?.textContent || 0);
         const total = Number(document.getElementById('summary_total_venta')?.textContent || 0);
+        
         const payload = {
             cliente_id: cliente_id,
             usuario_id: Number(document.getElementById("usuario_id")?.value || 0),
@@ -594,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
             forma_pago: document.getElementById("forma_pago")?.value || "",
             tiempo_entrega: document.getElementById("tiempo_entrega")?.value || "",
             almacen: document.getElementById("almacen")?.value || "",
-            validez_oferta: document.getElementById("validez_oferta")?.value || "",
+            validez_oferta: validezOferta,
             notas: document.getElementById('notas')?.value || "",
             productos: listaProductos,
             codigo_cotizacion: codigoCotizacionActual,
@@ -816,11 +825,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // RECALCULAR - VERSIÓN SIMPLIFICADA Y ARMÓNICA
+    // RECALCULAR - VERSIÓN CORREGIDA (12 COLUMNAS)
     // =========================
     function recalculateAll() {
         const rows = document.querySelectorAll("#table-body tr");
         let totalSubtotalCosto = 0;
+        let totalSubtotalVenta = 0;
         let totalSubtotalVentaDesc = 0;
 
         rows.forEach(r => {
@@ -835,6 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const subtotalVenta = pvUnit * cantidad;
             const sv = r.querySelector('.subtotal_venta_item');
             if (sv) sv.textContent = subtotalVenta.toFixed(2);
+            totalSubtotalVenta += subtotalVenta;
 
             const descPct = Number(r.querySelector('.descuento_porcentaje')?.value || 0);
             const subtotalDesc = subtotalVenta * (1 - descPct / 100);
@@ -861,7 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // AGREGAR ITEMS - VERSIÓN CORREGIDA (12 COLUMNAS EXACTAS)
+    // AGREGAR ITEMS - 12 COLUMNAS EXACTAS (coincide con HTML)
     // =========================
     function addItem() {
         if (cotizacionBloqueada) { 
@@ -870,6 +881,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         itemCounter++;
         const row = document.createElement("tr");
+        // EXACTAMENTE 12 COLUMNAS - coincide con <thead> del HTML
         row.innerHTML = `
             <td class="col-item">${itemCounter}</td>
             <td class="col-codigo">
