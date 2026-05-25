@@ -6,7 +6,28 @@ clientes_bp = Blueprint("clientes", __name__)
 @clientes_bp.route("/api/clientes/buscar")
 def api_buscar_clientes():
     try:
+        # Obtener parámetros de búsqueda
+        busqueda = request.args.get('busqueda', '').strip()
+        tipo_documento = request.args.get('tipo_documento', '')
+
+        # Obtener todos los clientes primero
         data = obtener_clientes()
+
+        # Aplicar filtros si hay búsqueda
+        if busqueda:
+            busqueda = busqueda.lower()
+            data = [
+                c for c in data if (
+                    (c.get('numero_documento') and busqueda in str(c.get('numero_documento', '')).lower()) or
+                    (c.get('razon_social') and busqueda in str(c.get('razon_social', '')).lower()) or
+                    (c.get('nombre_comercial') and busqueda in str(c.get('nombre_comercial', '')).lower()) or
+                    (c.get('codigo_cliente') and busqueda in str(c.get('codigo_cliente', '')).lower())
+                )
+            ]
+
+        # Filtrar por tipo de documento si se envía
+        if tipo_documento:
+            data = [c for c in data if c.get('tipo_documento') == tipo_documento]
 
         return jsonify({
             "success": True,
@@ -14,7 +35,7 @@ def api_buscar_clientes():
         })
 
     except Exception as e:
-        print("🔥 ERROR:", e)
+        print("🔥 ERROR en búsqueda de clientes:", e)
         return jsonify({
             "success": False,
             "error": str(e)
