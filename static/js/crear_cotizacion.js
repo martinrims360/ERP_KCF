@@ -610,16 +610,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const producto = {
                 producto_id: Number(getInput('.producto_id')) || null,
+                codigo: getInput('.codigo_producto') || '',
+                descripcion: getInput('.descripcion') || '',
+                modelo: getInput('.modelo') || '',
+                marca: getInput('.marca') || '',
+                unidad_medida: getInput('.unidad_medida') || '',
                 cantidad: Number(getInput('.cantidad')),
-                costo_unitario: Number(getInput('.precio_costo_unitario')),
-                subtotal_costo: Number(getText('.subtotal_costo')),
-                margen_porcentaje: 20,
                 precio_venta_unitario: Number(getInput('.precio_venta_unitario')),
-                subtotal_venta: Number(getText('.subtotal_venta')),
-                descuento_porcentaje: Number(getInput('.descuento_porcentaje')),
-                precio_venta_con_descuento: Number(getText('.precio_venta_con_descuento')),
-                subtotal_venta_con_descuento: Number(getText('.subtotal_venta_con_descuento')),
-                descuento_total: Number(getText('.descuento_total'))
+                subtotal: Number(getText('.subtotal')),
+                total_pagar: Number(getText('.total_pagar'))
             };
 
             listaProductos.push(producto);
@@ -693,9 +692,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!listaProductos[i].producto_id) { mostrarNotificacion(`⚠️ Falta seleccionar producto en la fila ${i + 1}`, "warning"); return; }
         }
         
-        const subtotal = Number(document.getElementById('summary_subtotal_venta')?.textContent || 0);
-        const igv = subtotal * 0.18;
-        const total = subtotal + igv;
+        const total = Number(document.getElementById('total_total_pagar')?.textContent || 0);
+        const igv = total * 0.18;
+        const subtotal = total - igv;
         
         const payload = {
             cliente_id: cliente_id,
@@ -828,14 +827,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const productoIdInput = row.querySelector('.producto_id');
         const codigoInput = row.querySelector('.codigo_producto');
         const descripcionInput = row.querySelector('.descripcion');
-        const marcaInput = row.querySelector('.marca');
         const modeloInput = row.querySelector('.modelo');
+        const marcaInput = row.querySelector('.marca');
+        const unidadMedidaInput = row.querySelector('.unidad_medida');
         
         if (productoIdInput) productoIdInput.value = p.id;
         if (codigoInput) codigoInput.value = p.codigo || "";
         if (descripcionInput) descripcionInput.value = p.descripcion || "";
-        if (marcaInput) marcaInput.value = p.marca || "";
         if (modeloInput) modeloInput.value = p.modelo || "";
+        if (marcaInput) marcaInput.value = p.marca || "";
+        if (unidadMedidaInput) unidadMedidaInput.value = p.unidad_medida || "UNIDAD";
         
         console.log('✅ Producto seleccionado:', p.codigo, p.descripcion);
     }
@@ -908,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; 
                 }
 
-                const html = productos.map(p => `<div class="item" data-id="${p.id}" data-codigo="${p.codigo}" data-descripcion="${p.descripcion}" data-marca="${p.marca || ''}" data-modelo="${p.modelo || ''}">
+                const html = productos.map(p => `<div class="item" data-id="${p.id}" data-codigo="${p.codigo}" data-descripcion="${p.descripcion}" data-modelo="${p.modelo || ''}" data-marca="${p.marca || ''}" data-unidad="${p.unidad_medida || 'UNIDAD'}">
                     <strong>📦 ${p.codigo}</strong> - ${p.descripcion}<div class="meta">${p.marca || ''} • Stock: ${p.stock || 0}</div></div>`).join('');
                 portalShow(input, html);
 
@@ -918,8 +919,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             id: el.dataset.id,
                             codigo: el.dataset.codigo,
                             descripcion: el.dataset.descripcion,
+                            modelo: el.dataset.modelo,
                             marca: el.dataset.marca,
-                            modelo: el.dataset.modelo
+                            unidad_medida: el.dataset.unidad
                         };
                         setProductoEnFila(row, productoData);
                         portalHide();
@@ -997,63 +999,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================
     function recalculateAll() {
         const rows = document.querySelectorAll("#table-body tr");
-        let totalSubtotalCosto = 0;
-        let totalSubtotalVenta = 0;
-        let totalDescuento = 0;
+        let totalSubtotal = 0;
+        let totalTotalPagar = 0;
 
         rows.forEach(r => {
             const cantidad = Number(r.querySelector('.cantidad')?.value || 0);
-            const costo = Number(r.querySelector('.precio_costo_unitario')?.value || 0);
-            const subtotalCosto = cantidad * costo;
-            const subtotalCostoElem = r.querySelector('.subtotal_costo');
-            if (subtotalCostoElem) subtotalCostoElem.textContent = subtotalCosto.toFixed(2);
-            totalSubtotalCosto += subtotalCosto;
-
             const precioVenta = Number(r.querySelector('.precio_venta_unitario')?.value || 0);
-            const subtotalVenta = precioVenta * cantidad;
-            const subtotalVentaElem = r.querySelector('.subtotal_venta');
-            if (subtotalVentaElem) subtotalVentaElem.textContent = subtotalVenta.toFixed(2);
-            totalSubtotalVenta += subtotalVenta;
-
-            const descuentoPct = Number(r.querySelector('.descuento_porcentaje')?.value || 0);
-            const descuentoTotal = subtotalVenta * (descuentoPct / 100);
-            const descuentoTotalElem = r.querySelector('.descuento_total');
-            if (descuentoTotalElem) descuentoTotalElem.textContent = descuentoTotal.toFixed(2);
-            totalDescuento += descuentoTotal;
-
-            const precioVentaConDesc = precioVenta * (1 - descuentoPct / 100);
-            const precioVentaDescElem = r.querySelector('.precio_venta_con_descuento');
-            if (precioVentaDescElem) precioVentaDescElem.textContent = precioVentaConDesc.toFixed(2);
-
-            const subtotalVentaConDesc = subtotalVenta - descuentoTotal;
-            const subtotalVentaDescElem = r.querySelector('.subtotal_venta_con_descuento');
-            if (subtotalVentaDescElem) subtotalVentaDescElem.textContent = subtotalVentaConDesc.toFixed(2);
+            const subtotal = cantidad * precioVenta;
+            const totalPagar = subtotal; // Sin descuento por ahora
+            
+            const subtotalElem = r.querySelector('.subtotal');
+            if (subtotalElem) subtotalElem.textContent = subtotal.toFixed(2);
+            
+            const totalPagarElem = r.querySelector('.total_pagar');
+            if (totalPagarElem) totalPagarElem.textContent = totalPagar.toFixed(2);
+            
+            totalSubtotal += subtotal;
+            totalTotalPagar += totalPagar;
         });
 
         // Actualizar footer
-        const totalSubtotalCostoElem = document.getElementById('total_subtotal_costo');
-        if (totalSubtotalCostoElem) totalSubtotalCostoElem.textContent = totalSubtotalCosto.toFixed(2);
-
-        const totalSubtotalVentaElem = document.getElementById('total_subtotal_venta');
-        if (totalSubtotalVentaElem) totalSubtotalVentaElem.textContent = totalSubtotalVenta.toFixed(2);
-
-        const totalDescuentoElem = document.getElementById('total_descuento_total');
-        if (totalDescuentoElem) totalDescuentoElem.textContent = totalDescuento.toFixed(2);
-
-        // Actualizar resumen
-        const subtotalConDesc = totalSubtotalVenta - totalDescuento;
+        const totalSubtotalElem = document.getElementById('total_subtotal');
+        if (totalSubtotalElem) totalSubtotalElem.textContent = totalSubtotal.toFixed(2);
+        
+        const totalTotalPagarElem = document.getElementById('total_total_pagar');
+        if (totalTotalPagarElem) totalTotalPagarElem.textContent = totalTotalPagar.toFixed(2);
+        
+        // Actualizar resumen de venta
         const summarySubtotal = document.getElementById('summary_subtotal_venta');
-        if (summarySubtotal) summarySubtotal.textContent = subtotalConDesc.toFixed(2);
+        if (summarySubtotal) summarySubtotal.textContent = totalTotalPagar.toFixed(2);
         
         const summaryIgv = document.getElementById('summary_igv');
-        if (summaryIgv) summaryIgv.textContent = (subtotalConDesc * 0.18).toFixed(2);
+        if (summaryIgv) summaryIgv.textContent = (totalTotalPagar * 0.18).toFixed(2);
         
         const summaryTotal = document.getElementById('summary_total_venta');
-        if (summaryTotal) summaryTotal.textContent = (subtotalConDesc * 1.18).toFixed(2);
+        if (summaryTotal) summaryTotal.textContent = (totalTotalPagar * 1.18).toFixed(2);
     }
 
     // =========================
-    // AGREGAR ITEMS - VERSIÓN SIMPLIFICADA
+    // AGREGAR ITEMS - VERSIÓN FINAL
     // =========================
     function addItem() {
         if (cotizacionBloqueada) { 
@@ -1069,30 +1053,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="hidden" class="producto_id">
             </td>
             <td class="col-desc"><input type="text" class="descripcion" readonly style="width:100%;"></td>
-            <td class="col-marca"><input type="text" class="marca" readonly style="width:100%;"></td>
             <td class="col-modelo"><input type="text" class="modelo" readonly style="width:100%;"></td>
+            <td class="col-marca"><input type="text" class="marca" readonly style="width:100%;"></td>
+            <td class="col-unidad"><input type="text" class="unidad_medida" value="UNIDAD" style="width:100%;"></td>
             <td class="col-cantidad"><input type="number" class="cantidad" value="1" step="0.01" style="width:100%;"></td>
-            <td class="col-monto"><input type="number" class="precio_costo_unitario" value="0" step="0.01" style="width:100%;"></td>
-            <td class="subtotal_costo">0.00</td>
-            <td class="col-precio-venta"><input type="number" class="precio_venta_unitario" value="0" step="0.01" style="width:100%;"></td>
-            <td class="subtotal_venta">0.00</td>
-            <td class="col-descuento"><input type="number" class="descuento_porcentaje" value="0" step="0.01" style="width:100%;"></td>
-            <td class="descuento_total">0.00</td>
+            <td class="col-precio"><input type="number" class="precio_venta_unitario" value="0" step="0.01" style="width:100%;"></td>
+            <td class="subtotal">0.00</td>
+            <td class="total_pagar">0.00</td>
             <td><button class="btn-del">🗑</button></td>
         `;
         
         if (tableBody) tableBody.appendChild(row);
-        
-        // Agregar campos ocultos adicionales para mantener compatibilidad
-        const precioVentaDescInput = document.createElement('input');
-        precioVentaDescInput.type = 'hidden';
-        precioVentaDescInput.className = 'precio_venta_con_descuento';
-        row.appendChild(precioVentaDescInput);
-        
-        const subtotalVentaDescInput = document.createElement('input');
-        subtotalVentaDescInput.type = 'hidden';
-        subtotalVentaDescInput.className = 'subtotal_venta_con_descuento';
-        row.appendChild(subtotalVentaDescInput);
         
         // Inicializar autocomplete para esta fila
         attachProductoAutocomplete(row);
@@ -1106,9 +1077,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         row.querySelector('.cantidad')?.addEventListener('input', rec);
-        row.querySelector('.precio_costo_unitario')?.addEventListener('input', rec);
         row.querySelector('.precio_venta_unitario')?.addEventListener('input', rec);
-        row.querySelector('.descuento_porcentaje')?.addEventListener('input', rec);
         row.querySelector('.btn-del')?.addEventListener('click', () => { 
             row.remove(); 
             recalculateAll(); 
@@ -1217,15 +1186,18 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('almacen').value = data.almacen || '';
             document.getElementById('validez_oferta').value = data.validez_oferta || '';
             
-            const subtotalConDesc = Number(data.subtotal || 0);
+            const total = Number(data.total || 0);
+            const totalTotalPagarElem = document.getElementById('total_total_pagar');
+            if (totalTotalPagarElem) totalTotalPagarElem.textContent = total.toFixed(2);
+            
             const summarySubtotal = document.getElementById('summary_subtotal_venta');
-            if (summarySubtotal) summarySubtotal.textContent = subtotalConDesc.toFixed(2);
+            if (summarySubtotal) summarySubtotal.textContent = total.toFixed(2);
             
             const summaryIgv = document.getElementById('summary_igv');
             if (summaryIgv) summaryIgv.textContent = Number(data.igv || 0).toFixed(2);
             
             const summaryTotal = document.getElementById('summary_total_venta');
-            if (summaryTotal) summaryTotal.textContent = Number(data.total || 0).toFixed(2);
+            if (summaryTotal) summaryTotal.textContent = total.toFixed(2);
             
             document.getElementById('table-body').innerHTML = '';
             itemCounter = 0;
@@ -1235,13 +1207,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (row) {
                     row.querySelector('.producto_id').value = item.producto_id || '';
                     row.querySelector('.cantidad').value = item.cantidad || 0;
-                    row.querySelector('.precio_costo_unitario').value = item.costo_unitario || 0;
                     row.querySelector('.precio_venta_unitario').value = item.precio_venta_unitario || 0;
-                    row.querySelector('.descuento_porcentaje').value = Number(item.descuento_porcentaje || 0);
                     row.querySelector('.codigo_producto').value = item.codigo || '';
                     row.querySelector('.descripcion').value = item.descripcion || '';
-                    row.querySelector('.marca').value = item.marca || '';
                     row.querySelector('.modelo').value = item.modelo || '';
+                    row.querySelector('.marca').value = item.marca || '';
+                    row.querySelector('.unidad_medida').value = item.unidad_medida || 'UNIDAD';
                 }
             });
             recalculateAll();
