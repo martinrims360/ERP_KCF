@@ -72,6 +72,28 @@ document.getElementById('formUsuario')
 
 });
 
+// =====================================
+// EDITAR USUARIO
+// =====================================
+function editarUsuario(id, nombre_completo, usuario, rol, email, telefono){
+
+    usuarioEditandoId = id;
+
+    document.getElementById('nombre_completo').value = nombre_completo;
+    document.getElementById('usuario').value         = usuario;
+    document.getElementById('password').value        = '';
+    document.getElementById('rol').value             = rol;
+    document.getElementById('email').value           = email;
+    document.getElementById('telefono').value        = telefono;
+
+    // Abrir modal de usuario
+    const modal = new bootstrap.Modal(
+        document.getElementById('modalUsuario')
+    );
+    modal.show();
+
+}
+
 
 // =====================================
 // CARGAR USUARIOS
@@ -117,6 +139,7 @@ async function cargarUsuarios(){
 
                         <button 
                             class="btn btn-warning btn-sm"
+                            onclick="editarUsuario(${u.id}, '${u.nombre_completo}', '${u.usuario}', '${u.rol}', '${u.email || ''}', '${u.telefono || ''}')"
                         >
                             ✏️
                         </button>
@@ -186,5 +209,17 @@ document.getElementById('modalListaUsuarios')
 .addEventListener('show.bs.modal', function(){
 
     cargarUsuarios();
+
+});
+
+// =====================================
+// RESETEAR ID AL CERRAR MODAL
+// =====================================
+document.getElementById('modalUsuario')
+.addEventListener('hidden.bs.modal', function(){
+
+    usuarioEditandoId = null;
+
+    document.getElementById('formUsuario').reset();
 
 });

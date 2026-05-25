@@ -64,3 +64,4 @@ def eliminar_usuario(id):
     eliminar_usuario_db(id)
 
     return jsonify(success=True)
+

@@ -225,6 +225,49 @@ def verificar_usuario(usuario: str, password: str):
 
     return None
 
+# =====================================
+# ACTUALIZAR USUARIO
+# =====================================
+def actualizar_usuario_db(id, data):
+
+    if data.get('password'):
+        pwd_hash = generate_password_hash(data['password'])
+        db_execute("""
+            UPDATE usuarios
+            SET nombre_completo = %s,
+                usuario         = %s,
+                password        = %s,
+                rol             = %s,
+                email           = %s,
+                telefono        = %s
+            WHERE id = %s
+        """, (
+            data['nombre_completo'],
+            data['usuario'],
+            pwd_hash,
+            data['rol'],
+            data['email'],
+            data['telefono'],
+            id
+        ))
+    else:
+        db_execute("""
+            UPDATE usuarios
+            SET nombre_completo = %s,
+                usuario         = %s,
+                rol             = %s,
+                email           = %s,
+                telefono        = %s
+            WHERE id = %s
+        """, (
+            data['nombre_completo'],
+            data['usuario'],
+            data['rol'],
+            data['email'],
+            data['telefono'],
+            id
+        ))
+
 
 # =========================
 # Productos - ACTUALIZADA

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from database import (db_query,guardar_usuario_db,listar_usuarios_db,eliminar_usuario_db)
+from database import (db_query,guardar_usuario_db,listar_usuarios_db,eliminar_usuario_db, actualizar_usuario_db)
 
 usuarios_bp = Blueprint("usuarios", __name__)
 
@@ -36,6 +36,22 @@ def eliminar_usuario(id):
     eliminar_usuario_db(id)
 
     return jsonify(success=True)
+
+# =====================================
+# ACTUALIZAR
+# =====================================
+@usuarios_bp.route('/api/usuarios/<int:id>', methods=['PUT'])
+def actualizar_usuario(id):
+
+    data = request.json
+
+    actualizar_usuario_db(id, data)
+
+    return jsonify(success=True)
+
+# =====================================
+# BUSCAR
+# =====================================
 
 @usuarios_bp.route("/api/usuarios/buscar")
 def api_buscar_usuarios():

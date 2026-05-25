@@ -16,11 +16,54 @@ document.addEventListener('DOMContentLoaded', () => {
     let usuarioActual = null;
     let esBorrador = true;
 
-    // Obtener usuario actual
+    // 🔥 Función para asignar valores por defecto de HELLEN
+    function asignarAsesorPorDefecto() {
+        console.log('📌 Asignando valores por defecto: Hellen Blas Principe');
+        
+        const asesorInput = document.getElementById('asesor_comercial');
+        const emailContacto = document.getElementById('email_contacto');
+        const telefonoUser = document.getElementById('telefono_contacto_user');
+        const usuarioIdInput = document.getElementById('usuario_id');
+        const codigoVendedorSpan = document.getElementById('codigo_vendedor');
+        
+        if (asesorInput) {
+            asesorInput.value = 'Hellen Blas Principe';
+        }
+        
+        if (emailContacto) {
+            emailContacto.value = 'ventas@kcfcorporacion.com';
+        }
+        
+        if (telefonoUser) {
+            telefonoUser.value = '999932051';
+        }
+        
+        if (usuarioIdInput) {
+            usuarioIdInput.value = '1';
+        }
+        
+        if (codigoVendedorSpan) {
+            codigoVendedorSpan.textContent = 'HELLEN';
+        }
+        
+        // Crear un objeto usuarioActual por defecto
+        usuarioActual = {
+            id: 1,
+            nombre_completo: 'Hellen Blas Principe',
+            email: 'ventas@kcfcorporacion.com',
+            telefono: '999932051',
+            codigo_vendedor: 'HELLEN'
+        };
+        
+        console.log('✅ Asesor por defecto asignado: Hellen Blas Principe');
+    }
+
+    // Obtener usuario actual (modificado para siempre usar HELLEN por defecto)
     async function obtenerUsuarioActual() {
         try {
             const response = await fetch('/api/usuarios/actual');
             const data = await response.json();
+            
             if (data.success && data.data) {
                 usuarioActual = data.data;
                 
@@ -43,10 +86,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 return usuarioActual;
             }
-            return null;
+            
+            // 🔥 Si no hay usuario logueado, asignar valores por defecto de HELLEN
+            console.log('⚠️ No se encontró usuario logueado, asignando valores por defecto');
+            asignarAsesorPorDefecto();
+            return usuarioActual;
+            
         } catch (error) {
             console.error('Error obteniendo usuario:', error);
-            return null;
+            // 🔥 También en caso de error, asignar por defecto
+            asignarAsesorPorDefecto();
+            return usuarioActual;
         }
     }
 
@@ -82,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function generarCodigoTemporal() {
         const fecha = new Date();
         const timestamp = `${fecha.getFullYear()}${String(fecha.getMonth() + 1).padStart(2, '0')}${String(fecha.getDate()).padStart(2, '0')}_${String(fecha.getHours()).padStart(2, '0')}${String(fecha.getMinutes()).padStart(2, '0')}${String(fecha.getSeconds()).padStart(2, '0')}`;
-        const codigoVendedor = usuarioActual?.codigo_vendedor || 'TMP';
+        const codigoVendedor = usuarioActual?.codigo_vendedor || 'HELLEN';
         return `TMP-${codigoVendedor}-${timestamp}`;
     }
 
@@ -553,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="alert alert-success"><strong>✅ ¡Cotización guardada exitosamente!</strong></div>
             <div class="row"><div class="col-6"><strong>Número:</strong></div><div class="col-6">${datos.numero || datos.codigo_cotizacion}</div></div>
             <div class="row mt-2"><div class="col-6"><strong>Tipo:</strong></div><div class="col-6">${datos.tipo || (esBorrador ? 'BORRADOR' : 'OFICIAL')}</div></div>
-            <div class="row mt-2"><div class="col-6"><strong>Asesor:</strong></div><div class="col-6">${usuarioActual?.nombre_completo || 'No asignado'}</div></div>
+            <div class="row mt-2"><div class="col-6"><strong>Asesor:</strong></div><div class="col-6">${usuarioActual?.nombre_completo || 'Hellen Blas Principe'}</div></div>
             <div class="row mt-2"><div class="col-6"><strong>Fecha:</strong></div><div class="col-6">${fecha.toLocaleDateString()}</div></div>
             <hr><div class="text-muted small"><i class="bi bi-info-circle"></i> El código es único y quedará registrado.</div>
         `;
@@ -1349,6 +1399,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else { 
         esBorrador = true; 
         document.getElementById('estado').value = 'En Proceso'; 
+        // Asegurar que los valores por defecto se apliquen también aquí
+        asignarAsesorPorDefecto();
     }
 
     // =========================
