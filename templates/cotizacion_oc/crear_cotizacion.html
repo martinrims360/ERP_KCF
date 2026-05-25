@@ -39,7 +39,6 @@
             min-height: 100vh;
         }
 
-        /* SCROLLBAR PERSONALIZADA */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -56,7 +55,6 @@
             background: var(--rojo-oscuro);
         }
 
-        /* NAVBAR MODERNO */
         .erp-navbar {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             padding: 16px 32px;
@@ -139,7 +137,6 @@
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
-        /* HERO CARD MODERNA */
         .hero-card {
             background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
             padding: 32px;
@@ -198,16 +195,6 @@
             font-weight: 600;
         }
 
-        .badge-success {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            color: #065f46;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        /* BOTONES MODERNOS */
         .btn-toolbar {
             border-radius: 12px;
             padding: 10px 24px;
@@ -219,11 +206,7 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        .btn-toolbar:active {
-            transform: translateY(0);
-        }
 
-        /* CARDS MODERNAS */
         .erp-card {
             background: white;
             border-radius: 24px;
@@ -277,11 +260,8 @@
             box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.1);
             outline: none;
         }
-        .custom-input:hover:not(:focus) {
-            border-color: #cbd5e1;
-        }
 
-        /* TABLA PRODUCTOS MEJORADA */
+        /* TABLA PRODUCTOS */
         .table-modern {
             margin: 0;
             width: 100%;
@@ -322,22 +302,19 @@
             box-shadow: 0 0 0 2px rgba(217, 4, 41, 0.1);
         }
         
-        /* ANCHOS DE COLUMNA OPTIMIZADOS */
+        /* ANCHOS DE COLUMNA */
         .table-modern th:nth-child(1) { width: 50px; }
         .table-modern th:nth-child(2) { width: 100px; }
         .table-modern th:nth-child(3) { width: 180px; }
-        .table-modern th:nth-child(4) { width: 90px; }
-        .table-modern th:nth-child(5) { width: 90px; }
+        .table-modern th:nth-child(4) { width: 80px; }
+        .table-modern th:nth-child(5) { width: 80px; }
         .table-modern th:nth-child(6) { width: 70px; }
         .table-modern th:nth-child(7) { width: 100px; }
         .table-modern th:nth-child(8) { width: 100px; }
         .table-modern th:nth-child(9) { width: 100px; }
-        .table-modern th:nth-child(10) { width: 100px; }
+        .table-modern th:nth-child(10) { width: 80px; }
         .table-modern th:nth-child(11) { width: 80px; }
-        .table-modern th:nth-child(12) { width: 100px; }
-        .table-modern th:nth-child(13) { width: 70px; }
 
-        /* SUMMARY CARD MODERNA */
         .summary-card {
             background: linear-gradient(135deg, #ffffff, #fefefe);
             border-radius: 24px;
@@ -366,7 +343,6 @@
             color: var(--rojo);
         }
 
-        /* TRANSPORT CARD MODERNA */
         .transport-card {
             background: linear-gradient(135deg, #fef2f2, #fee2e2);
             border-radius: 20px;
@@ -403,44 +379,18 @@
             font-weight: 700;
             text-align: right;
         }
-        .transport-right input:focus {
-            border-color: var(--rojo);
-            outline: none;
-        }
 
-        /* SUGERENCIAS MODERNAS */
-        #portalSuggestions {
-            position: fixed;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.2);
-            z-index: 10000;
-            display: none;
-            max-height: 350px;
-            overflow-y: auto;
-            border: 1px solid #e5e7eb;
-        }
-        #portalSuggestions .item {
-            padding: 14px 18px;
-            cursor: pointer;
-            border-bottom: 1px solid #f1f5f9;
-            transition: background 0.2s ease;
-        }
-        #portalSuggestions .item:hover {
-            background: linear-gradient(90deg, #fef2f2, #fee2e2);
-        }
-        #portalSuggestions .item strong {
-            display: block;
+        .descuento-nota {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-top: 15px;
             font-size: 14px;
-            color: var(--negro);
-        }
-        #portalSuggestions .item .meta {
-            font-size: 12px;
-            color: var(--gris);
-            margin-top: 4px;
+            font-weight: 600;
+            color: #92400e;
+            text-align: center;
         }
 
-        /* BOTONES DE ELIMINAR */
         .btn-del {
             background: #fee2e2;
             border: none;
@@ -456,20 +406,6 @@
             transform: scale(1.05);
         }
 
-        /* MODALES MODERNOS */
-        .modal-modern .modal-content {
-            border-radius: 24px;
-            border: none;
-            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.25);
-        }
-        .modal-modern .modal-header {
-            background: linear-gradient(135deg, #1f2937, #111827);
-            color: white;
-            border-radius: 24px 24px 0 0;
-            padding: 20px 24px;
-        }
-
-        /* ANIMACIONES */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -484,7 +420,6 @@
             animation: fadeInUp 0.4s ease-out;
         }
 
-        /* RESPONSIVE */
         @media (max-width: 768px) {
             .erp-navbar {
                 padding: 12px 16px;
@@ -511,15 +446,6 @@
             .table-modern {
                 font-size: 11px;
             }
-            .table-modern thead th,
-            .table-modern tbody td {
-                padding: 8px 4px;
-            }
-        }
-
-        .opacity-50 {
-            opacity: 0.5;
-            pointer-events: none;
         }
 
         .form-label {
@@ -527,18 +453,6 @@
             font-size: 13px;
             margin-bottom: 6px;
             color: var(--negro);
-        }
-
-        .btn-dark {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border: none;
-            border-radius: 12px;
-            padding: 8px 20px;
-            transition: all 0.2s ease;
-        }
-        .btn-dark:hover {
-            transform: translateY(-2px);
-            background: linear-gradient(135deg, #334155, #1e293b);
         }
     </style>
 </head>
@@ -723,21 +637,24 @@
                                 <input type="text" class="form-control custom-input" id="tiempo_entrega" placeholder="Ej: 10 días">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label"><i class="bi bi-credit-card"></i> Forma de Pago</label>
-                                <input type="text" class="form-control custom-input" id="forma_pago" placeholder="Ej: Contado, Crédito 30 días">
-                            </div>
-                            <div class="col-md-6">
                                 <label class="form-label"><i class="bi bi-calendar-check"></i> Validez Oferta</label>
-                                <input type="text" class="form-control custom-input" id="validez_oferta" value="15 días">
+                                <select class="form-select custom-input" id="validez_oferta">
+                                    <option value="7 días">📅 7 días</option>
+                                    <option value="15 días" selected>📅 15 días</option>
+                                    <option value="30 días">📅 30 días</option>
+                                </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label"><i class="bi bi-percent"></i> Descuento %</label>
-                                <input type="number" class="form-control custom-input" id="descuento_porcentaje" value="0" step="0.01">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label"><i class="bi bi-chat-text"></i> Nota Comercial</label>
-                                <textarea class="form-control custom-input" id="nota_cotizacion" rows="4" placeholder="Escriba notas adicionales..."></textarea>
-                            </div>
+                        </div>
+                        
+                        <!-- DESCUENTO FIJO -->
+                        <div class="descuento-nota">
+                            <i class="bi bi-tag-fill"></i> Esta cotización cuenta con 10% descuento
+                        </div>
+                        <input type="hidden" id="descuento_porcentaje" value="10">
+                        
+                        <div class="mt-3">
+                            <label class="form-label"><i class="bi bi-chat-text"></i> Nota Comercial</label>
+                            <textarea class="form-control custom-input" id="nota_cotizacion" rows="4" placeholder="Escriba notas adicionales..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -769,21 +686,41 @@
                     <table class="table table-modern" id="products-table">
                         <thead>
                             <tr>
-                                <th>Item</th><th>Código</th><th>Descripción</th><th>Marca</th>
-                                <th>Modelo</th><th>Cant</th><th>PU Costo</th><th>Subtotal</th>
-                                <th>PU Venta</th><th>Subtotal Venta</th><th>% Desc</th><th>Total Desc</th><th>Eliminar</th>
+                                <th>Item</th>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Marca</th>
+                                <th>Modelo</th>
+                                <th>Cant</th>
+                                <th>PU Costo</th>
+                                <th>Subtotal</th>
+                                <th>PU Venta</th>
+                                <th>Subtotal Venta</th>
+                                <th>Eliminar</th>
                             </tr>
                         </thead>
                         <tbody id="table-body">
-                            <!-- Los productos se agregarán dinámicamente aquí -->
+                            <!-- Fila de ejemplo -->
+                            <tr data-index="0">
+                                <td>QUI001</td>
+                                <td><input type="text" value="SOLUCION LIMPIEZ" placeholder="Código"></td>
+                                <td><input type="text" value="SOLUCION LIMPIEZA" placeholder="Descripción"></td>
+                                <td><input type="text" value="UVEX" placeholder="Marca"></td>
+                                <td><input type="text" value="16OZ S." placeholder="Modelo"></td>
+                                <td><input type="number" value="2" class="cantidad" step="1" min="1"></td>
+                                <td><input type="number" value="10" class="pu_costo" step="0.01" min="0"></td>
+                                <td class="subtotal_costo">20.00</td>
+                                <td><input type="number" value="20" class="pu_venta" step="0.01" min="0"></td>
+                                <td class="subtotal_venta">20.00</td>
+                                <td><button class="btn-del" onclick="eliminarFila(this)"><i class="bi bi-trash-fill"></i> Eliminar</button></td>
+                            </tr>
                         </tbody>
                         <tfoot>
                             <tr class="fw-bold bg-light">
                                 <td colspan="7" class="text-end">Totales:</td>
-                                <td id="total_subtotal_costo">0.00</td>
-                                <td id="total_subtotal_venta">0.00</td>
-                                <td id="total_subtotal_venta_desc">0.00</td>
-                                <td colspan="3"></td>
+                                <td id="total_subtotal_costo">20.00</td>
+                                <td id="total_subtotal_venta">20.00</td>
+                                <td colspan="2"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -803,15 +740,23 @@
                     <h4><i class="bi bi-calculator-fill"></i> Resumen Venta</h4>
                     <div class="summary-row">
                         <span>Subtotal:</span>
-                        <strong>S/. <span id="summary_subtotal_venta_desc">0.00</span></strong>
+                        <strong>S/. <span id="summary_subtotal_venta">20.00</span></strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Descuento (10%):</span>
+                        <strong class="text-danger">- S/. <span id="summary_descuento">2.00</span></strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Subtotal con descuento:</span>
+                        <strong>S/. <span id="summary_subtotal_descuento">18.00</span></strong>
                     </div>
                     <div class="summary-row">
                         <span>IGV 18%:</span>
-                        <strong>S/. <span id="summary_igv">0.00</span></strong>
+                        <strong>S/. <span id="summary_igv">3.24</span></strong>
                     </div>
                     <div class="summary-row total">
                         <span>Total Venta:</span>
-                        <strong>S/. <span id="summary_total_venta">0.00</span></strong>
+                        <strong>S/. <span id="summary_total_venta">21.24</span></strong>
                     </div>
                 </div>
             </div>
@@ -827,9 +772,6 @@
             </div>
         </div>
     </div>
-
-    <!-- SUGERENCIAS -->
-    <div id="portalSuggestions"></div>
 
     <!-- MODALES -->
     <div class="modal fade" id="modalConfirmacion" tabindex="-1">
@@ -879,15 +821,10 @@
                                         <i class="bi bi-search"></i> Buscar
                                     </button>
                                 </div>
-                                <small class="text-muted">Para RUC, puede buscar datos en SUNAT</small>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Razón Social / Nombre <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control custom-input" id="nuevo_razon_social" required>
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label">Nombre Comercial</label>
-                                <input type="text" class="form-control custom-input" id="nuevo_nombre_comercial">
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Dirección Fiscal</label>
@@ -901,20 +838,12 @@
                                 <label class="form-label">Email Contacto</label>
                                 <input type="email" class="form-control custom-input" id="nuevo_email">
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label">Nombre Contacto</label>
-                                <input type="text" class="form-control custom-input" id="nuevo_nombre_contacto">
-                            </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle"></i> Cancelar
-                    </button>
-                    <button type="button" class="btn btn-success" id="btnGuardarNuevoCliente">
-                        <i class="bi bi-save-fill"></i> Guardar Cliente
-                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnGuardarNuevoCliente">Guardar Cliente</button>
                 </div>
             </div>
         </div>
@@ -930,7 +859,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Pedido / Orden Cliente</label>
-                        <input type="text" class="form-control custom-input" id="pedido_cliente" placeholder="Ingrese número de pedido">
+                        <input type="text" class="form-control custom-input" id="pedido_cliente">
                     </div>
                     <div>
                         <label class="form-label">Fecha Confirmación</label>
@@ -965,6 +894,84 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/crear_cotizacion.js"></script>
+    
+    <script>
+        // Función para eliminar fila
+        function eliminarFila(boton) {
+            boton.closest('tr').remove();
+            calcularTotales();
+        }
+
+        // Función para recalcular totales
+        function calcularTotales() {
+            let totalCosto = 0;
+            let totalVenta = 0;
+            
+            document.querySelectorAll('#table-body tr').forEach(row => {
+                const cant = parseFloat(row.querySelector('.cantidad')?.value || 0);
+                const costo = parseFloat(row.querySelector('.pu_costo')?.value || 0);
+                const venta = parseFloat(row.querySelector('.pu_venta')?.value || 0);
+                
+                const subtotalCosto = cant * costo;
+                const subtotalVenta = cant * venta;
+                
+                row.querySelector('.subtotal_costo').innerText = subtotalCosto.toFixed(2);
+                row.querySelector('.subtotal_venta').innerText = subtotalVenta.toFixed(2);
+                
+                totalCosto += subtotalCosto;
+                totalVenta += subtotalVenta;
+            });
+            
+            document.getElementById('total_subtotal_costo').innerText = totalCosto.toFixed(2);
+            document.getElementById('total_subtotal_venta').innerText = totalVenta.toFixed(2);
+            
+            // Aplicar descuento del 10%
+            const descuento = totalVenta * 0.10;
+            const subtotalConDescuento = totalVenta - descuento;
+            const igv = subtotalConDescuento * 0.18;
+            const totalFinal = subtotalConDescuento + igv;
+            
+            document.getElementById('summary_subtotal_venta').innerText = totalVenta.toFixed(2);
+            document.getElementById('summary_descuento').innerText = descuento.toFixed(2);
+            document.getElementById('summary_subtotal_descuento').innerText = subtotalConDescuento.toFixed(2);
+            document.getElementById('summary_igv').innerText = igv.toFixed(2);
+            document.getElementById('summary_total_venta').innerText = totalFinal.toFixed(2);
+        }
+        
+        // Eventos para inputs dinámicos
+        function agregarEventosInputs(row) {
+            row.querySelectorAll('.cantidad, .pu_costo, .pu_venta').forEach(input => {
+                input.addEventListener('input', () => calcularTotales());
+            });
+        }
+        
+        // Agregar nuevo producto
+        document.getElementById('btnAgregarItem').addEventListener('click', () => {
+            const tbody = document.getElementById('table-body');
+            const newIndex = tbody.children.length;
+            const newRow = document.createElement('tr');
+            newRow.setAttribute('data-index', newIndex);
+            newRow.innerHTML = `
+                <td>ITEM${String(newIndex+1).padStart(3,'0')}</td>
+                <td><input type="text" placeholder="Código"></td>
+                <td><input type="text" placeholder="Descripción"></td>
+                <td><input type="text" placeholder="Marca"></td>
+                <td><input type="text" placeholder="Modelo"></td>
+                <td><input type="number" value="1" class="cantidad" step="1" min="1"></td>
+                <td><input type="number" value="0" class="pu_costo" step="0.01" min="0"></td>
+                <td class="subtotal_costo">0.00</td>
+                <td><input type="number" value="0" class="pu_venta" step="0.01" min="0"></td>
+                <td class="subtotal_venta">0.00</td>
+                <td><button class="btn-del" onclick="eliminarFila(this)"><i class="bi bi-trash-fill"></i> Eliminar</button></td>
+            `;
+            tbody.appendChild(newRow);
+            agregarEventosInputs(newRow);
+            calcularTotales();
+        });
+        
+        // Inicializar eventos en filas existentes
+        document.querySelectorAll('#table-body tr').forEach(row => agregarEventosInputs(row));
+        calcularTotales();
+    </script>
 </body>
 </html>
