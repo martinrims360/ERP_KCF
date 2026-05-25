@@ -207,7 +207,7 @@ function getRolClass(rol) {
         case 'administrador':
             return 'bg-danger';      // Rojo
         case 'usuario':
-            return 'bg-success';     // Verde
+            return 'bg-primary';     // Verde
         case 'supervisor':
         case 'editor':
             return 'bg-warning text-dark'; // Amarillo
