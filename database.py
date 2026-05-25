@@ -572,7 +572,209 @@ def insertar_punto_entrega(
 
 
 # =========================
-# Buscar clientes
+# BUSCAR CLIENTES - VERSIÓN MEJORADA
+# Busca por RUC, razón social O nombre comercial
+# =========================
+def buscar_clientes_mejorado(tipo_documento='', busqueda='', limit=100):
+    """
+    Buscar clientes por tipo de documento y texto de búsqueda
+    La búsqueda incluye: numero_documento (RUC/DNI), razon_social, nombre_comercial
+    """
+    try:
+        with db_tx() as conn:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            
+            # Construir consulta base
+            query = """
+                SELECT 
+                    id,
+                    tipo_documento,
+                    numero_documento,
+                    razon_social,
+                    nombre_comercial,
+                    direccion_fiscal,
+                    codigo_cliente,
+                    activo,
+                    fecha_creacion
+                FROM clientes
+                WHERE activo = TRUE
+            """
+            params = []
+            
+            # Filtrar por tipo de documento
+            if tipo_documento and tipo_documento.strip():
+                query += " AND tipo_documento = %s"
+                params.append(tipo_documento)
+            
+            # Búsqueda por texto (RUC, razón social o nombre comercial)
+            if busqueda and busqueda.strip():
+                busqueda_like = f"%{busqueda.strip()}%"
+                query += """ AND (
+                    numero_documento ILIKE %s OR 
+                    razon_social ILIKE %s OR 
+                    nombre_comercial ILIKE %s
+                )"""
+                params.extend([busqueda_like, busqueda_like, busqueda_like])
+            
+            # Ordenar por ID descendente (más recientes primero)
+            query += " ORDER BY id DESC LIMIT %s"
+            params.append(limit)
+            
+            cur.execute(query, params)
+            clientes = cur.fetchall()
+            
+            # Para cada cliente, obtener contactos y puntos
+            resultado = []
+            for cliente in clientes:
+                cliente_id = cliente['id']
+                
+                # Obtener contactos
+                cur.execute("""
+                    SELECT id, nombre, email, telefono, cargo, principal
+                    FROM clientes_contactos
+                    WHERE cliente_id = %s
+                """, (cliente_id,))
+                contactos = cur.fetchall()
+                
+                # Obtener puntos de entrega
+                cur.execute("""
+                    SELECT id, nombre_punto, direccion, departamento, provincia, 
+                           distrito, telefono_contacto, responsable, condicion_pago, 
+                           tiempo_credito, principal
+                    FROM clientes_puntos_entrega
+                    WHERE cliente_id = %s
+                """, (cliente_id,))
+                puntos = cur.fetchall()
+                
+                cliente['contactos'] = contactos
+                cliente['puntos_entrega'] = puntos
+                resultado.append(cliente)
+            
+            return resultado
+            
+    except Exception as e:
+        print(f"❌ Error en buscar_clientes_mejorado: {e}")
+        return []
+
+
+# =========================
+# BUSCAR CLIENTES CON PAGINACIÓN
+# =========================
+def buscar_clientes_paginado(tipo_documento='', busqueda='', pagina=1, por_pagina=20):
+    """
+    Buscar clientes con paginación
+    """
+    try:
+        offset = (pagina - 1) * por_pagina
+        
+        with db_tx() as conn:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            
+            # Consulta para contar total
+            count_query = """
+                SELECT COUNT(*) as total
+                FROM clientes
+                WHERE activo = TRUE
+            """
+            count_params = []
+            
+            # Consulta para obtener datos
+            data_query = """
+                SELECT 
+                    id,
+                    tipo_documento,
+                    numero_documento,
+                    razon_social,
+                    nombre_comercial,
+                    direccion_fiscal,
+                    codigo_cliente,
+                    activo,
+                    fecha_creacion
+                FROM clientes
+                WHERE activo = TRUE
+            """
+            params = []
+            
+            # Filtrar por tipo de documento
+            if tipo_documento and tipo_documento.strip():
+                count_query += " AND tipo_documento = %s"
+                data_query += " AND tipo_documento = %s"
+                count_params.append(tipo_documento)
+                params.append(tipo_documento)
+            
+            # Búsqueda por texto
+            if busqueda and busqueda.strip():
+                busqueda_like = f"%{busqueda.strip()}%"
+                count_query += """ AND (
+                    numero_documento ILIKE %s OR 
+                    razon_social ILIKE %s OR 
+                    nombre_comercial ILIKE %s
+                )"""
+                data_query += """ AND (
+                    numero_documento ILIKE %s OR 
+                    razon_social ILIKE %s OR 
+                    nombre_comercial ILIKE %s
+                )"""
+                count_params.extend([busqueda_like, busqueda_like, busqueda_like])
+                params.extend([busqueda_like, busqueda_like, busqueda_like])
+            
+            # Obtener total
+            cur.execute(count_query, count_params)
+            total = cur.fetchone()['total']
+            
+            # Obtener datos con paginación
+            data_query += " ORDER BY id DESC LIMIT %s OFFSET %s"
+            params.extend([por_pagina, offset])
+            
+            cur.execute(data_query, params)
+            clientes = cur.fetchall()
+            
+            # Obtener contactos y puntos para cada cliente
+            resultado = []
+            for cliente in clientes:
+                cliente_id = cliente['id']
+                
+                cur.execute("""
+                    SELECT id, nombre, email, telefono, cargo, principal
+                    FROM clientes_contactos
+                    WHERE cliente_id = %s
+                """, (cliente_id,))
+                contactos = cur.fetchall()
+                
+                cur.execute("""
+                    SELECT id, nombre_punto, direccion, departamento, provincia, 
+                           distrito, telefono_contacto, responsable, condicion_pago, 
+                           tiempo_credito, principal
+                    FROM clientes_puntos_entrega
+                    WHERE cliente_id = %s
+                """, (cliente_id,))
+                puntos = cur.fetchall()
+                
+                cliente['contactos'] = contactos
+                cliente['puntos_entrega'] = puntos
+                resultado.append(cliente)
+            
+            return {
+                'data': resultado,
+                'total': total,
+                'pagina': pagina,
+                'por_pagina': por_pagina,
+                'total_paginas': (total + por_pagina - 1) // por_pagina
+            }
+            
+    except Exception as e:
+        print(f"❌ Error en buscar_clientes_paginado: {e}")
+        return {
+            'data': [],
+            'total': 0,
+            'pagina': 1,
+            'por_pagina': por_pagina,
+            'total_paginas': 0
+        }
+
+
+# =========================
+# Buscar clientes (versión antigua - mantener compatibilidad)
 # =========================
 def buscar_clientes(q: str, limit: int = 10):
 
@@ -585,10 +787,10 @@ def buscar_clientes(q: str, limit: int = 10):
         SELECT id, tipo_documento, numero_documento, razon_social, direccion_fiscal, codigo_cliente, nombre_comercial
         FROM clientes
         WHERE activo = TRUE
-        AND (numero_documento ILIKE %s OR razon_social ILIKE %s)
+        AND (numero_documento ILIKE %s OR razon_social ILIKE %s OR nombre_comercial ILIKE %s)
         ORDER BY razon_social
         LIMIT %s
-    """, (f"%{q}%", f"%{q}%", limit))
+    """, (f"%{q}%", f"%{q}%", f"%{q}%", limit))
 
 
 # =========================
@@ -944,41 +1146,45 @@ def insertar_cliente_completo(data):
         # 2. Insertar contactos
         contactos = data.get('contactos', [])
         for contacto in contactos:
-            cur.execute("""
-                INSERT INTO clientes_contactos 
-                (cliente_id, nombre, email, telefono, cargo, principal)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (
-                cliente_id,
-                contacto.get('nombre_contacto'),
-                contacto.get('email'),
-                contacto.get('telefono'),
-                contacto.get('cargo'),
-                contacto.get('principal', False)
-            ))
+            # Verificar que tenga al menos el nombre
+            if contacto.get('nombre_contacto'):
+                cur.execute("""
+                    INSERT INTO clientes_contactos 
+                    (cliente_id, nombre, email, telefono, cargo, principal)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (
+                    cliente_id,
+                    contacto.get('nombre_contacto'),
+                    contacto.get('email'),
+                    contacto.get('telefono'),
+                    contacto.get('cargo'),
+                    contacto.get('principal', False)
+                ))
         
         # 3. Insertar puntos de entrega
         puntos = data.get('puntos_entrega', [])
         for punto in puntos:
-            cur.execute("""
-                INSERT INTO clientes_puntos_entrega 
-                (cliente_id, nombre_punto, direccion, departamento, provincia, 
-                 distrito, telefono_contacto, responsable, condicion_pago, 
-                 tiempo_credito, principal)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                cliente_id,
-                punto.get('nombre'),
-                punto.get('direccion'),
-                punto.get('departamento'),
-                punto.get('provincia'),
-                punto.get('distrito'),
-                punto.get('telefono'),
-                punto.get('responsable'),
-                punto.get('condicion_pago'),
-                punto.get('tiempo_credito'),
-                punto.get('principal', False)
-            ))
+            # Verificar que tenga al menos el nombre del punto
+            if punto.get('nombre_punto'):
+                cur.execute("""
+                    INSERT INTO clientes_puntos_entrega 
+                    (cliente_id, nombre_punto, direccion, departamento, provincia, 
+                     distrito, telefono_contacto, responsable, condicion_pago, 
+                     tiempo_credito, principal)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    cliente_id,
+                    punto.get('nombre_punto'),
+                    punto.get('direccion'),
+                    punto.get('departamento'),
+                    punto.get('provincia'),
+                    punto.get('distrito'),
+                    punto.get('telefono'),
+                    punto.get('responsable'),
+                    punto.get('condicion_pago'),
+                    punto.get('tiempo_credito'),
+                    punto.get('principal', False)
+                ))
         
         return {
             'id': cliente_id,
@@ -1081,41 +1287,43 @@ def actualizar_cliente_completo(cliente_id, data):
         # Eliminar contactos antiguos y reinsertar
         cur.execute("DELETE FROM clientes_contactos WHERE cliente_id = %s", (cliente_id,))
         for contacto in data.get('contactos', []):
-            cur.execute("""
-                INSERT INTO clientes_contactos 
-                (cliente_id, nombre, email, telefono, cargo, principal)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (
-                cliente_id,
-                contacto.get('nombre_contacto'),
-                contacto.get('email'),
-                contacto.get('telefono'),
-                contacto.get('cargo'),
-                contacto.get('principal', False)
-            ))
+            if contacto.get('nombre_contacto'):
+                cur.execute("""
+                    INSERT INTO clientes_contactos 
+                    (cliente_id, nombre, email, telefono, cargo, principal)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (
+                    cliente_id,
+                    contacto.get('nombre_contacto'),
+                    contacto.get('email'),
+                    contacto.get('telefono'),
+                    contacto.get('cargo'),
+                    contacto.get('principal', False)
+                ))
         
         # Eliminar puntos antiguos y reinsertar
         cur.execute("DELETE FROM clientes_puntos_entrega WHERE cliente_id = %s", (cliente_id,))
         for punto in data.get('puntos_entrega', []):
-            cur.execute("""
-                INSERT INTO clientes_puntos_entrega 
-                (cliente_id, nombre_punto, direccion, departamento, provincia, 
-                 distrito, telefono_contacto, responsable, condicion_pago, 
-                 tiempo_credito, principal)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                cliente_id,
-                punto.get('nombre_punto'),
-                punto.get('direccion'),
-                punto.get('departamento'),
-                punto.get('provincia'),
-                punto.get('distrito'),
-                punto.get('telefono'),
-                punto.get('responsable'),
-                punto.get('condicion_pago'),
-                punto.get('tiempo_credito'),
-                punto.get('principal', False)
-            ))
+            if punto.get('nombre_punto'):
+                cur.execute("""
+                    INSERT INTO clientes_puntos_entrega 
+                    (cliente_id, nombre_punto, direccion, departamento, provincia, 
+                     distrito, telefono_contacto, responsable, condicion_pago, 
+                     tiempo_credito, principal)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    cliente_id,
+                    punto.get('nombre_punto'),
+                    punto.get('direccion'),
+                    punto.get('departamento'),
+                    punto.get('provincia'),
+                    punto.get('distrito'),
+                    punto.get('telefono'),
+                    punto.get('responsable'),
+                    punto.get('condicion_pago'),
+                    punto.get('tiempo_credito'),
+                    punto.get('principal', False)
+                ))
         
         return {'success': True}
 
@@ -1313,5 +1521,3 @@ def buscar_cliente_por_ruc(ruc: str):
     """, (ruc,))
     
     return rows[0] if rows else None
-
-    

@@ -322,6 +322,246 @@ def ultimo_codigo():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+# ==================== CLIENTES API ROUTES ====================
+
+@app.route('/api/clientes/buscar', methods=['GET'])
+def api_buscar_clientes():
+    """
+    API para buscar clientes por RUC, nombre comercial o razón social
+    """
+    try:
+        from database import buscar_clientes_mejorado, buscar_clientes_paginado
+        
+        tipo_documento = request.args.get('tipo_documento', '')
+        busqueda = request.args.get('busqueda', '').strip()
+        pagina = request.args.get('pagina', 1, type=int)
+        por_pagina = request.args.get('por_pagina', 100, type=int)
+        
+        print(f"🔍 Buscando clientes - Tipo: {tipo_documento or 'todos'}, Búsqueda: '{busqueda or 'vacía'}'")
+        
+        # Usar versión mejorada con paginación
+        resultado = buscar_clientes_paginado(
+            tipo_documento=tipo_documento,
+            busqueda=busqueda,
+            pagina=pagina,
+            por_pagina=por_pagina
+        )
+        
+        # Convertir contactos y puntos a formato JSON serializable
+        for cliente in resultado['data']:
+            if 'contactos' in cliente:
+                cliente['contactos'] = [
+                    {
+                        'id': c.get('id'),
+                        'nombre_contacto': c.get('nombre'),
+                        'email': c.get('email'),
+                        'telefono': c.get('telefono'),
+                        'cargo': c.get('cargo'),
+                        'principal': c.get('principal', False)
+                    }
+                    for c in cliente.get('contactos', [])
+                ]
+            
+            if 'puntos_entrega' in cliente:
+                cliente['puntos_entrega'] = [
+                    {
+                        'id': p.get('id'),
+                        'nombre_punto': p.get('nombre_punto'),
+                        'direccion': p.get('direccion'),
+                        'departamento': p.get('departamento'),
+                        'provincia': p.get('provincia'),
+                        'distrito': p.get('distrito'),
+                        'telefono': p.get('telefono_contacto'),
+                        'responsable': p.get('responsable'),
+                        'condicion_pago': p.get('condicion_pago'),
+                        'tiempo_credito': p.get('tiempo_credito'),
+                        'principal': p.get('principal', False)
+                    }
+                    for p in cliente.get('puntos_entrega', [])
+                ]
+        
+        print(f"✅ Se encontraron {len(resultado['data'])} clientes (Total: {resultado['total']})")
+        
+        return jsonify({
+            'success': True,
+            'data': resultado['data'],
+            'total': resultado['total'],
+            'pagina': resultado['pagina'],
+            'por_pagina': resultado['por_pagina'],
+            'total_paginas': resultado['total_paginas'],
+            'filtros': {
+                'tipo_documento': tipo_documento if tipo_documento else 'todos',
+                'busqueda': busqueda if busqueda else 'ninguna'
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ Error en api_buscar_clientes: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'data': []
+        }), 500
+
+
+@app.route('/api/clientes/<int:id>', methods=['GET'])
+def api_obtener_cliente(id):
+    """Obtener un cliente por ID con todos sus detalles"""
+    try:
+        from database import obtener_cliente_completo_por_id
+        
+        cliente = obtener_cliente_completo_por_id(id)
+        
+        if not cliente:
+            return jsonify({
+                'success': False,
+                'error': 'Cliente no encontrado'
+            }), 404
+        
+        # Formatear respuesta
+        resultado = {
+            'id': cliente.get('id'),
+            'tipo_documento': cliente.get('tipo_documento'),
+            'numero_documento': cliente.get('numero_documento'),
+            'razon_social': cliente.get('razon_social'),
+            'nombre_comercial': cliente.get('nombre_comercial'),
+            'direccion_fiscal': cliente.get('direccion_fiscal'),
+            'codigo_cliente': cliente.get('codigo_cliente'),
+            'contactos': [
+                {
+                    'id': c.get('id'),
+                    'nombre_contacto': c.get('nombre'),
+                    'email': c.get('email'),
+                    'telefono': c.get('telefono'),
+                    'cargo': c.get('cargo'),
+                    'principal': c.get('principal', False)
+                }
+                for c in cliente.get('contactos', [])
+            ],
+            'puntos_entrega': [
+                {
+                    'id': p.get('id'),
+                    'nombre_punto': p.get('nombre_punto'),
+                    'direccion': p.get('direccion'),
+                    'departamento': p.get('departamento'),
+                    'provincia': p.get('provincia'),
+                    'distrito': p.get('distrito'),
+                    'telefono': p.get('telefono_contacto'),
+                    'responsable': p.get('responsable'),
+                    'condicion_pago': p.get('condicion_pago'),
+                    'tiempo_credito': p.get('tiempo_credito'),
+                    'principal': p.get('principal', False)
+                }
+                for p in cliente.get('puntos_entrega', [])
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'data': resultado
+        })
+        
+    except Exception as e:
+        print(f"❌ Error en api_obtener_cliente: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/clientes/guardar', methods=['POST'])
+def api_guardar_cliente():
+    """Guardar un nuevo cliente"""
+    try:
+        data = request.get_json()
+        from database import insertar_cliente_completo
+        
+        print(f"📝 Guardando nuevo cliente: {data.get('razon_social')}")
+        
+        resultado = insertar_cliente_completo(data)
+        
+        if resultado and resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'data': {
+                    'id': resultado.get('id'),
+                    'codigo_cliente': resultado.get('codigo_cliente')
+                },
+                'message': 'Cliente guardado exitosamente'
+            }), 201
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error al guardar cliente')
+            }), 400
+        
+    except Exception as e:
+        print(f"❌ Error en api_guardar_cliente: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/clientes/<int:id>', methods=['PUT'])
+def api_actualizar_cliente(id):
+    """Actualizar un cliente existente"""
+    try:
+        data = request.get_json()
+        from database import actualizar_cliente_completo
+        
+        print(f"✏️ Actualizando cliente ID: {id}")
+        
+        resultado = actualizar_cliente_completo(id, data)
+        
+        if resultado and resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Cliente actualizado exitosamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error al actualizar cliente')
+            }), 400
+        
+    except Exception as e:
+        print(f"❌ Error en api_actualizar_cliente: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/clientes/<int:id>', methods=['DELETE'])
+def api_eliminar_cliente(id):
+    """Eliminar un cliente (borrado lógico)"""
+    try:
+        from database import eliminar_cliente_db
+        
+        print(f"🗑️ Eliminando cliente ID: {id}")
+        
+        resultado = eliminar_cliente_db(id)
+        
+        if resultado and resultado.get('success'):
+            return jsonify({
+                'success': True,
+                'message': 'Cliente eliminado exitosamente'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': resultado.get('error', 'Error al eliminar cliente')
+            }), 400
+        
+    except Exception as e:
+        print(f"❌ Error en api_eliminar_cliente: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 # Ruta de prueba
 @app.route('/')
 def home():
@@ -332,10 +572,12 @@ def home():
 from routes.usuarios import usuarios_bp
 from routes.cotizaciones import cotizaciones_bp
 from routes.mantenedor_productos import productos_bp
+from routes.mantenedor_clientes import mantenedor_clientes_bp
 
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(cotizaciones_bp)
 app.register_blueprint(productos_bp)
+app.register_blueprint(mantenedor_clientes_bp)
 
 print("🔵 Blueprints registrados:", list(app.blueprints.keys()))
 print("🚀 Servidor Flask iniciado")

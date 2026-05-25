@@ -46,7 +46,7 @@ function mostrarNotificacion(mensaje, tipo = 'exito') {
         min-width: 300px;
         max-width: 500px;
         animation: slideIn 0.3s ease;
-        font-family: Arial, sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 14px;
     `;
     
@@ -450,74 +450,137 @@ function inicializarEventosPunto(div) {
 }
 
 // =========================================
-// LISTAR CLIENTES - COLUMNAS CORREGIDAS: ID, CODIGO, luego todo lo demás
+// LISTAR CLIENTES CON BÚSQUEDA MEJORADA
 // =========================================
 async function cargarClientes(filtros = {}) {
     const tbody = document.getElementById("tbody-clientes");
     if (!tbody) return;
     
+    // Mostrar indicador de carga
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <br>Cargando clientes...
+    </td></tr>`;
+    
     try {
         let url = "/api/clientes/buscar";
         const params = new URLSearchParams();
         if (filtros.tipo) params.append("tipo_documento", filtros.tipo);
-        if (filtros.busqueda) params.append("busqueda", filtros.busqueda);
+        if (filtros.busqueda && filtros.busqueda.trim()) {
+            params.append("busqueda", filtros.busqueda.trim());
+        }
         if (params.toString()) url += "?" + params.toString();
 
+        console.log("🔍 Buscando clientes:", url); // Debug
+        
         const res = await fetch(url);
         const json = await res.json();
+        
+        if (!json.success) {
+            throw new Error(json.error || "Error al cargar clientes");
+        }
+        
         const clientes = json.data || [];
 
         tbody.innerHTML = "";
 
         if (clientes.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5">No hay clientes registrados</td></tr>`;
+            let mensaje = "No hay clientes registrados";
+            if (filtros.busqueda && filtros.busqueda.trim()) {
+                mensaje = `No se encontraron clientes que coincidan con: "${filtros.busqueda}"`;
+            }
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5">
+                <i class="bi bi-emoji-frown" style="font-size: 3rem;"></i>
+                <br>${mensaje}
+                <br><small class="text-muted">Intenta buscar por RUC, DNI, nombre comercial o razón social</small>
+            </td></tr>`;
             return;
         }
 
         clientes.forEach(c => {
-            const contactos = (c.contactos?.length) ? c.contactos.map(ct => `📞 ${ct.nombre || ct.nombre_contacto || ''}`).join('<br>') : '<em>Sin contactos</em>';
-            const puntos = (c.puntos_entrega?.length) ? c.puntos_entrega.map(p => `📦 ${p.nombre_punto || ''}`).join('<br>') : '<em>Sin puntos</em>';
+            const contactos = (c.contactos?.length) ? c.contactos.map(ct => `📞 ${escapeHtml(ct.nombre_contacto || ct.nombre || '')}`).join('<br>') : '<em class="text-muted">Sin contactos</em>';
+            const puntos = (c.puntos_entrega?.length) ? c.puntos_entrega.map(p => `📦 ${escapeHtml(p.nombre_punto || '')}`).join('<br>') : '<em class="text-muted">Sin puntos</em>';
             const condicionPago = c.puntos_entrega?.[0]?.condicion_pago || '-';
             const codigoCliente = c.codigo_cliente || `---`;
 
-            // ORDEN CORRECTO: ID, CODIGO, NOMBRE COMERCIAL, RAZON SOCIAL, DOCUMENTO, DIRECCION, CONDICION, CONTACTOS, PUNTOS, ACCIONES
             tbody.innerHTML += `
                 <tr>
                     <td class="text-center">${c.id || '-'}</td>
-                    <td class="text-center"><strong>${escapeHtml(codigoCliente)}</strong></td>
-                    <td>${escapeHtml(c.nombre_comercial) || '-'}</td>
+                    <td class="text-center"><span class="badge bg-secondary">${escapeHtml(codigoCliente)}</span></td>
+                    <td><strong>${escapeHtml(c.nombre_comercial) || '-'}</strong></td>
                     <td>${escapeHtml(c.razon_social) || '-'}</td>
-                    <td class="text-center">${c.numero_documento || '-'}</td>
+                    <td class="text-center"><span class="badge bg-info">${c.numero_documento || '-'}</span></td>
                     <td>${escapeHtml(c.direccion_fiscal) || '-'}</td>
                     <td class="text-center">${condicionPago}</td>
                     <td>${contactos}</td>
                     <td>${puntos}</td>
                     <td class="text-center">
-                        <button class="btn-action btn-edit" onclick="abrirModalEditar(${c.id})" title="Editar cliente">✏️</button>
-                        <button class="btn-action btn-delete" onclick="abrirModalEliminar(${c.id})" title="Eliminar cliente">🗑️</button>
+                        <button class="btn-action btn-edit" onclick="abrirModalEditar(${c.id})" title="Editar cliente">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="abrirModalEliminar(${c.id})" title="Eliminar cliente">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
                     </td>
                 </tr>
             `;
         });
+        
+        // Actualizar contador de resultados
+        const contador = document.querySelector('.resultados-contador');
+        if (contador) {
+            contador.textContent = `${clientes.length} cliente${clientes.length !== 1 ? 's' : ''} encontrado${clientes.length !== 1 ? 's' : ''}`;
+        }
+        
     } catch (e) {
         console.error("Error al cargar clientes:", e);
-        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5 text-danger">Error al cargar los clientes</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5 text-danger">
+            <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem;"></i>
+            <br>Error al cargar los clientes: ${e.message}
+            <br><small>Verifica la conexión con el servidor</small>
+        </td></tr>`;
+        mostrarNotificacion("Error al cargar clientes: " + e.message, 'error');
     }
 }
 
 // =========================================
-// INICIALIZAR FILTROS
+// INICIALIZAR FILTROS CON BÚSQUEDA MEJORADA
 // =========================================
 function inicializarFiltros() {
     const filtroTipo = document.getElementById("filtro-tipo");
     const filtroBusqueda = document.getElementById("filtro-busqueda");
+    const btnLimpiar = document.getElementById("btn-limpiar-filtros");
     
-    if (filtroTipo) filtroTipo.addEventListener("change", () => aplicarFiltros());
+    if (filtroTipo) {
+        filtroTipo.addEventListener("change", () => {
+            aplicarFiltros();
+        });
+    }
+    
     if (filtroBusqueda) {
         let timeout;
         filtroBusqueda.addEventListener("input", () => {
             clearTimeout(timeout);
             timeout = setTimeout(() => aplicarFiltros(), 500);
+        });
+        
+        // Permitir búsqueda con Enter
+        filtroBusqueda.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                clearTimeout(timeout);
+                aplicarFiltros();
+            }
+        });
+    }
+    
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener("click", () => {
+            if (filtroTipo) filtroTipo.value = "";
+            if (filtroBusqueda) filtroBusqueda.value = "";
+            aplicarFiltros();
+            mostrarNotificacion("Filtros limpiados", 'info');
         });
     }
 }
@@ -525,6 +588,9 @@ function inicializarFiltros() {
 function aplicarFiltros() {
     const tipo = document.getElementById("filtro-tipo")?.value || "";
     const busqueda = document.getElementById("filtro-busqueda")?.value || "";
+    
+    console.log(`🔎 Aplicando filtros: tipo=${tipo || 'todos'}, busqueda="${busqueda || 'vacía'}"`);
+    
     cargarClientes({ tipo, busqueda });
 }
 
@@ -532,17 +598,28 @@ function aplicarFiltros() {
 // ABRIR MODAL EDITAR
 // =========================================
 window.abrirModalEditar = async function(id) {
+    if (!id) {
+        mostrarNotificacion("ID de cliente no válido", 'error');
+        return;
+    }
+    
     try {
+        mostrarNotificacion("Cargando datos del cliente...", 'info');
+        
         const res = await fetch(`/api/clientes/${id}`);
         const json = await res.json();
         
-        if (!json.success || !json.data) throw new Error(json.error || "Error al cargar los datos");
+        if (!json.success || !json.data) {
+            throw new Error(json.error || "Error al cargar los datos");
+        }
         
         const c = json.data;
         
+        // Limpiar contenedores
         document.getElementById('edit_listaContactos').innerHTML = '';
         document.getElementById('edit_listaPuntos').innerHTML = '';
         
+        // Llenar datos básicos
         document.getElementById('edit_id').value = c.id;
         document.getElementById('edit_tipo_documento').value = c.tipo_documento || '';
         document.getElementById('edit_numero_documento').value = c.numero_documento || '';
@@ -551,21 +628,25 @@ window.abrirModalEditar = async function(id) {
         document.getElementById('edit_direccion_fiscal').value = c.direccion_fiscal || '';
         actualizarPlaceholderDocumento('edit_');
         
+        // Cargar contactos
         if (c.contactos && c.contactos.length > 0) {
             c.contactos.forEach(contacto => agregarContactoEdicion(contacto));
         } else {
-            agregarContactoEdicion();
+            agregarContactoEdicion(); // Agregar uno vacío por defecto
         }
         
+        // Cargar puntos de entrega
         if (c.puntos_entrega && c.puntos_entrega.length > 0) {
             c.puntos_entrega.forEach(punto => agregarPuntoEdicion(punto));
         } else {
-            agregarPuntoEdicion();
+            agregarPuntoEdicion(); // Agregar uno vacío por defecto
         }
         
-        new bootstrap.Modal(document.getElementById('modalEditarCliente')).show();
+        const modal = new bootstrap.Modal(document.getElementById('modalEditarCliente'));
+        modal.show();
+        
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error al cargar cliente para editar:", error);
         mostrarNotificacion("Error cargando cliente: " + error.message, 'error');
     }
 };
@@ -577,41 +658,70 @@ document.getElementById('formEditarCliente')?.addEventListener('submit', async f
     e.preventDefault();
     
     const id = document.getElementById('edit_id').value;
-    if (!id) return mostrarNotificacion("ID no encontrado", 'error');
+    if (!id) {
+        mostrarNotificacion("ID no encontrado", 'error');
+        return;
+    }
+    
+    // Validar campos requeridos
+    const tipoDoc = document.getElementById('edit_tipo_documento').value;
+    const numDoc = document.getElementById('edit_numero_documento').value;
+    const razonSocial = document.getElementById('edit_razon_social').value;
+    
+    if (!tipoDoc) {
+        mostrarNotificacion("Seleccione el tipo de documento", 'error');
+        return;
+    }
+    if (!numDoc) {
+        mostrarNotificacion("Ingrese el número de documento", 'error');
+        return;
+    }
+    if (!razonSocial) {
+        mostrarNotificacion("Ingrese la razón social", 'error');
+        return;
+    }
     
     const data = {
-        tipo_documento: document.getElementById('edit_tipo_documento').value,
-        numero_documento: document.getElementById('edit_numero_documento').value,
-        razon_social: document.getElementById('edit_razon_social').value,
+        tipo_documento: tipoDoc,
+        numero_documento: numDoc,
+        razon_social: razonSocial,
         nombre_comercial: document.getElementById('edit_nombre_comercial').value,
         direccion_fiscal: document.getElementById('edit_direccion_fiscal').value,
         contactos: [],
         puntos_entrega: []
     };
     
+    // Recoger contactos
     document.querySelectorAll('#edit_listaContactos .item-agregable').forEach(item => {
-        data.contactos.push({
-            nombre_contacto: item.querySelector('[data-field="edit_nombre_contacto"]')?.value.trim() || '',
-            cargo: item.querySelector('[data-field="edit_cargo"]')?.value.trim() || '',
-            email: item.querySelector('[data-field="edit_email"]')?.value.trim() || '',
-            telefono: item.querySelector('[data-field="edit_telefono"]')?.value.trim() || '',
-            principal: item.querySelector('[data-field="principal"]')?.checked || false
-        });
+        const nombreContacto = item.querySelector('[data-field="edit_nombre_contacto"]')?.value.trim();
+        if (nombreContacto) { // Solo agregar si tiene nombre
+            data.contactos.push({
+                nombre_contacto: nombreContacto,
+                cargo: item.querySelector('[data-field="edit_cargo"]')?.value.trim() || '',
+                email: item.querySelector('[data-field="edit_email"]')?.value.trim() || '',
+                telefono: item.querySelector('[data-field="edit_telefono"]')?.value.trim() || '',
+                principal: item.querySelector('[data-field="principal"]')?.checked || false
+            });
+        }
     });
     
+    // Recoger puntos de entrega
     document.querySelectorAll('#edit_listaPuntos .item-agregable').forEach(item => {
-        data.puntos_entrega.push({
-            nombre_punto: item.querySelector('[data-field="edit_nombre_punto"]')?.value.trim() || '',
-            direccion: item.querySelector('[data-field="edit_direccion"]')?.value.trim() || '',
-            departamento: item.querySelector('[data-field="edit_departamento"]')?.value || '',
-            provincia: item.querySelector('[data-field="edit_provincia"]')?.value || '',
-            distrito: item.querySelector('[data-field="edit_distrito"]')?.value || '',
-            responsable: item.querySelector('[data-field="edit_responsable"]')?.value.trim() || '',
-            telefono: item.querySelector('[data-field="edit_telefono_punto"]')?.value.trim() || '',
-            condicion_pago: item.querySelector('[data-field="edit_condicion_pago"]')?.value || '',
-            tiempo_credito: item.querySelector('[data-field="edit_tiempo_credito"]')?.value.trim() || '',
-            principal: item.querySelector('[data-field="principal_punto"]')?.checked || false
-        });
+        const nombrePunto = item.querySelector('[data-field="edit_nombre_punto"]')?.value.trim();
+        if (nombrePunto) { // Solo agregar si tiene nombre
+            data.puntos_entrega.push({
+                nombre_punto: nombrePunto,
+                direccion: item.querySelector('[data-field="edit_direccion"]')?.value.trim() || '',
+                departamento: item.querySelector('[data-field="edit_departamento"]')?.value || '',
+                provincia: item.querySelector('[data-field="edit_provincia"]')?.value || '',
+                distrito: item.querySelector('[data-field="edit_distrito"]')?.value || '',
+                responsable: item.querySelector('[data-field="edit_responsable"]')?.value.trim() || '',
+                telefono: item.querySelector('[data-field="edit_telefono_punto"]')?.value.trim() || '',
+                condicion_pago: item.querySelector('[data-field="edit_condicion_pago"]')?.value || '',
+                tiempo_credito: item.querySelector('[data-field="edit_tiempo_credito"]')?.value.trim() || '',
+                principal: item.querySelector('[data-field="principal_punto"]')?.checked || false
+            });
+        }
     });
     
     try {
@@ -624,12 +734,14 @@ document.getElementById('formEditarCliente')?.addEventListener('submit', async f
         
         if (json.success) {
             mostrarNotificacion(`✅ Cliente actualizado exitosamente`, 'exito');
-            bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente'));
+            if (modal) modal.hide();
             await cargarClientes();
         } else {
             mostrarNotificacion("❌ Error: " + json.error, 'error');
         }
     } catch (error) {
+        console.error("Error al actualizar:", error);
         mostrarNotificacion("Error al actualizar: " + error.message, 'error');
     }
 });
@@ -640,39 +752,65 @@ document.getElementById('formEditarCliente')?.addEventListener('submit', async f
 document.getElementById('formCliente')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    // Validar campos requeridos
+    const tipoDoc = document.getElementById('tipo_documento').value;
+    const numDoc = document.getElementById('numero_documento').value;
+    const razonSocial = document.getElementById('razon_social').value;
+    
+    if (!tipoDoc) {
+        mostrarNotificacion("Seleccione el tipo de documento", 'error');
+        return;
+    }
+    if (!numDoc) {
+        mostrarNotificacion("Ingrese el número de documento", 'error');
+        return;
+    }
+    if (!razonSocial) {
+        mostrarNotificacion("Ingrese la razón social", 'error');
+        return;
+    }
+    
     const data = {
-        tipo_documento: document.getElementById('tipo_documento').value,
-        numero_documento: document.getElementById('numero_documento').value,
-        razon_social: document.getElementById('razon_social').value,
+        tipo_documento: tipoDoc,
+        numero_documento: numDoc,
+        razon_social: razonSocial,
         nombre_comercial: document.getElementById('nombre_comercial').value,
         direccion_fiscal: document.getElementById('direccion_fiscal').value,
         contactos: [],
         puntos_entrega: []
     };
     
+    // Recoger contactos
     document.querySelectorAll('#listaContactos .item-agregable').forEach(item => {
-        data.contactos.push({
-            nombre_contacto: item.querySelector('[data-field="nombre_contacto"]')?.value.trim() || '',
-            cargo: item.querySelector('[data-field="cargo"]')?.value.trim() || '',
-            email: item.querySelector('[data-field="email"]')?.value.trim() || '',
-            telefono: item.querySelector('[data-field="telefono"]')?.value.trim() || '',
-            principal: item.querySelector('[data-field="principal"]')?.checked || false
-        });
+        const nombreContacto = item.querySelector('[data-field="nombre_contacto"]')?.value.trim();
+        if (nombreContacto) { // Solo agregar si tiene nombre
+            data.contactos.push({
+                nombre_contacto: nombreContacto,
+                cargo: item.querySelector('[data-field="cargo"]')?.value.trim() || '',
+                email: item.querySelector('[data-field="email"]')?.value.trim() || '',
+                telefono: item.querySelector('[data-field="telefono"]')?.value.trim() || '',
+                principal: item.querySelector('[data-field="principal"]')?.checked || false
+            });
+        }
     });
     
+    // Recoger puntos de entrega
     document.querySelectorAll('#listaPuntos .item-agregable').forEach(item => {
-        data.puntos_entrega.push({
-            nombre_punto: item.querySelector('[data-field="nombre_punto"]')?.value.trim() || '',
-            direccion: item.querySelector('[data-field="direccion"]')?.value.trim() || '',
-            departamento: item.querySelector('[data-field="departamento"]')?.value || '',
-            provincia: item.querySelector('[data-field="provincia"]')?.value || '',
-            distrito: item.querySelector('[data-field="distrito"]')?.value || '',
-            responsable: item.querySelector('[data-field="responsable"]')?.value.trim() || '',
-            telefono: item.querySelector('[data-field="telefono_punto"]')?.value.trim() || '',
-            condicion_pago: item.querySelector('[data-field="condicion_pago"]')?.value || '',
-            tiempo_credito: item.querySelector('[data-field="tiempo_credito"]')?.value.trim() || '',
-            principal: item.querySelector('[data-field="principal_punto"]')?.checked || false
-        });
+        const nombrePunto = item.querySelector('[data-field="nombre_punto"]')?.value.trim();
+        if (nombrePunto) { // Solo agregar si tiene nombre
+            data.puntos_entrega.push({
+                nombre_punto: nombrePunto,
+                direccion: item.querySelector('[data-field="direccion"]')?.value.trim() || '',
+                departamento: item.querySelector('[data-field="departamento"]')?.value || '',
+                provincia: item.querySelector('[data-field="provincia"]')?.value || '',
+                distrito: item.querySelector('[data-field="distrito"]')?.value || '',
+                responsable: item.querySelector('[data-field="responsable"]')?.value.trim() || '',
+                telefono: item.querySelector('[data-field="telefono_punto"]')?.value.trim() || '',
+                condicion_pago: item.querySelector('[data-field="condicion_pago"]')?.value || '',
+                tiempo_credito: item.querySelector('[data-field="tiempo_credito"]')?.value.trim() || '',
+                principal: item.querySelector('[data-field="principal_punto"]')?.checked || false
+            });
+        }
     });
     
     try {
@@ -686,17 +824,26 @@ document.getElementById('formCliente')?.addEventListener('submit', async functio
         if (json.success) {
             const codigoGenerado = json.data?.codigo_cliente || 'Generado';
             mostrarNotificacion(`✅ Cliente guardado exitosamente\nCódigo: ${codigoGenerado}\nRazón Social: ${data.razon_social}\nDocumento: ${data.tipo_documento}: ${data.numero_documento}`, 'exito');
-            bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
-            cargarClientes();
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalCliente'));
+            if (modal) modal.hide();
+            
+            // Limpiar formulario
             document.getElementById('formCliente').reset();
             document.getElementById('listaContactos').innerHTML = '';
             document.getElementById('listaPuntos').innerHTML = '';
+            
+            // Agregar items por defecto
             agregarContactoNuevo();
             agregarPuntoNuevo();
+            
+            // Recargar tabla
+            await cargarClientes();
         } else {
             mostrarNotificacion("❌ Error: " + json.error, 'error');
         }
     } catch (error) {
+        console.error("Error al guardar:", error);
         mostrarNotificacion("Error al guardar: " + error.message, 'error');
     }
 });
@@ -704,34 +851,44 @@ document.getElementById('formCliente')?.addEventListener('submit', async functio
 // =========================================
 // ELIMINAR CLIENTE
 // =========================================
-function abrirModalEliminar(id) {
+window.abrirModalEliminar = function(id) {
+    if (!id) return;
     document.getElementById('delete_id').value = id;
-    new bootstrap.Modal(document.getElementById('modalEliminarCliente')).show();
-}
+    const modal = new bootstrap.Modal(document.getElementById('modalEliminarCliente'));
+    modal.show();
+};
 
 document.getElementById('btnConfirmarEliminar')?.addEventListener('click', async function() {
     const id = document.getElementById('delete_id').value;
+    if (!id) return;
+    
     try {
         const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
         const json = await res.json();
+        
         if (json.success) {
             mostrarNotificacion(`✅ Cliente eliminado exitosamente`, 'exito');
-            bootstrap.Modal.getInstance(document.getElementById('modalEliminarCliente')).hide();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalEliminarCliente'));
+            if (modal) modal.hide();
             await cargarClientes();
         } else {
             mostrarNotificacion("❌ Error: " + json.error, 'error');
         }
     } catch (error) {
+        console.error("Error al eliminar:", error);
         mostrarNotificacion("Error al eliminar: " + error.message, 'error');
     }
 });
 
-// Inicializar items por defecto
+// Inicializar items por defecto en los modales
 setTimeout(() => {
     if (document.getElementById('listaContactos') && document.getElementById('listaContactos').children.length === 0) {
         agregarContactoNuevo();
     }
     if (document.getElementById('listaPuntos') && document.getElementById('listaPuntos').children.length === 0) {
         agregarPuntoNuevo();
+    }
+    if (document.getElementById('edit_listaContactos') && document.getElementById('edit_listaContactos').children.length === 0) {
+        // No inicializar aquí para no interferir con la carga de datos
     }
 }, 100);
