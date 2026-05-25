@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
             codigoVendedorSpan.textContent = 'HELLEN';
         }
         
-        // Crear un objeto usuarioActual por defecto
         usuarioActual = {
             id: 1,
             nombre_completo: 'Hellen Blas Principe',
@@ -55,10 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
             codigo_vendedor: 'HELLEN'
         };
         
-        console.log('✅ Asesor por defecto asignado: Hellen Blas Principe');
+        console.log('✅ Asesor por defecto asignado');
     }
 
-    // Obtener usuario actual (modificado para siempre usar HELLEN por defecto)
     async function obtenerUsuarioActual() {
         try {
             const response = await fetch('/api/usuarios/actual');
@@ -66,41 +64,31 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.success && data.data) {
                 usuarioActual = data.data;
-                
                 const codigoVendedorSpan = document.getElementById('codigo_vendedor');
                 if (codigoVendedorSpan && usuarioActual.codigo_vendedor) {
                     codigoVendedorSpan.textContent = usuarioActual.codigo_vendedor;
                 }
-                
                 const asesorInput = document.getElementById('asesor_comercial');
                 if (asesorInput && usuarioActual.nombre_completo) {
                     asesorInput.value = usuarioActual.nombre_completo;
                     const usuarioIdInput = document.getElementById('usuario_id');
                     const emailContacto = document.getElementById('email_contacto');
                     const telefonoUser = document.getElementById('telefono_contacto_user');
-                    
                     if (usuarioIdInput) usuarioIdInput.value = usuarioActual.id;
                     if (emailContacto) emailContacto.value = usuarioActual.email || '';
                     if (telefonoUser) telefonoUser.value = usuarioActual.telefono || '';
                 }
-                
                 return usuarioActual;
             }
-            
-            // 🔥 Si no hay usuario logueado, asignar valores por defecto de HELLEN
-            console.log('⚠️ No se encontró usuario logueado, asignando valores por defecto');
             asignarAsesorPorDefecto();
             return usuarioActual;
-            
         } catch (error) {
             console.error('Error obteniendo usuario:', error);
-            // 🔥 También en caso de error, asignar por defecto
             asignarAsesorPorDefecto();
             return usuarioActual;
         }
     }
 
-    // Obtener último correlativo del usuario
     async function obtenerUltimoCorrelativo(usuarioId) {
         try {
             const response = await fetch(`/api/cotizacion/ultimo-correlativo?usuario_id=${usuarioId}`);
@@ -116,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Verificar si un código ya existe en la base de datos
     async function verificarCodigoExiste(codigo) {
         try {
             const response = await fetch(`/api/cotizacion/verificar-codigo?codigo=${encodeURIComponent(codigo)}`);
@@ -128,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Generar código temporal para borrador
     function generarCodigoTemporal() {
         const fecha = new Date();
         const timestamp = `${fecha.getFullYear()}${String(fecha.getMonth() + 1).padStart(2, '0')}${String(fecha.getDate()).padStart(2, '0')}_${String(fecha.getHours()).padStart(2, '0')}${String(fecha.getMinutes()).padStart(2, '0')}${String(fecha.getSeconds()).padStart(2, '0')}`;
@@ -136,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return `TMP-${codigoVendedor}-${timestamp}`;
     }
 
-    // Actualizar número de cotización en UI
     function actualizarNumeroCotizacionUI(codigo, esBorradorActual = esBorrador) {
         const numeroDiv = document.getElementById('numero_cotizacion');
         const tipoDocSpan = document.getElementById('tipo_documento');
@@ -151,16 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             codigoCotizacionActual = codigo;
         }
-        
         actualizarEstadoBotonPDF();
     }
 
-    // Generar código oficial
     async function generarCodigoOficial() {
-        if (!usuarioActual) {
-            await obtenerUsuarioActual();
-        }
-        
+        if (!usuarioActual) await obtenerUsuarioActual();
         if (usuarioActual) {
             await obtenerUltimoCorrelativo(usuarioActual.id);
             let nuevoCorrelativo = correlativoActual + 1;
@@ -174,33 +154,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 const año = fecha.getFullYear();
                 const mes = String(fecha.getMonth() + 1).padStart(2, '0');
                 const dia = String(fecha.getDate()).padStart(2, '0');
-                
                 const codigo = `COT-${codigoVendedor}-${año}${mes}${dia}-${String(nuevoCorrelativo).padStart(4, '0')}`;
-                
                 const existe = await verificarCodigoExiste(codigo);
-                
                 if (!existe) {
                     codigoGenerado = codigo;
                     correlativoActual = nuevoCorrelativo;
                 } else {
-                    console.warn(`⚠️ Código ${codigo} ya existe, intentando con correlativo ${nuevoCorrelativo + 1}`);
                     nuevoCorrelativo++;
                 }
                 intentos++;
             }
-            
             if (!codigoGenerado) {
-                console.error('❌ No se pudo generar un código único');
-                mostrarNotificacion('Error: No se pudo generar un código único. Contacte al administrador.', 'danger');
+                mostrarNotificacion('Error: No se pudo generar un código único', 'danger');
                 return null;
             }
-            
             return codigoGenerado;
         }
         return null;
     }
 
-    // Inicializar código
     async function inicializarCodigo() {
         await obtenerUsuarioActual();
         esBorrador = true;
@@ -209,13 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return codigoTemporal;
     }
 
-    // =========================
-    // HABILITAR/DESHABILITAR BOTÓN PDF
-    // =========================
     function actualizarEstadoBotonPDF() {
         const btnPdf = document.getElementById('btnPdf');
         const cotizacionId = document.getElementById('cotizacion_id')?.value;
-        
         if (btnPdf) {
             if (cotizacionId && cotizacionId !== '' && cotizacionId !== 'None' && esBorrador === false) {
                 btnPdf.disabled = false;
@@ -227,9 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================
-    // NOTIFICACIONES
-    // =========================
     function mostrarNotificacion(mensaje, tipo) {
         const notificacion = document.createElement('div');
         notificacion.className = `alert alert-${tipo} position-fixed top-0 end-0 m-3`;
@@ -241,21 +206,12 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => notificacion.remove(), 3000);
     }
 
-    // =========================
-    // CONSULTA A SUNAT
-    // =========================
     async function consultarSunat(ruc) {
         try {
             mostrarNotificacion(`🔍 Consultando RUC ${ruc} en SUNAT...`, 'info');
-            
             const response = await fetch(`https://api.apis.net.pe/v2/sunat/ruc?numero=${ruc}`);
-            
-            if (!response.ok) {
-                throw new Error('Error al consultar SUNAT');
-            }
-            
+            if (!response.ok) throw new Error('Error al consultar SUNAT');
             const data = await response.json();
-            
             if (data && data.razonSocial) {
                 return {
                     success: true,
@@ -264,9 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     direccion: data.direccion || '',
                     estado: data.estado || ''
                 };
-            } else {
-                return { success: false, error: 'No se encontraron datos' };
             }
+            return { success: false, error: 'No se encontraron datos' };
         } catch (error) {
             console.error('Error consultando SUNAT:', error);
             return { success: false, error: error.message };
@@ -276,32 +231,26 @@ document.addEventListener('DOMContentLoaded', () => {
     async function autocompletarConSunat() {
         const tipoDocumento = document.getElementById('nuevo_tipo_documento')?.value;
         const numeroDocumento = document.getElementById('nuevo_numero_documento')?.value.trim();
-        
         if (tipoDocumento !== 'RUC') {
             mostrarNotificacion('⚠️ La búsqueda en SUNAT solo está disponible para RUC', 'warning');
             return;
         }
-        
         if (!numeroDocumento || numeroDocumento.length !== 11) {
             mostrarNotificacion('⚠️ Ingrese un RUC válido de 11 dígitos', 'warning');
             return;
         }
-        
         const btnBuscar = document.getElementById('btnBuscarSunat');
         const textoOriginal = btnBuscar?.innerHTML;
         if (btnBuscar) {
             btnBuscar.innerHTML = '<i class="bi bi-hourglass-split"></i> Buscando...';
             btnBuscar.disabled = true;
         }
-        
         try {
             const resultado = await consultarSunat(numeroDocumento);
-            
             if (resultado.success) {
                 document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
                 document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
                 document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
-                
                 mostrarNotificacion('✅ Datos cargados desde SUNAT correctamente', 'success');
             } else {
                 mostrarNotificacion('❌ ' + (resultado.error || 'No se encontraron datos para este RUC'), 'danger');
@@ -317,9 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================
-    // BOTÓN BUSCAR CLIENTE POR RUC
-    // =========================
     const btnBuscarClientePorRuc = document.getElementById('btnBuscarClientePorRuc');
     const buscarRucInput = document.getElementById('buscar_ruc');
     const btnLimpiarCliente = document.getElementById('btnLimpiarCliente');
@@ -327,38 +273,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnBuscarClientePorRuc) {
         btnBuscarClientePorRuc.addEventListener('click', async function(e) {
             e.preventDefault();
-            
             const ruc = buscarRucInput?.value.trim();
-            
             if (!ruc) {
                 mostrarNotificacion('⚠️ Ingrese un RUC para buscar', 'warning');
                 return;
             }
-            
             if (ruc.length !== 11) {
                 mostrarNotificacion('⚠️ El RUC debe tener 11 dígitos', 'warning');
                 return;
             }
-            
             mostrarNotificacion('🔍 Consultando SUNAT para RUC: ' + ruc, 'info');
-            
             const textoOriginal = btnBuscarClientePorRuc.innerHTML;
             btnBuscarClientePorRuc.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando SUNAT...';
             btnBuscarClientePorRuc.disabled = true;
-            
             try {
                 const resultado = await consultarSunat(ruc);
-                
                 if (resultado.success) {
                     document.getElementById('cliente_razon_social').value = resultado.razon_social || '';
                     document.getElementById('cliente_doc').value = ruc;
                     document.getElementById('cliente_direccion').value = resultado.direccion || '';
-                    
                     document.getElementById('nuevo_razon_social').value = resultado.razon_social || '';
                     document.getElementById('nuevo_nombre_comercial').value = resultado.nombre_comercial || '';
                     document.getElementById('nuevo_direccion_fiscal').value = resultado.direccion || '';
                     document.getElementById('nuevo_numero_documento').value = ruc;
-                    
                     mostrarNotificacion('✅ Datos cargados desde SUNAT correctamente', 'success');
                 } else {
                     mostrarNotificacion('❌ ' + (resultado.error || 'No se encontraron datos para este RUC en SUNAT'), 'danger');
@@ -373,7 +310,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Botón para limpiar cliente
     if (btnLimpiarCliente) {
         btnLimpiarCliente.addEventListener('click', function() {
             document.getElementById('cliente_id').value = '';
@@ -387,15 +323,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // =========================
-    // CONFIGURAR TIEMPO DE ENTREGA
-    // =========================
     function configurarTiempoEntrega() {
         const select = document.getElementById('tiempo_entrega_select');
         const input = document.getElementById('tiempo_entrega');
-        
         if (!select || !input) return;
-        
         select.addEventListener('change', function() {
             const valor = this.value;
             if (valor === 'personalizado') {
@@ -410,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.value = valor;
             }
         });
-        
         if (input.value && input.value.trim() !== '') {
             let encontrado = false;
             for (let i = 0; i < select.options.length; i++) {
@@ -428,20 +358,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================
-    // CARGAR PUNTOS DE ENTREGA
-    // =========================
     async function cargarPuntosEntrega(clienteId) {
         const select = document.getElementById('punto_entrega');
         if (!select) return;
-
         select.innerHTML = `<option value="a_tratar">📝 A tratar (Negociación)</option>`;
-
         try {
             const res = await fetch(`/api/clientes/${clienteId}`);
             const json = await res.json();
             const puntos = json.data?.puntos_entrega || [];
-
             puntos.forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = p.id;
@@ -453,29 +377,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================
-    // CREAR NUEVO CLIENTE
-    // =========================
     async function guardarNuevoCliente() {
         const tipoDocumento = document.getElementById('nuevo_tipo_documento')?.value;
         const numeroDocumento = document.getElementById('nuevo_numero_documento')?.value.trim();
         const razonSocial = document.getElementById('nuevo_razon_social')?.value.trim();
-        
         if (!numeroDocumento) {
             mostrarNotificacion('⚠️ Ingrese el número de documento', 'warning');
             return;
         }
-        
         if (!razonSocial) {
             mostrarNotificacion('⚠️ Ingrese la razón social', 'warning');
             return;
         }
-        
         const btnGuardar = document.getElementById('btnGuardarNuevoCliente');
         const textoOriginal = btnGuardar.innerHTML;
         btnGuardar.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
         btnGuardar.disabled = true;
-        
         try {
             const payload = {
                 tipo_documento: tipoDocumento,
@@ -487,15 +404,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 email_contacto: document.getElementById('nuevo_email')?.value.trim() || '',
                 nombre_contacto: document.getElementById('nuevo_nombre_contacto')?.value.trim() || ''
             };
-            
             const response = await fetch('/api/clientes/crear', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            
             const result = await response.json();
-            
             if (result.success) {
                 document.getElementById('formNuevoCliente')?.reset();
                 const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente'));
@@ -518,17 +432,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`/api/clientes/${clienteId}`);
             const result = await response.json();
-            
             if (result.success && result.data) {
                 const cliente = result.data;
-                
                 document.getElementById('cliente_id').value = cliente.id;
                 document.getElementById('cliente_razon_social').value = cliente.razon_social;
                 document.getElementById('cliente_doc').value = cliente.numero_documento || '';
                 document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
                 document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';
                 document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
-                
                 await cargarPuntosEntrega(cliente.id);
                 mostrarNotificacion('✅ Cliente cargado correctamente', 'success');
             }
@@ -537,13 +448,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================
-    // MODAL DE CONFIRMACIÓN
-    // =========================
     function mostrarModalConfirmacion(datos) {
         const modalBody = document.getElementById('modalConfirmacionBody');
         if (!modalBody) return;
-        
         const fecha = new Date();
         modalBody.innerHTML = `
             <div class="text-center mb-3"><i class="bi bi-check-circle-fill" style="font-size: 48px; color: #10b981;"></i></div>
@@ -554,10 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="row mt-2"><div class="col-6"><strong>Fecha:</strong></div><div class="col-6">${fecha.toLocaleDateString()}</div></div>
             <hr><div class="text-muted small"><i class="bi bi-info-circle"></i> El código es único y quedará registrado.</div>
         `;
-        
         const modal = new bootstrap.Modal(document.getElementById('modalConfirmacion'));
         modal.show();
-        
         document.getElementById('btnDescargarPDFModal').onclick = () => {
             const cotId = document.getElementById('cotizacion_id')?.value;
             if (cotId && !esBorrador) {
@@ -566,15 +471,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 mostrarNotificacion('⚠️ Debe convertir a oficial antes de generar PDF', 'warning');
             }
         };
-        
         document.getElementById('btnNuevaCotizacionModal').onclick = () => {
             window.location.href = '/cotizacion/nueva';
         };
     }
 
-    // =========================
-    // ESTADO GLOBAL
-    // =========================
     let estadoCotizacion = 'En Proceso';
     let cotizacionBloqueada = false;
     let datosModificados = false;
@@ -601,48 +502,33 @@ document.addEventListener('DOMContentLoaded', () => {
         portal.style.display = 'block';
     }
 
-    // =========================
-    // OBTENER LISTA DE PRODUCTOS
-    // =========================
     function obtenerListaProductos() {
         const filas = document.querySelectorAll("#table-body tr");
         let listaProductos = [];
-
         filas.forEach(row => {
             const getInput = (selector) => {
                 const el = row.querySelector(selector);
                 return el ? el.value : 0;
             };
-
             const getText = (selector) => {
                 const el = row.querySelector(selector);
                 return el ? el.textContent : 0;
             };
-
             const producto = {
                 producto_id: Number(getInput('.producto_id')) || null,
                 cantidad: Number(getInput('.cantidad')),
                 costo_unitario: Number(getInput('.precio_costo_unitario')),
                 subtotal_costo: Number(getText('.subtotal_costo')),
-                margen_porcentaje: Number(getInput('.margen_venta')) || 0,
                 precio_venta_unitario: Number(getInput('.precio_venta_unitario_input')) || 0,
                 subtotal_venta: Number(getText('.subtotal_venta_item')),
                 descuento_porcentaje: Number(getInput('.descuento_porcentaje')) || 0,
-                precio_venta_con_descuento: Number(getText('.precio_unitario_venta_desc')),
-                subtotal_venta_con_descuento: Number(getText('.subtotal_venta_desc')),
-                descuento_total: Number(getText('.descuento_subtotal')),
-                margen_final: Number(getText('.margen_final'))
+                subtotal_venta_con_descuento: Number(getText('.subtotal_venta_desc'))
             };
-
             listaProductos.push(producto);
         });
-
         return listaProductos;
     }
 
-    // =========================
-    // FUNCIONES DE BÚSQUEDA
-    // =========================
     async function buscarClientes(q) {
         try {
             const res = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
@@ -689,24 +575,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================
-    // GUARDAR COTIZACIÓN
-    // =========================
     async function guardarCotizacion() {
         const cliente_id = Number(document.getElementById('cliente_id')?.value || 0);
         if (!cliente_id) { mostrarNotificacion("⚠️ Selecciona cliente", "warning"); return; }
-
         const listaProductos = obtenerListaProductos();
         if (listaProductos.length === 0) { mostrarNotificacion("⚠️ Agrega items", "warning"); return; }
-        
         for (let i = 0; i < listaProductos.length; i++) {
             if (!listaProductos[i].producto_id) { mostrarNotificacion(`⚠️ Falta seleccionar producto en la fila ${i + 1}`, "warning"); return; }
         }
-        
         const subtotal = Number(document.getElementById('summary_subtotal_venta_desc')?.textContent || 0);
         const igv = Number(document.getElementById('summary_igv')?.textContent || 0);
         const total = Number(document.getElementById('summary_total_venta')?.textContent || 0);
-        
         const payload = {
             cliente_id: cliente_id,
             usuario_id: Number(document.getElementById("usuario_id")?.value || 0),
@@ -722,14 +601,12 @@ document.addEventListener('DOMContentLoaded', () => {
             correlativo: esBorrador ? 0 : correlativoActual,
             es_borrador: esBorrador
         };
-
         const btnGuardar = esBorrador ? document.getElementById('btnGuardarBorrador') : document.getElementById('btnGuardarOficial');
         const textoOriginal = btnGuardar?.innerHTML;
         if (btnGuardar) {
             btnGuardar.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
             btnGuardar.disabled = true;
         }
-        
         try {
             const res = await fetch('/api/cotizacion/guardar', {
                 method: 'POST',
@@ -737,30 +614,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(payload)
             });
             const json = await res.json();
-            
-            if (!json.success) { 
+            if (!json.success) {
                 mostrarNotificacion("❌ Error: " + (json.error || "Error desconocido"), "danger");
-                return; 
+                return;
             }
-            
             document.getElementById('cotizacion_id').value = json.data.id;
-            
-            if (!esBorrador) {
-                correlativoActual++;
-            }
-            
-            if (!esBorrador) {
-                actualizarEstadoBotonPDF();
-            }
-            
-            mostrarModalConfirmacion({ 
-                id: json.data.id, 
-                numero: json.data.codigo_cotizacion, 
-                tipo: esBorrador ? 'BORRADOR' : 'OFICIAL' 
-            });
-            
-        } catch (err) { 
-            console.error(err); 
+            if (!esBorrador) correlativoActual++;
+            if (!esBorrador) actualizarEstadoBotonPDF();
+            mostrarModalConfirmacion({ id: json.data.id, numero: json.data.codigo_cotizacion, tipo: esBorrador ? 'BORRADOR' : 'OFICIAL' });
+        } catch (err) {
+            console.error(err);
             mostrarNotificacion("❌ Error de conexión con el servidor", "danger");
         } finally {
             if (btnGuardar) {
@@ -770,29 +633,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================
-    // CONVERTIR A OFICIAL
-    // =========================
     async function convertirAOficial() {
-        if (!esBorrador) { 
-            mostrarNotificacion("⚠️ Esta cotización ya es oficial", "warning"); 
-            return; 
+        if (!esBorrador) {
+            mostrarNotificacion("⚠️ Esta cotización ya es oficial", "warning");
+            return;
         }
-        
         const cliente_id = Number(document.getElementById('cliente_id')?.value || 0);
         if (!cliente_id) {
             mostrarNotificacion("⚠️ Debe seleccionar un cliente antes de convertir a oficial", "warning");
             return;
         }
-        
         const listaProductos = obtenerListaProductos();
         if (listaProductos.length === 0) {
             mostrarNotificacion("⚠️ Debe agregar al menos un producto antes de convertir a oficial", "warning");
             return;
         }
-        
         if (!confirm("¿Convertir este borrador a cotización oficial?\n\nEsta acción generará un código único y definitivo.")) return;
-        
         const nuevoCodigo = await generarCodigoOficial();
         if (nuevoCodigo) {
             esBorrador = false;
@@ -805,22 +661,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================
-    // GENERAR PDF
-    // =========================
     function generatePdf() {
         const cotId = document.getElementById('cotizacion_id')?.value;
-        
         if (!cotId || cotId === '' || cotId === 'None') {
             mostrarNotificacion("⚠️ Debe guardar la cotización primero", "warning");
             return;
         }
-        
         if (esBorrador) {
             mostrarNotificacion("⚠️ Debe convertir la cotización a OFICIAL antes de generar PDF", "warning");
             return;
         }
-        
         try {
             mostrarNotificacion("📄 Generando PDF, espere...", "info");
             const pdfUrl = `/api/cotizacion/pdf/${cotId}`;
@@ -831,52 +681,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================
-    // SET PRODUCTO EN FILA
-    // =========================
-    function setProductoEnFila(row, p) {  
+    function setProductoEnFila(row, p) {
         const productoIdInput = row.querySelector('.producto_id');
         const codigoInput = row.querySelector('.codigo_producto');
         const descripcionInput = row.querySelector('.descripcion');
         const marcaInput = row.querySelector('.marca');
         const modeloInput = row.querySelector('.modelo');
-        
         if (productoIdInput) productoIdInput.value = p.id;
         if (codigoInput) codigoInput.value = p.codigo || "";
         if (descripcionInput) descripcionInput.value = p.descripcion || "";
         if (marcaInput) marcaInput.value = p.marca || "";
         if (modeloInput) modeloInput.value = p.modelo || "";
-        
-        // También actualizar PU Costo si viene del producto
         if (p.ultimo_costo) {
             const costoInput = row.querySelector('.precio_costo_unitario');
             if (costoInput) costoInput.value = p.ultimo_costo;
         }
-        
         recalculateAll();
     }
 
-    // =========================
-    // AUTOCOMPLETES
-    // =========================
     function attachClienteAutocomplete(idInput) {
         const input = document.getElementById(idInput);
         if (!input) return;
         let timeoutId = null;
-
         input.addEventListener('input', async () => {
             const q = input.value.trim();
             if (timeoutId) clearTimeout(timeoutId);
             if (q.length < 2) { portalHide(); return; }
-            
             timeoutId = setTimeout(async () => {
                 const clientes = await buscarClientes(q);
                 if (!clientes.length) { portalShow(input, `<div class="empty">No encontrado</div>`); return; }
-
                 const html = clientes.map(c => `<div class="item" data-id="${c.id}" data-razon="${c.razon_social}" data-doc="${c.numero_documento || ''}" data-direccion="${c.direccion_fiscal || ''}" data-telefono="${c.telefono_contacto || ''}" data-contacto="${c.nombre_contacto || ''}">
                     <strong>🏢 ${c.razon_social}</strong><div class="meta">${c.tipo_documento || 'DNI/RUC'} • ${c.numero_documento || 'Sin documento'}</div></div>`).join('');
                 portalShow(input, html);
-
                 portal.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', async () => {
                         document.getElementById('cliente_id').value = el.dataset.id;
@@ -895,32 +731,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function attachProductoAutocomplete(row) {
         const input = row.querySelector('.codigo_producto');
-        
         if (!input) return;
-        
         let timeoutId = null;
-
         input.addEventListener('input', async () => {
             const q = input.value.trim();
-            
             if (timeoutId) clearTimeout(timeoutId);
-            if (q.length < 2) { 
-                portalHide(); 
-                return; 
-            }
-            
+            if (q.length < 2) { portalHide(); return; }
             timeoutId = setTimeout(async () => {
                 const productos = await buscarProductos(q);
-                
-                if (!productos.length) { 
-                    portalShow(input, `<div class="empty">❌ No se encontraron productos</div>`); 
-                    return; 
-                }
-
+                if (!productos.length) { portalShow(input, `<div class="empty">❌ No se encontraron productos</div>`); return; }
                 const html = productos.map(p => `<div class="item" data-id="${p.id}" data-codigo="${p.codigo}" data-descripcion="${p.descripcion}" data-marca="${p.marca || ''}" data-modelo="${p.modelo || ''}" data-costo="${p.ultimo_costo || 0}">
                     <strong>📦 ${p.codigo}</strong> - ${p.descripcion}<div class="meta">${p.marca || ''} • Costo: ${p.ultimo_costo || 0}</div></div>`).join('');
                 portalShow(input, html);
-
                 portal.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', () => {
                         const productoData = {
@@ -943,20 +765,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('asesor_comercial');
         if (!input) return;
         let timeoutId = null;
-
         input.addEventListener('input', async () => {
             const q = input.value.trim();
             if (timeoutId) clearTimeout(timeoutId);
             if (q.length < 2) { portalHide(); return; }
-            
             timeoutId = setTimeout(async () => {
                 const asesores = await buscarAsesores(q);
                 if (!asesores.length) { portalShow(input, `<div class="empty">Asesor no encontrado</div>`); return; }
-
                 const html = asesores.map(a => `<div class="item" data-id="${a.id}" data-nombre="${a.nombre_completo}" data-email="${a.email || ''}" data-telefono="${a.telefono || ''}">
                     <strong>👨‍💼 ${a.nombre_completo}</strong><div class="meta">${a.rol || 'Asesor'} • ${a.codigo_vendedor || ''}</div></div>`).join('');
                 portalShow(input, html);
-
                 portal.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', () => {
                         document.getElementById("usuario_id").value = el.dataset.id;
@@ -974,17 +792,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('cliente_contacto');
         if (!input) return;
         let timeoutId = null;
-        
         input.addEventListener('input', async () => {
             const q = input.value.trim();
             const clienteId = document.getElementById('cliente_id')?.value;
             if (timeoutId) clearTimeout(timeoutId);
-            
             if (!clienteId) {
                 portalShow(input, `<div class="item" data-value="A tratar"><strong>📝 A tratar</strong><div class="meta">Contacto por definir</div></div>`);
                 return;
             }
-            
             timeoutId = setTimeout(async () => {
                 const contactos = await buscarContactos(clienteId, q);
                 let html = '';
@@ -993,7 +808,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 html += `<div class="item" data-value="A tratar"><strong>📝 A tratar</strong><div class="meta">Negociación</div></div>`;
                 portalShow(input, html);
-                
                 portal.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', () => { input.value = el.dataset.value; portalHide(); });
                 });
@@ -1002,7 +816,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
-    // RECALCULAR - VERSIÓN SIMPLIFICADA SIN TRANSPORTE
+    // RECALCULAR - VERSIÓN SIMPLIFICADA Y ARMÓNICA
     // =========================
     function recalculateAll() {
         const rows = document.querySelectorAll("#table-body tr");
@@ -1023,20 +837,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (sv) sv.textContent = subtotalVenta.toFixed(2);
 
             const descPct = Number(r.querySelector('.descuento_porcentaje')?.value || 0);
-            const pvDesc = pvUnit * (1 - descPct / 100);
-            const subtotalDesc = pvDesc * cantidad;
+            const subtotalDesc = subtotalVenta * (1 - descPct / 100);
             const svd = r.querySelector('.subtotal_venta_desc');
             if (svd) svd.textContent = subtotalDesc.toFixed(2);
             totalSubtotalVentaDesc += subtotalDesc;
-            
-            const puDesc = r.querySelector('.precio_unitario_venta_desc');
-            if (puDesc) puDesc.textContent = pvDesc.toFixed(2);
         });
 
         const igv = totalSubtotalVentaDesc * 0.18;
         const totalFinal = totalSubtotalVentaDesc + igv;
 
-        // Actualizar footer
         const totalSubtotalCostoElem = document.getElementById('total_subtotal_costo');
         if (totalSubtotalCostoElem) totalSubtotalCostoElem.textContent = totalSubtotalCosto.toFixed(2);
         
@@ -1046,14 +855,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalSubtotalVentaDescElem = document.getElementById('total_subtotal_venta_desc');
         if (totalSubtotalVentaDescElem) totalSubtotalVentaDescElem.textContent = totalSubtotalVentaDesc.toFixed(2);
 
-        // Actualizar resumen
         document.getElementById('summary_subtotal_venta_desc').textContent = totalSubtotalVentaDesc.toFixed(2);
         document.getElementById('summary_igv').textContent = igv.toFixed(2);
         document.getElementById('summary_total_venta').textContent = totalFinal.toFixed(2);
     }
 
     // =========================
-    // AGREGAR ITEMS - VERSIÓN SIMPLIFICADA
+    // AGREGAR ITEMS - VERSIÓN CORREGIDA (12 COLUMNAS EXACTAS)
     // =========================
     function addItem() {
         if (cotizacionBloqueada) { 
@@ -1078,7 +886,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="subtotal_venta_item">0.00</td>
             <td class="col-descuento"><input type="number" class="descuento_porcentaje" value="0" step="0.01" style="width:100%;"></td>
             <td class="subtotal_venta_desc">0.00</td>
-            <td class="col-pvdesc"><span class="precio_unitario_venta_desc">0.00</span></td>
             <td><button class="btn-del">🗑</button></td>
         `;
         
@@ -1105,9 +912,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(recalculateAll, 50);
     }
 
-    // =========================
-    // ESTADO VISUAL
-    // =========================
     function actualizarEstadoVisual() {
         const estadoElement = document.getElementById('estado_fixed');
         const estadoTexto = document.getElementById('estado_texto');
@@ -1226,14 +1030,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             recalculateAll();
             configurarTiempoEntrega();
-            
             actualizarEstadoBotonPDF();
         } catch (err) { console.error(err); mostrarNotificacion("Error cargando cotización", "danger"); }
     }
 
-    // =========================
-    // DIAGNÓSTICO
-    // =========================
     function diagnosticar() {
         console.log('=== DIAGNÓSTICO ===');
         console.log('Estado cotización:', estadoCotizacion);
@@ -1241,10 +1041,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Modo consulta:', modoConsulta);
         console.log('Es borrador:', esBorrador);
         console.log('Item counter:', itemCounter);
-        
         const filas = document.querySelectorAll("#table-body tr");
         console.log('Filas en tabla:', filas.length);
-        
         filas.forEach((fila, idx) => {
             const codigoInput = fila.querySelector('.codigo_producto');
             console.log(`Fila ${idx + 1} - Input código:`, codigoInput ? '✅ Encontrado' : '❌ NO ENCONTRADO');
@@ -1253,13 +1051,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`  - Placeholder: ${codigoInput.placeholder}`);
             }
         });
-        
         mostrarNotificacion('Diagnóstico completo. Revisa la consola (F12)', 'info');
     }
     
-    // =========================
-    // EVENTOS
-    // =========================
     document.getElementById('btnGuardarBorrador')?.addEventListener('click', guardarCotizacion);
     document.getElementById('btnGuardarOficial')?.addEventListener('click', convertirAOficial);
     document.getElementById('btnPdf')?.addEventListener('click', generatePdf);
@@ -1278,9 +1072,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnBuscarSunat.addEventListener('click', autocompletarConSunat);
     }
 
-    // =========================
-    // INIT
-    // =========================
     actualizarEstadoVisual();
     aplicarBloqueoUI();
     attachClienteAutocomplete('cliente_doc');

@@ -167,29 +167,31 @@
             border-radius: 20px 20px 0 0;
         }
         
-        /* Toolbar stats */
+        /* Toolbar stats - VERSIÓN MÁS PEQUEÑA */
         .stats-bar {
             background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-            border-radius: 16px;
-            padding: 15px 20px;
+            border-radius: 14px;
+            padding: 8px 12px;
             margin-bottom: 20px;
         }
         
         .stat-item {
             text-align: center;
-            padding: 10px;
+            padding: 6px 4px;
         }
         
         .stat-number {
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 800;
             color: #111827;
+            line-height: 1.2;
         }
         
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #6b7280;
-            margin-top: 5px;
+            margin-top: 2px;
+            letter-spacing: 0.3px;
         }
         
         /* Modal crear cliente */
@@ -259,7 +261,11 @@
             }
             
             .stat-number {
-                font-size: 20px;
+                font-size: 18px;
+            }
+            
+            .stat-label {
+                font-size: 10px;
             }
         }
     </style>
@@ -289,9 +295,9 @@
         </div>
     </div>
 
-    <!-- STATS BAR (Dinámico) -->
+    <!-- STATS BAR - VERSIÓN MÁS PEQUEÑA -->
     <div class="stats-bar" id="statsBar">
-        <div class="row text-center">
+        <div class="row text-center g-0">
             <div class="col-6 col-md-3 stat-item">
                 <div class="stat-number" id="totalCotizaciones">0</div>
                 <div class="stat-label">Total Cotizaciones</div>
