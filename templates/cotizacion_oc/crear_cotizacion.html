@@ -533,9 +533,6 @@
                 <button class="btn btn-success btn-toolbar" id="btnAceptada" disabled>
                     <i class="bi bi-check-circle-fill"></i> Aceptada
                 </button>
-                <button class="btn btn-secondary btn-toolbar" id="btnDiagnostico">
-                    <i class="bi bi-bug-fill"></i> Diagnóstico
-                </button>
             </div>
         </div>
 
@@ -688,51 +685,52 @@
             </div>
         </div>
 
-        <!-- TABLA PRODUCTOS -->
-        <div class="erp-card mt-4">
-            <div class="card-header-custom green">
-                <i class="bi bi-box-seam-fill"></i> Detalle de Productos
-            </div>
-            <div class="card-body-custom p-0">
-                <div class="table-responsive">
-                    <table class="table table-modern" id="products-table">
-                        <thead>
-                            <tr>
-                                <th style="width:40px">Item</th>
-                                <th style="width:100px">Código</th>
-                                <th style="width:160px">Descripción</th>
-                                <th style="width:80px">Marca</th>
-                                <th style="width:80px">Modelo</th>
-                                <th style="width:60px">Cant</th>
-                                <th style="width:90px">PU Costo</th>
-                                <th style="width:80px">Subtotal</th>
-                                <th style="width:90px">PU Venta</th>
-                                <th style="width:90px">Subtotal Venta</th>
-                                <th style="width:80px">% Desc</th>
-                                <th style="width:80px">Total Desc</th>
-                                <th style="width:60px">Eliminar</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body"></tbody>
-                        <tfoot>
-                            <tr class="fw-bold bg-light">
-                                <td colspan="7" class="text-end">Totales:</td>
-                                <td id="total_subtotal_costo">0.00</td>
-                                <td id="total_subtotal_venta">0.00</td>
-                                <td id="total_subtotal_venta_desc">0.00</td>
-                                <td colspan="3"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <div class="p-4">
-                    <button class="btn btn-success" type="button" id="btnAgregarItem">
-                        <i class="bi bi-plus-circle-fill"></i> Agregar Producto
-                    </button>
-                </div>
-            </div>
+   <!-- TABLA PRODUCTOS - VERSIÓN SIMPLIFICADA -->
+<div class="erp-card mt-4">
+    <div class="card-header-custom green">
+        <i class="bi bi-box-seam-fill"></i> Detalle de Productos
+    </div>
+    <div class="card-body-custom p-0">
+        <div class="table-responsive">
+            <table class="table table-modern" id="products-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px">Item</th>
+                        <th style="width:100px">Código</th>
+                        <th style="width:200px">Descripción</th>
+                        <th style="width:80px">Marca</th>
+                        <th style="width:80px">Modelo</th>
+                        <th style="width:70px">Cant</th>
+                        <th style="width:100px">PU Costo</th>
+                        <th style="width:100px">Subtotal</th>
+                        <th style="width:100px">PU Venta</th>
+                        <th style="width:120px">Subtotal Venta</th>
+                        <th style="width:70px">% Desc</th>
+                        <th style="width:100px">Total Desc</th>
+                        <th style="width:60px">Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+                <tfoot>
+                    <tr class="fw-bold bg-light">
+                        <td colspan="7" class="text-end">Totales:</td>
+                        <td id="total_subtotal_costo">0.00</td>
+                        <td id="total_pu_venta">-</td>
+                        <td id="total_subtotal_venta">0.00</td>
+                        <td id="total_descuento_porcentaje">-</td>
+                        <td id="total_descuento_total">0.00</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
-
+        <div class="p-4">
+            <button class="btn btn-success" type="button" id="btnAgregarItem">
+                <i class="bi bi-plus-circle-fill"></i> Agregar Producto
+            </button>
+        </div>
+    </div>
+</div>
         <!-- RESUMEN -->
         <div class="row mt-4">
             <div class="col-lg-4 ms-auto">

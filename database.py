@@ -527,37 +527,6 @@ def insertar_cliente(tipo_documento, numero_documento, razon_social, direccion_f
 
     return rows[0]["id"]
 
-
-# =========================
-# Insertar producto
-# =========================
-def insertar_producto(
-    familia,
-    codigo,
-    descripcion,
-    descripcion_larga="",
-    marca="",
-    modelo="",
-    unidad="Unidad"):
-
-    rows = db_query("""
-        INSERT INTO productos
-        (familia, codigo, descripcion, descripcion_larga, marca, modelo, unidad, activo)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE)
-        RETURNING id
-    """, (
-        familia,
-        codigo,
-        descripcion,
-        descripcion_larga,
-        marca,
-        modelo,
-        unidad
-    ))
-
-    return rows[0]["id"]
-
-
 # =========================
 # Insertar contacto cliente
 # =========================
@@ -612,6 +581,35 @@ def insertar_punto_entrega(
         tiempo_credito,
         principal
     ))
+
+# =========================
+# Insertar producto
+# =========================
+def insertar_producto(
+    familia,
+    codigo,
+    descripcion,
+    descripcion_larga="",
+    marca="",
+    modelo="",
+    unidad="Unidad"):
+
+    rows = db_query("""
+        INSERT INTO productos
+        (familia, codigo, descripcion, descripcion_larga, marca, modelo, unidad, activo)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE)
+        RETURNING id
+    """, (
+        familia,
+        codigo,
+        descripcion,
+        descripcion_larga,
+        marca,
+        modelo,
+        unidad
+    ))
+
+    return rows[0]["id"]
 
 
 # =========================
