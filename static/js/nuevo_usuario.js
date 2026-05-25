@@ -67,7 +67,7 @@ document.getElementById('formUsuario')
 
 
 // =====================================
-// EDITAR USUARIO
+// EDITAR USUARIo
 // =====================================
 function editarUsuario(id, nombre_completo, usuario, rol, email, telefono){
 
