@@ -1513,7 +1513,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Click en cliente
                 portal.querySelectorAll('.item').forEach(item => {
                     // ✅ CORRECTO - Verificar antes de asignar
-                        item.addEventListener('click', () => {
+                                    item.addEventListener('click', () => {
                             const clienteIdEl = document.getElementById('cliente_id');
                             const razonSocialEl = document.getElementById('cliente_razon_social');
                             const clienteDocEl = document.getElementById('cliente_doc');
@@ -1542,7 +1542,67 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 300);
     });
- }
+ } 
+ 
+ // =============================================
+// AUTOCOMPLETADO AUTOMÁTICO AL ESCRIBIR EN RAZÓN SOCIAL
+// =============================================
+function setupLiveRazonSocialAutocomplete() {
+    const inputRazon = document.getElementById('cliente_razon_social');
+    if (!inputRazon) return;
+
+    let timeoutId = null;
+
+    inputRazon.addEventListener('input', async function () {
+        const q = this.value.trim();
+
+        // Si borra o escribe muy poco → limpiar campos
+        if (q.length < 2) {
+            limpiarCamposCliente();
+            return;
+        }
+
+        if (timeoutId) clearTimeout(timeoutId);
+
+        timeoutId = setTimeout(async () => {
+            try {
+                const clientes = await buscarClientes(q);
+
+                if (clientes && clientes.length > 0) {
+                    const cliente = clientes[0]; // Tomamos el primero (el más relevante)
+
+                    // === AUTOCOMPLETAR TODOS LOS CAMPOS ===
+                    document.getElementById('cliente_id').value = cliente.id || '';
+                    document.getElementById('cliente_doc').value = cliente.numero_documento || '';
+                    document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
+                    document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
+                    document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';
+                    document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';
+
+                    // Cargar direcciones del cliente
+                    if (cliente.id) {
+                        cargarDireccionesCliente(cliente.id);
+                    }
+
+                    console.log('✅ Autocompletado automático:', cliente.razon_social);
+                }
+            } catch (error) {
+                console.error('❌ Error en autocompletado automático:', error);
+            }
+        }, 320); // debounce
+    });
+    }
+
+    // Función auxiliar para limpiar campos
+    function limpiarCamposCliente() {
+        const campos = ['cliente_id', 'cliente_doc', 'cliente_direccion', 
+                    'cliente_contacto', 'email_contacto_cliente', 'telefono_contacto'];
+        
+        campos.forEach(id => {
+            const elemento = document.getElementById(id);
+            if (elemento) elemento.value = '';
+        });
+    }
 
   function attachProductoAutocomplete(row) {
     const input = row.querySelector('.codigo_producto');
@@ -2082,6 +2142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     configurarDireccionEntrega();
     addItem();
     inicializarCodigo();
+    setupLiveRazonSocialAutocomplete();
 
     const cotId = document.getElementById('cotizacion_id')?.value;
     if (cotId && cotId !== 'None') { 
