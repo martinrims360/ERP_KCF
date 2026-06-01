@@ -759,9 +759,22 @@ setTimeout(() => {
         btnGuardar.disabled = false;
     }
 }
-
-// NOTIFICACIÓN GRANDE Y DESTACADA
+// NOTIFICACIÓN GRANDE Y DESTACADA (con fecha/hora y sin auto-cierre)
 function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
+    // Obtener fecha y hora actual
+    const ahora = new Date();
+    const fecha = ahora.toLocaleDateString('es-PE', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    const hora = ahora.toLocaleTimeString('es-PE', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    });
+    
     // Crear overlay de fondo
     const overlay = document.createElement('div');
     overlay.id = 'notification-overlay-grande';
@@ -771,8 +784,8 @@ function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(3px);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
         z-index: 9999;
         display: flex;
         align-items: center;
@@ -810,9 +823,19 @@ function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
         <h2 style="color: white; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; font-family: inherit;">
             ✅ ¡CLIENTE GUARDADO!
         </h2>
-        <p style="color: rgba(255,255,255,0.9); font-size: 16px; margin: 0 0 24px 0;">
+        <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0 0 20px 0;">
             El cliente se ha registrado exitosamente en el sistema
         </p>
+    `;
+    
+    // Fecha y hora
+    const fechaHora = `
+        <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 10px; margin-bottom: 20px;">
+            <div style="color: white; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 20px;">
+                <span>📅 ${fecha}</span>
+                <span>⏰ ${hora}</span>
+            </div>
+        </div>
     `;
     
     // Información del cliente en tarjeta blanca
@@ -820,7 +843,7 @@ function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
     const tipoIcono = datosCliente.tipo_documento === 'RUC' ? '🏢' : '👤';
     
     const infoCliente = `
-        <div style="background: white; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: left;">
+        <div style="background: white; border-radius: 16px; padding: 24px; margin: 0 0 20px 0; text-align: left;">
             <div style="border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; margin-bottom: 16px;">
                 <span style="font-size: 20px; font-weight: 700; color: #1f2937;">📋 DATOS DEL CLIENTE</span>
             </div>
@@ -843,7 +866,7 @@ function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
             ${datosCliente.telefono || datosCliente.email ? `
             <div style="background: #f3f4f6; border-radius: 12px; padding: 12px; margin-top: 12px;">
                 <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                    ${datosCliente.telefono ? `<div><span style="font-size: 13px; color: #6b7280;">📞 TELÉFONO</span><br><span style="font-weight: 600;">${datosCliente.telefono}</span></div>` : ''}
+                    ${datosCliente.telefono ? `<div><span style="font-size: 13px; color: #6b7280;">📞 TELÉFONO</span><br><span style="font-weight: 600;">${escapeHtml(datosCliente.telefono)}</span></div>` : ''}
                     ${datosCliente.email ? `<div><span style="font-size: 13px; color: #6b7280;">✉️ EMAIL</span><br><span style="font-weight: 600; font-size: 13px;">${escapeHtml(datosCliente.email)}</span></div>` : ''}
                 </div>
             </div>
@@ -873,7 +896,7 @@ function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
         </button>
     `;
     
-    notificacion.innerHTML = iconoCheck + titulo + infoCliente + botonCerrar;
+    notificacion.innerHTML = iconoCheck + titulo + fechaHora + infoCliente + botonCerrar;
     overlay.appendChild(notificacion);
     document.body.appendChild(overlay);
     
@@ -938,8 +961,7 @@ function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
         }
     });
     
-    // Auto-cerrar después de 5 segundos
-    setTimeout(cerrarNotificacion, 5000);
+    // ❌ ELIMINADO el setTimeout de auto-cierre - ahora solo se cierra con el botón
 }
 
     async function cargarClienteEnCotizacion(clienteId) {
