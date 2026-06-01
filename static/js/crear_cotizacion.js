@@ -692,64 +692,255 @@ setTimeout(() => {
     // =========================
     // CREAR NUEVO CLIENTE
     // =========================
-    async function guardarNuevoCliente() {
-        const tipoDocumento = document.getElementById('nuevo_tipo_documento')?.value;
-        const numeroDocumento = document.getElementById('nuevo_numero_documento')?.value.trim();
-        const razonSocial = document.getElementById('nuevo_razon_social')?.value.trim();
+  async function guardarNuevoCliente() {
+    const tipoDocumento = document.getElementById('nuevo_tipo_documento')?.value;
+    const numeroDocumento = document.getElementById('nuevo_numero_documento')?.value.trim();
+    const razonSocial = document.getElementById('nuevo_razon_social')?.value.trim();
+    
+    if (!numeroDocumento) {
+        mostrarNotificacion('⚠️ Ingrese el número de documento', 'warning');
+        return;
+    }
+    
+    if (!razonSocial) {
+        mostrarNotificacion('⚠️ Ingrese la razón social', 'warning');
+        return;
+    }
+    
+    const btnGuardar = document.getElementById('btnGuardarNuevoCliente');
+    const textoOriginal = btnGuardar.innerHTML;
+    btnGuardar.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+    btnGuardar.disabled = true;
+    
+    try {
+        const payload = {
+            tipo_documento: tipoDocumento,
+            numero_documento: numeroDocumento,
+            razon_social: razonSocial,
+            nombre_comercial: document.getElementById('nuevo_nombre_comercial')?.value.trim() || '',
+            direccion_fiscal: document.getElementById('nuevo_direccion_fiscal')?.value.trim() || '',
+            telefono_contacto: document.getElementById('nuevo_telefono')?.value.trim() || '',
+            email_contacto: document.getElementById('nuevo_email')?.value.trim() || '',
+            nombre_contacto: document.getElementById('nuevo_nombre_contacto')?.value.trim() || ''
+        };
         
-        if (!numeroDocumento) {
-            mostrarNotificacion('⚠️ Ingrese el número de documento', 'warning');
-            return;
-        }
+        const response = await fetch('/api/clientes/crear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
         
-        if (!razonSocial) {
-            mostrarNotificacion('⚠️ Ingrese la razón social', 'warning');
-            return;
-        }
+        const result = await response.json();
         
-        const btnGuardar = document.getElementById('btnGuardarNuevoCliente');
-        const textoOriginal = btnGuardar.innerHTML;
-        btnGuardar.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
-        btnGuardar.disabled = true;
-        
-        try {
-            const payload = {
+        if (result.success) {
+            document.getElementById('formNuevoCliente')?.reset();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente'));
+            modal.hide();
+            
+            // 🔥 CAMBIO AQUÍ - Notificación GRANDE en lugar de la pequeña
+            mostrarNotificacionClienteGuardadoGrande({
+                razon_social: razonSocial,
                 tipo_documento: tipoDocumento,
                 numero_documento: numeroDocumento,
-                razon_social: razonSocial,
-                nombre_comercial: document.getElementById('nuevo_nombre_comercial')?.value.trim() || '',
-                direccion_fiscal: document.getElementById('nuevo_direccion_fiscal')?.value.trim() || '',
-                telefono_contacto: document.getElementById('nuevo_telefono')?.value.trim() || '',
-                email_contacto: document.getElementById('nuevo_email')?.value.trim() || '',
-                nombre_contacto: document.getElementById('nuevo_nombre_contacto')?.value.trim() || ''
-                
-            };
-            
-            const response = await fetch('/api/clientes/crear', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                nombre_contacto: payload.nombre_contacto,
+                telefono: payload.telefono_contacto,
+                email: payload.email_contacto
             });
             
-            const result = await response.json();
-            
-            if (result.success) {
-                document.getElementById('formNuevoCliente')?.reset();
-                const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente'));
-                modal.hide();
-                mostrarNotificacion('✅ Cliente creado exitosamente', 'success');
-                await cargarClienteEnCotizacion(result.data.id);
-            } else {
-                mostrarNotificacion('❌ Error: ' + (result.error || 'No se pudo crear el cliente'), 'danger');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            mostrarNotificacion('❌ Error de conexión', 'danger');
-        } finally {
-            btnGuardar.innerHTML = textoOriginal;
-            btnGuardar.disabled = false;
+            await cargarClienteEnCotizacion(result.data.id);
+        } else {
+            mostrarNotificacion('❌ Error: ' + (result.error || 'No se pudo crear el cliente'), 'danger');
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('❌ Error de conexión', 'danger');
+    } finally {
+        btnGuardar.innerHTML = textoOriginal;
+        btnGuardar.disabled = false;
     }
+}
+
+// NOTIFICACIÓN GRANDE Y DESTACADA
+function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
+    // Crear overlay de fondo
+    const overlay = document.createElement('div');
+    overlay.id = 'notification-overlay-grande';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.2s ease-out;
+    `;
+    
+    // Crear la notificación grande
+    const notificacion = document.createElement('div');
+    notificacion.style.cssText = `
+        background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+        border-radius: 24px;
+        padding: 40px 48px;
+        max-width: 550px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        animation: scaleIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    `;
+    
+    // Icono de éxito grande
+    const iconoCheck = `
+        <div style="margin-bottom: 20px;">
+            <div style="background: rgba(255, 255, 255, 0.2); border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                <svg style="width: 50px; height: 50px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+        </div>
+    `;
+    
+    // Título grande
+    const titulo = `
+        <h2 style="color: white; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; font-family: inherit;">
+            ✅ ¡CLIENTE GUARDADO!
+        </h2>
+        <p style="color: rgba(255,255,255,0.9); font-size: 16px; margin: 0 0 24px 0;">
+            El cliente se ha registrado exitosamente en el sistema
+        </p>
+    `;
+    
+    // Información del cliente en tarjeta blanca
+    const tipoDocTexto = datosCliente.tipo_documento === 'RUC' ? 'RUC' : 'DNI';
+    const tipoIcono = datosCliente.tipo_documento === 'RUC' ? '🏢' : '👤';
+    
+    const infoCliente = `
+        <div style="background: white; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: left;">
+            <div style="border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; margin-bottom: 16px;">
+                <span style="font-size: 20px; font-weight: 700; color: #1f2937;">📋 DATOS DEL CLIENTE</span>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">RAZÓN SOCIAL</div>
+                <div style="font-size: 20px; font-weight: 700; color: #111827;">${escapeHtml(datosCliente.razon_social)}</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">${tipoDocTexto}</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #111827;">${tipoIcono} ${datosCliente.numero_documento}</div>
+                </div>
+                ${datosCliente.nombre_contacto ? `
+                <div>
+                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">CONTACTO</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #111827;">👤 ${escapeHtml(datosCliente.nombre_contacto)}</div>
+                </div>
+                ` : ''}
+            </div>
+            ${datosCliente.telefono || datosCliente.email ? `
+            <div style="background: #f3f4f6; border-radius: 12px; padding: 12px; margin-top: 12px;">
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    ${datosCliente.telefono ? `<div><span style="font-size: 13px; color: #6b7280;">📞 TELÉFONO</span><br><span style="font-weight: 600;">${datosCliente.telefono}</span></div>` : ''}
+                    ${datosCliente.email ? `<div><span style="font-size: 13px; color: #6b7280;">✉️ EMAIL</span><br><span style="font-weight: 600; font-size: 13px;">${escapeHtml(datosCliente.email)}</span></div>` : ''}
+                </div>
+            </div>
+            ` : ''}
+        </div>
+    `;
+    
+    // Botón de cerrar grande
+    const botonCerrar = `
+        <button id="btnCerrarNotificacionGrande" style="
+            background: white;
+            color: #047857;
+            border: none;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: auto;
+            min-width: 180px;
+        " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';" 
+        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';">
+            ✕ CERRAR
+        </button>
+    `;
+    
+    notificacion.innerHTML = iconoCheck + titulo + infoCliente + botonCerrar;
+    overlay.appendChild(notificacion);
+    document.body.appendChild(overlay);
+    
+    // Agregar estilos de animación si no existen
+    if (!document.querySelector('#notification-grande-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-grande-styles';
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes scaleIn {
+                from {
+                    transform: scale(0.7);
+                    opacity: 0;
+                }
+                to {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            @keyframes scaleOut {
+                from {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                to {
+                    transform: scale(0.7);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Función para cerrar la notificación
+    const cerrarNotificacion = () => {
+        overlay.style.animation = 'fadeOut 0.2s ease-out';
+        notificacion.style.animation = 'scaleOut 0.2s ease-out';
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) {
+                overlay.remove();
+            }
+        }, 200);
+    };
+    
+    // Evento del botón cerrar
+    const btnCerrar = document.getElementById('btnCerrarNotificacionGrande');
+    if (btnCerrar) {
+        btnCerrar.addEventListener('click', cerrarNotificacion);
+    }
+    
+    // Cerrar al hacer clic en el overlay (fuera de la notificación)
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            cerrarNotificacion();
+        }
+    });
+    
+    // Auto-cerrar después de 5 segundos
+    setTimeout(cerrarNotificacion, 5000);
+}
 
     async function cargarClienteEnCotizacion(clienteId) {
         try {

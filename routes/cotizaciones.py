@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request, session, send_file, make_response, Response
 from psycopg2.extras import RealDictCursor, DictCursor
 from database import (obtener_cotizaciones_recientes, crear_cotizacion_transaccional, obtener_cotizacion_completa,
-                    db_query, db_execute, db_tx, get_connection, buscar_cliente_por_ruc)
+                    db_query, db_execute, db_tx, get_connection, buscar_cliente_por_ruc,buscar_clientes_mejorado)
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -212,70 +212,26 @@ def buscar_usuarios():
 
 @cotizaciones_bp.route("/api/clientes/buscar", methods=["GET"])
 def buscar_clientes():
-    """Buscar clientes por nombre o documento - VERSIÓN CORREGIDA CON TODOS LOS CAMPOS"""
+    """Buscar clientes por nombre o documento - VERSIÓN FINAL CON JOIN"""
     print("=" * 60)
-    print("🎯 BUSCANDO CLIENTES - VERSIÓN CORREGIDA")
+    print("🎯 BUSCANDO CLIENTES - VERSIÓN FINAL CON CONTACTO")
     print("=" * 60)
     
     try:
-        q = request.args.get('q', '')
+        q = request.args.get('q', '').strip()
         
-        conn = get_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        if q and q.strip():
-            query = """
-                SELECT 
-                    id, 
-                    razon_social, 
-                    numero_documento, 
-                    direccion_fiscal,
-                    tipo_documento,
-                    COALESCE(telefono_contacto, '') as telefono_contacto,
-                    COALESCE(email_contacto, '') as email_contacto,
-                    COALESCE(nombre_contacto, '') as nombre_contacto
-                FROM clientes 
-                WHERE razon_social ILIKE %s OR numero_documento ILIKE %s
-                ORDER BY razon_social
-                LIMIT 20
-            """
-            cur.execute(query, (f'%{q}%', f'%{q}%'))
-        else:
-            query = """
-                SELECT 
-                    id, 
-                    razon_social, 
-                    numero_documento, 
-                    direccion_fiscal,
-                    tipo_documento,
-                    COALESCE(telefono_contacto, '') as telefono_contacto,
-                    COALESCE(email_contacto, '') as email_contacto,
-                    COALESCE(nombre_contacto, '') as nombre_contacto
-                FROM clientes 
-                ORDER BY razon_social
-                LIMIT 20
-            """
-            cur.execute(query)
-        
-        clientes = cur.fetchall()
-        cur.close()
-        conn.close()
+        # Usamos la función mejorada con JOIN
+        clientes = buscar_clientes_mejorado(busqueda=q, limit=20)
         
         print(f"📊 Se encontraron {len(clientes)} clientes")
+        
         if clientes:
             print(f"📋 PRIMER CLIENTE:")
             print(f"   - razon_social: {clientes[0].get('razon_social')}")
             print(f"   - telefono_contacto: '{clientes[0].get('telefono_contacto', '')}'")
             print(f"   - email_contacto: '{clientes[0].get('email_contacto', '')}'")
             print(f"   - nombre_contacto: '{clientes[0].get('nombre_contacto', '')}'")
-        
-        for cliente in clientes:
-            if cliente.get('telefono_contacto') is None:
-                cliente['telefono_contacto'] = ''
-            if cliente.get('email_contacto') is None:
-                cliente['email_contacto'] = ''
-            if cliente.get('nombre_contacto') is None:
-                cliente['nombre_contacto'] = ''
+            print(f"   - principal: {clientes[0].get('principal')}")
         
         return jsonify({
             'success': True,

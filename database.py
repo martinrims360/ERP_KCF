@@ -654,55 +654,70 @@ def insertar_producto(
 # =========================
 def buscar_clientes_mejorado(tipo_documento='', busqueda='', limit=100):
     """
-    Buscar clientes por tipo de documento y texto de búsqueda - CORREGIDO
+    Buscar clientes + contacto principal desde clientes_contactos
     """
     try:
         with db_tx() as conn:
             cur = conn.cursor(cursor_factory=RealDictCursor)
             
-            # 🔥 CORREGIDO: Incluir campos de contacto
             query = """
                 SELECT 
-                    id,
-                    tipo_documento,
-                    numero_documento,
-                    razon_social,
-                    nombre_comercial,
-                    direccion_fiscal,
-                    codigo_cliente,
-                    activo,
-                    fecha_creacion,
-                    telefono_contacto,     -- ← AGREGADO
-                    email_contacto,        -- ← AGREGADO
-                    nombre_contacto        -- ← AGREGADO
-                FROM clientes
-                WHERE activo = TRUE
+                    c.id,
+                    c.tipo_documento,
+                    c.numero_documento,
+                    c.razon_social,
+                    c.nombre_comercial,
+                    c.direccion_fiscal,
+                    c.codigo_cliente,
+                    c.activo,
+                    c.fecha_creacion,
+                    
+                    -- Datos del contacto principal
+                    cc.id AS contacto_id,
+                    cc.nombre_contacto,
+                    cc.email AS email_contacto,
+                    cc.telefono AS telefono_contacto,
+                    cc.cargo,
+                    cc.principal
+                FROM clientes c
+                LEFT JOIN clientes_contactos cc 
+                    ON cc.cliente_id = c.id 
+                    AND cc.principal = TRUE
+                WHERE c.activo = TRUE
             """
             params = []
             
             if tipo_documento and tipo_documento.strip():
-                query += " AND tipo_documento = %s"
+                query += " AND c.tipo_documento = %s"
                 params.append(tipo_documento)
             
             if busqueda and busqueda.strip():
                 busqueda_like = f"%{busqueda.strip()}%"
                 query += """ AND (
-                    numero_documento ILIKE %s OR 
-                    razon_social ILIKE %s OR 
-                    nombre_comercial ILIKE %s
+                    c.numero_documento ILIKE %s OR 
+                    c.razon_social ILIKE %s OR 
+                    c.nombre_comercial ILIKE %s
                 )"""
                 params.extend([busqueda_like, busqueda_like, busqueda_like])
             
-            query += " ORDER BY id DESC LIMIT %s"
+            query += " ORDER BY c.id DESC LIMIT %s"
             params.append(limit)
             
             cur.execute(query, params)
             clientes = cur.fetchall()
             
+            # Limpiar valores None
+            for cliente in clientes:
+                cliente['email_contacto'] = cliente.get('email_contacto') or ''
+                cliente['telefono_contacto'] = cliente.get('telefono_contacto') or ''
+                cliente['nombre_contacto'] = cliente.get('nombre_contacto') or ''
+            
             return clientes
             
     except Exception as e:
         print(f"❌ Error en buscar_clientes_mejorado: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 # =========================
