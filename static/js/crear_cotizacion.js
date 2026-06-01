@@ -2092,72 +2092,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =============================================
-    // AUTOCOMPLETADO EN VIVO AL ESCRIBIR RAZÓN SOCIAL
+    // AUTOCOMPLETADO AUTOMÁTICO AL ESCRIBIR (Live Fill)
     // =============================================
-    function setupLiveClienteAutocomplete() {
-        const inputRazonSocial = document.getElementById('cliente_razon_social');
-        if (!inputRazonSocial) return;
+    function setupLiveRazonSocialAutocomplete() {
+        const inputRazon = document.getElementById('cliente_razon_social');
+        if (!inputRazon) return;
 
-        let timeoutId = null;
+        let timeout = null;
 
-        inputRazonSocial.addEventListener('input', async function () {
+        inputRazon.addEventListener('input', async function () {
             const q = this.value.trim();
 
-            // Limpiar campos si borra
             if (q.length < 2) {
                 limpiarCamposCliente();
                 return;
             }
 
-            if (timeoutId) clearTimeout(timeoutId);
+            if (timeout) clearTimeout(timeout);
 
-            timeoutId = setTimeout(async () => {
+            timeout = setTimeout(async () => {
                 try {
                     const clientes = await buscarClientes(q);
 
                     if (clientes && clientes.length > 0) {
-                        // Tomar el primer resultado más cercano
-                        const mejorCoincidencia = clientes[0];
+                        const cliente = clientes[0]; // Tomamos el más relevante
 
-                        // Autocompletar campos
-                        document.getElementById('cliente_id').value = mejorCoincidencia.id || '';
-                        document.getElementById('cliente_doc').value = mejorCoincidencia.numero_documento || '';
-                        document.getElementById('cliente_direccion').value = mejorCoincidencia.direccion_fiscal || '';
-                        document.getElementById('cliente_contacto').value = mejorCoincidencia.nombre_contacto || '';
-                        document.getElementById('email_contacto_cliente').value = mejorCoincidencia.email_contacto || '';
-                        document.getElementById('telefono_contacto').value = mejorCoincidencia.telefono_contacto || '';
+                        // === AUTOCOMPLETAR CAMPOS ===
+                        document.getElementById('cliente_id').value = cliente.id || '';
+                        document.getElementById('cliente_doc').value = cliente.numero_documento || '';
+                        document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
+                        document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
+                        document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';
+                        document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';
 
-                        // Opcional: cargar direcciones adicionales
-                        if (mejorCoincidencia.id) {
-                            await cargarDireccionesCliente(mejorCoincidencia.id);
+                        // Cargar direcciones si tiene ID
+                        if (cliente.id) {
+                            cargarDireccionesCliente(cliente.id);
                         }
 
-                        console.log('✅ Autocompletado automático:', mejorCoincidencia.razon_social);
+                        console.log('✅ Autocompletado automático:', cliente.razon_social);
                     }
-                } catch (error) {
-                    console.error('Error en autocompletado en vivo:', error);
+                } catch (e) {
+                    console.error('Error en autocompletado live:', e);
                 }
-            }, 350); // debounce de 350ms
+            }, 300);
         });
-    }
+     }
 
-    // Función para limpiar los campos del cliente
-    function limpiarCamposCliente() {
-        const campos = [
-            'cliente_id', 'cliente_doc', 'cliente_direccion',
-            'cliente_contacto', 'email_contacto_cliente', 'telefono_contacto'
-        ];
-        
-        campos.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-    }
+        // Limpiar campos del cliente
+        function limpiarCamposCliente() {
+            ['cliente_id', 'cliente_doc', 'cliente_direccion', 'cliente_contacto', 'email_contacto_cliente', 'telefono_contacto']
+                .forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+        }
 
-    // =============================================
-    // INICIALIZAR
-    // =============================================
-
-    // Agrega esta línea junto con las otras inicializaciones (al final del DOMContentLoaded)
-    setupLiveClienteAutocomplete();
+        // =============================================
+        // INICIALIZAR
+        // =============================================
+        setupLiveRazonSocialAutocomplete();
 });

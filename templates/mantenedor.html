@@ -112,11 +112,6 @@
             color: #1e293b;
         }
         
-        .badge-clientes {
-            background: #0ea5e9;
-            color: white;
-        }
-        
         .badge-activo {
             background: #10b981;
             color: white;
@@ -127,18 +122,18 @@
             color: white;
         }
         
-        .btn-salir {
+        .btn-atras {
             margin-top: auto;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding-top: 1rem;
             margin-top: 1rem;
         }
         
-        .btn-salir .menu-item {
+        .btn-atras .menu-item {
             color: #f87171;
         }
         
-        .btn-salir .menu-item:hover {
+        .btn-atras .menu-item:hover {
             background: rgba(248, 113, 113, 0.1);
             color: #fecaca;
         }
@@ -149,7 +144,7 @@
 
 <div class="layout">
 
-    <!-- SIDEBAR MODIFICADO CON 1 OPCIÓN FUNCIONAL POR SECCIÓN -->
+    <!-- SIDEBAR MODIFICADO - SECCIÓN CLIENTES ELIMINADA -->
     <aside class="sidebar">
 
         <div class="logo">
@@ -199,23 +194,7 @@
                 </div>
             </div>
 
-            <!-- Clientes - 1 opción funcional -->
-            <div class="dropdown">
-                <button class="menu-item dropdown-toggle w-100 text-start border-0 bg-transparent"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#submenuClientes"
-                        aria-expanded="false">
-                    <i class="bi bi-building"></i>
-                    Clientes
-                    <span class="badge-custom badge-clientes ms-auto">Clientes</span>
-                </button>
-                <div class="collapse submenu" id="submenuClientes">
-                    <a href="/mantenedor/clientes" class="submenu-item">
-                        <i class="bi bi-card-list me-2"></i>Administración de Clientes
-                    </a>
-                </div>
-            </div>
+            <!-- SECCIÓN CLIENTES ELIMINADA COMPLETAMENTE -->
 
             <!-- Gestión de Proveedores - 1 opción funcional -->
             <div class="dropdown">
@@ -281,11 +260,11 @@
             </div>
             {% endif %}
 
-            <!-- BOTÓN DE SALIR -->
-            <div class="btn-salir">
-                <a href="/logout" class="menu-item">
-                    <i class="bi bi-box-arrow-right"></i>
-                    Salir
+            <!-- BOTÓN DE ATRÁS (no salir de todo) -->
+            <div class="btn-atras">
+                <a href="javascript:void(0);" class="menu-item" onclick="goBack()">
+                    <i class="bi bi-arrow-left"></i>
+                    Atrás
                 </a>
             </div>
 
@@ -386,7 +365,7 @@
 
             </div>
 
-            <!-- CLIENTES -->
+            <!-- CLIENTES (tarjeta) -->
             <div class="erp-card">
 
                 <div class="card-header-custom">
@@ -721,6 +700,11 @@ BOOTSTRAP JS
 <script src="{{ url_for('static', filename='js/nuevo_usuario.js') }}"></script> 
 
 <script>
+
+// Función para ir atrás (sin cerrar sesión)
+function goBack() {
+    window.history.back();
+}
 
 document.querySelectorAll('.btn-deshabilitado').forEach(btn => {
     btn.addEventListener('click', (e) => {
