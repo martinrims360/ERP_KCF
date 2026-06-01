@@ -1130,46 +1130,28 @@ function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
         return listaProductos;
     }
 
- async function buscarClientes(q) {
+ // ======================
+// BUSCAR CLIENTES - PARA AUTOCOMPLETE
+// ======================
+async function buscarClientes(q) {
     try {
-        const res = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
-        const json = await res.json();
-        
-        if (json.data && json.data.length > 0) {
-            const cliente = json.data[0]; // Tomamos el primero
-            
-            console.log('✅ Cliente encontrado:', cliente);
+        console.log(`🔍 Buscando clientes: "${q}"`);
 
-            // Llenar datos básicos del cliente
-            document.getElementById('razon_social').value = cliente.razon_social || '';
-            document.getElementById('direccion_fiscal').value = cliente.direccion_fiscal || '';
-            // ... otros campos
+        const response = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
 
-            // === CARGAR CONTACTO (desde tabla clientes_contactos) ===
-            if (cliente.id) {
-                try {
-                    const resContactos = await fetch(`/api/clientes/${cliente.id}/contactos`);
-                    const jsonContactos = await resContactos.json();
-
-                    if (jsonContactos.success && jsonContactos.data.length > 0) {
-                        // Tomar el contacto principal o el primero
-                        const contacto = jsonContactos.data.find(c => c.principal === true) || jsonContactos.data[0];
-
-                        console.log('📧 Contacto principal encontrado:', contacto);
-
-                        document.getElementById('nombre_contacto').value = contacto.nombre_contacto || '';
-                        document.getElementById('correo').value = contacto.email || '';
-                        document.getElementById('telefono').value = contacto.telefono || '';
-                    } else {
-                        console.log('⚠️ No se encontraron contactos para este cliente');
-                    }
-                } catch (err) {
-                    console.error('Error cargando contactos:', err);
-                }
-            }
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
         }
+
+        const clientes = await response.json();   // ← Ahora devuelve array directamente
+
+        console.log(`✅ ${clientes.length} clientes recibidos del backend`, clientes);
+
+        return clientes;   // ← Importante: devolver el array
+
     } catch (error) {
-        console.error('Error buscando clientes:', error);
+        console.error("❌ Error buscando clientes:", error);
+        return [];
     }
 }
 
@@ -1459,82 +1441,87 @@ function setProductoEnFila(row, p) {
     // =========================
   function attachClienteAutocomplete(idInput) {
     const input = document.getElementById(idInput);
-    if (!input) return;
+    if (!input) {
+        console.warn(`⚠️ Input con id="${idInput}" no encontrado`);
+        return;
+    }
+
     let timeoutId = null;
 
     input.addEventListener('input', async () => {
         const q = input.value.trim();
-        if (timeoutId) clearTimeout(timeoutId);
-        if (q.length < 2) { portalHide(); return; }
         
-        timeoutId = setTimeout(async () => {
-            const clientes = await buscarClientes(q);
-            if (!clientes.length) { 
-                portalShow(input, `<div class="empty">No encontrado</div>`); 
-                return; 
-            }
-            console.log("📊 CLIENTES RECIBIDOS PARA AUTOCOMPLETE:", clientes);
-clientes.forEach(c => {
-    console.log(`  - ${c.razon_social}: tel=${c.telefono_contacto}, email=${c.email_contacto}, contacto=${c.nombre_contacto}`);
-});
-          const html = clientes.map(c => `<div class="item" 
-    data-id="${c.id || ''}" 
-    data-razon="${c.razon_social || ''}" 
-    data-doc="${c.numero_documento || ''}" 
-    data-direccion="${c.direccion_fiscal || ''}" 
-    data-telefono="${c.telefono_contacto || ''}" 
-    data-contacto="${c.nombre_contacto || ''}" 
-    data-email="${c.email_contacto || ''}">
-        <strong>🏢 ${c.razon_social || ''}</strong>
-        <div class="meta">📄 ${c.numero_documento || 'Sin documento'}</div>
-        <div class="meta">📞 ${c.telefono_contacto || 'Sin teléfono'} • ✉️ ${c.email_contacto || 'Sin email'}</div>
-        <div class="meta">👤 Contacto: ${c.nombre_contacto || 'No especificado'}</div>
-    </div>`).join('');
-            portalShow(input, html);
+        if (timeoutId) clearTimeout(timeoutId);
+        if (q.length < 2) {
+            portalHide();
+            return;
+        }
 
-            portal.querySelectorAll('.item').forEach(el => {
-                el.addEventListener('click', async () => {
-                    console.log("📦 Cliente seleccionado:", {
-                        id: el.dataset.id,
-                        razon: el.dataset.razon,
-                        telefono: el.dataset.telefono,
-                        contacto: el.dataset.contacto,
-                        email: el.dataset.email
+        timeoutId = setTimeout(async () => {
+            try {
+                const clientes = await buscarClientes(q);   // ← Asegúrate que llame a la versión mejorada
+
+                console.log(`📊 ${clientes.length} clientes recibidos`, clientes);
+
+                if (!clientes || clientes.length === 0) {
+                    portalShow(input, `<div class="empty">No se encontraron clientes</div>`);
+                    return;
+                }
+
+                const html = clientes.map(c => `
+                    <div class="item" 
+                        data-id="${c.id || ''}" 
+                        data-razon="${c.razon_social || ''}" 
+                        data-doc="${c.numero_documento || ''}" 
+                        data-direccion="${c.direccion_fiscal || ''}" 
+                        data-telefono="${c.telefono_contacto || ''}" 
+                        data-contacto="${c.nombre_contacto || ''}" 
+                        data-email="${c.email_contacto || ''}">
+                        
+                        <strong>🏢 ${c.razon_social || c.nombre_comercial || ''}</strong>
+                        <div class="meta">📄 ${c.numero_documento || 'Sin documento'}</div>
+                        <div class="meta">
+                            📞 ${c.telefono_contacto || 'Sin teléfono'} 
+                            • ✉️ ${c.email_contacto || 'Sin email'}
+                        </div>
+                        <div class="meta">👤 ${c.nombre_contacto || 'Sin contacto'}</div>
+                    </div>
+                `).join('');
+
+                portalShow(input, html);
+
+                // Click en cliente
+                portal.querySelectorAll('.item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        // Asignaciones
+                        document.getElementById('cliente_id')?.value = item.dataset.id || '';
+                        document.getElementById('cliente_razon_social')?.value = item.dataset.razon || '';
+                        document.getElementById('cliente_doc')?.value = item.dataset.doc || '';
+                        document.getElementById('cliente_direccion')?.value = item.dataset.direccion || '';
+                        
+                        document.getElementById('telefono_contacto')?.value = item.dataset.telefono || '';
+                        document.getElementById('cliente_contacto')?.value = item.dataset.contacto || '';
+                        document.getElementById('email_contacto_cliente')?.value = item.dataset.email || '';
+
+                        console.log("✅ Cliente seleccionado y asignado:", {
+                            razon_social: item.dataset.razon,
+                            contacto: item.dataset.contacto,
+                            telefono: item.dataset.telefono,
+                            email: item.dataset.email
+                        });
+
+                        if (item.dataset.id) {
+                            cargarDireccionesCliente(item.dataset.id);
+                        }
+
+                        portalHide();
                     });
-                    
-                    // 🔥 ASIGNAR VALORES - Versión CORREGIDA
-                    const clienteIdInput = document.getElementById('cliente_id');
-                    if (clienteIdInput) clienteIdInput.value = el.dataset.id || '';
-                    
-                    const razonSocialInput = document.getElementById('cliente_razon_social');
-                    if (razonSocialInput) razonSocialInput.value = el.dataset.razon || '';
-                    
-                    const docInput = document.getElementById('cliente_doc');
-                    if (docInput) docInput.value = el.dataset.doc || '';
-                    
-                    const direccionInput = document.getElementById('cliente_direccion');
-                    if (direccionInput) direccionInput.value = el.dataset.direccion || '';
-                    
-                    // 🔥 LAS 3 LÍNEAS CLAVE - CORREGIDAS
-                    const telefonoInput = document.getElementById('telefono_contacto');
-                    if (telefonoInput) telefonoInput.value = el.dataset.telefono || '';
-                    
-                    const contactoInput = document.getElementById('cliente_contacto');
-                    if (contactoInput) contactoInput.value = el.dataset.contacto || '';
-                    
-                    const emailInput = document.getElementById('email_contacto_cliente');
-                    if (emailInput) emailInput.value = el.dataset.email || '';
-                    
-                    console.log("✅ Asignados - Teléfono:", telefonoInput?.value, "Contacto:", contactoInput?.value, "Email:", emailInput?.value);
-                    
-                    // Cargar direcciones guardadas
-                    if (el.dataset.id) {
-                        await cargarDireccionesCliente(el.dataset.id);
-                    }
-                    
-                    portalHide();
                 });
-            });
+
+            } catch (err) {
+                console.error("❌ Error en autocomplete:", err);
+                portalShow(input, `<div class="empty">Error al buscar</div>`);
+            }
         }, 300);
     });
 }
