@@ -32,6 +32,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
+// FUNCIÓN DE DIAGNÓSTICO FRONTEND
+// =========================
+async function diagnosticarFrontend() {
+    console.log('='.repeat(60));
+    console.log('🔬 DIAGNÓSTICO FRONTEND - CLIENTES');
+    console.log('='.repeat(60));
+    
+    try {
+        // Probar endpoint de clientes
+        console.log('\n📡 Probando endpoint /api/clientes/buscar...');
+        const response = await fetch('/api/clientes/buscar?q=ALEATORIO');
+        const data = await response.json();
+        
+        console.log(`✅ Status: ${response.status}`);
+        console.log(`✅ Success: ${data.success}`);
+        
+        if (data.success && data.data && data.data.length > 0) {
+            console.log(`📊 Clientes encontrados: ${data.data.length}`);
+            const primerCliente = data.data[0];
+            console.log('\n🔎 PRIMER CLIENTE RECIBIDO:');
+            console.log(`   - id: ${primerCliente.id}`);
+            console.log(`   - razon_social: ${primerCliente.razon_social}`);
+            console.log(`   - telefono_contacto: ${primerCliente.telefono_contacto === undefined ? 'UNDEFINED ❌' : (primerCliente.telefono_contacto || 'VACÍO ⚠️')}`);
+            console.log(`   - email_contacto: ${primerCliente.email_contacto === undefined ? 'UNDEFINED ❌' : (primerCliente.email_contacto || 'VACÍO ⚠️')}`);
+            console.log(`   - nombre_contacto: ${primerCliente.nombre_contacto === undefined ? 'UNDEFINED ❌' : (primerCliente.nombre_contacto || 'VACÍO ⚠️')}`);
+            
+            // Verificar qué campos existen en el objeto
+            console.log('\n🔍 CAMPOS DISPONIBLES:');
+            Object.keys(primerCliente).forEach(key => {
+                console.log(`   - ${key}`);
+            });
+        } else {
+            console.log('❌ No se encontraron datos o la respuesta no es exitosa');
+        }
+        
+        // Probar endpoint de diagnóstico del servidor
+        console.log('\n📡 Probando endpoint /api/diagnostico/clientes...');
+        const diagResponse = await fetch('/api/diagnostico/clientes');
+        const diagData = await diagResponse.json();
+        console.log(`✅ Diagnóstico: ${diagData.message || diagData.error}`);
+        
+    } catch (error) {
+        console.error('❌ Error en diagnóstico:', error);
+    }
+    
+    console.log('\n' + '='.repeat(60));
+}
+
+// Llamar al diagnóstico automáticamente
+setTimeout(() => {
+    diagnosticarFrontend();
+}, 2000);
+    // =========================
     // GENERACIÓN DE CÓDIGOS PERSONALIZADOS
     // =========================
     let codigoCotizacionActual = '';

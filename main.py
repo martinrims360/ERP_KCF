@@ -129,6 +129,26 @@ def require_login():
             return redirect(url_for("login"))
 
 
+
+# ==========================================
+# ENDPOINT DE DIAGNÓSTICO
+# ==========================================
+
+@app.route("/api/diagnostico/clientes", methods=["GET"])
+def api_diagnostico_clientes():
+    """Endpoint para diagnosticar problemas con clientes"""
+    try:
+        from database import diagnosticar_clientes
+        diagnosticar_clientes()
+        return jsonify({
+            'success': True,
+            'message': 'Diagnóstico completado. Revisa la consola del servidor para ver los resultados.'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 # =========================
 # Auth
 # =========================

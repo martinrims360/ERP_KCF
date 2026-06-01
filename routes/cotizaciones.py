@@ -54,6 +54,105 @@ def cotizacion_consultar(cotizacion_id):
                           modo='editar')
 
 
+
+@cotizaciones_bp.route("/api/clientes/buscar", methods=["GET"])
+def buscar_clientes():
+    """Buscar clientes por nombre o documento - CON LOGS DETALLADOS"""
+    print("=" * 80)
+    print("🔍 ENDPOINT /api/clientes/buscar LLAMADO")
+    print("=" * 80)
+    
+    try:
+        q = request.args.get('q', '')
+        print(f"📝 Parámetro de búsqueda: '{q}'")
+        
+        # Conexión directa
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        if q and q.strip():
+            query = """
+                SELECT 
+                    id, 
+                    razon_social, 
+                    numero_documento, 
+                    direccion_fiscal,
+                    tipo_documento,
+                    telefono_contacto,
+                    email_contacto,
+                    nombre_contacto
+                FROM clientes 
+                WHERE razon_social ILIKE %s OR numero_documento ILIKE %s
+                ORDER BY razon_social
+                LIMIT 20
+            """
+            print(f"📋 Ejecutando query con filtro: %{q}%")
+            cur.execute(query, (f'%{q}%', f'%{q}%'))
+        else:
+            query = """
+                SELECT 
+                    id, 
+                    razon_social, 
+                    numero_documento, 
+                    direccion_fiscal,
+                    tipo_documento,
+                    telefono_contacto,
+                    email_contacto,
+                    nombre_contacto
+                FROM clientes 
+                ORDER BY razon_social
+                LIMIT 20
+            """
+            print(f"📋 Ejecutando query sin filtro")
+            cur.execute(query)
+        
+        clientes = cur.fetchall()
+        print(f"📊 Resultados brutos de la BD: {len(clientes)} clientes")
+        
+        # Log detallado del primer cliente
+        if clientes:
+            print(f"\n🔎 PRIMER CLIENTE (RAW):")
+            print(f"   - id: {clientes[0].get('id')}")
+            print(f"   - razon_social: {clientes[0].get('razon_social')}")
+            print(f"   - telefono_contacto: '{clientes[0].get('telefono_contacto')}' (tipo: {type(clientes[0].get('telefono_contacto'))})")
+            print(f"   - email_contacto: '{clientes[0].get('email_contacto')}'")
+            print(f"   - nombre_contacto: '{clientes[0].get('nombre_contacto')}'")
+            
+            # Verificar si las columnas existen
+            print(f"\n🔍 VERIFICANDO CAMPOS:")
+            for col in ['telefono_contacto', 'email_contacto', 'nombre_contacto']:
+                if col in clientes[0]:
+                    print(f"   ✅ Campo '{col}' EXISTE en el resultado")
+                else:
+                    print(f"   ❌ Campo '{col}' NO EXISTE en el resultado")
+        else:
+            print("⚠️ No se encontraron clientes")
+        
+        # Asegurar valores no None
+        for cliente in clientes:
+            for campo in ['telefono_contacto', 'email_contacto', 'nombre_contacto']:
+                if cliente.get(campo) is None:
+                    cliente[campo] = ''
+        
+        cur.close()
+        conn.close()
+        
+        print(f"\n✅ Enviando respuesta con {len(clientes)} clientes")
+        print("=" * 80)
+        
+        return jsonify({
+            'success': True,
+            'data': clientes
+        })
+        
+    except Exception as e:
+        print(f"❌ ERROR EN EL ENDPOINT: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 # ==========================================
 # FUNCIONES AUXILIARES
 # ==========================================

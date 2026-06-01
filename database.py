@@ -2073,3 +2073,91 @@ def obtener_direcciones_proveedor(proveedor_id: int):
     except Exception as e:
         print(f"Error en obtener_direcciones_proveedor: {str(e)}")
         return []
+
+
+        # ==========================================
+# FUNCIÓN DE DIAGNÓSTICO PARA CLIENTES
+# ==========================================
+
+def diagnosticar_clientes():
+    """Función para diagnosticar problemas con los campos de clientes"""
+    print("\n" + "=" * 80)
+    print("🔬 DIAGNÓSTICO DE CLIENTES")
+    print("=" * 80)
+    
+    try:
+        conn = get_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Verificar estructura de la tabla
+        print("\n📋 ESTRUCTURA DE LA TABLA clientes:")
+        cur.execute("""
+            SELECT column_name, data_type, is_nullable
+            FROM information_schema.columns 
+            WHERE table_name = 'clientes'
+            ORDER BY ordinal_position
+        """)
+        columnas = cur.fetchall()
+        for col in columnas:
+            print(f"   - {col['column_name']}: {col['data_type']} (nullable: {col['is_nullable']})")
+        
+        # Verificar si las columnas de contacto existen
+        print("\n🔍 VERIFICANDO COLUMNAS DE CONTACTO:")
+        columnas_requeridas = ['telefono_contacto', 'email_contacto', 'nombre_contacto']
+        for col_req in columnas_requeridas:
+            existe = any(col['column_name'] == col_req for col in columnas)
+            if existe:
+                print(f"   ✅ Columna '{col_req}' EXISTE")
+            else:
+                print(f"   ❌ Columna '{col_req}' NO EXISTE - Debes crearla")
+        
+        # Verificar datos de un cliente específico
+        print("\n📊 DATOS DE CLIENTE ID 84:")
+        cur.execute("""
+            SELECT id, razon_social, telefono_contacto, email_contacto, nombre_contacto
+            FROM clientes 
+            WHERE id = 84
+        """)
+        cliente = cur.fetchone()
+        if cliente:
+            print(f"   - razon_social: {cliente.get('razon_social')}")
+            print(f"   - telefono_contacto: '{cliente.get('telefono_contacto')}'")
+            print(f"   - email_contacto: '{cliente.get('email_contacto')}'")
+            print(f"   - nombre_contacto: '{cliente.get('nombre_contacto')}'")
+            
+            if cliente.get('telefono_contacto') is None:
+                print(f"   ⚠️ teléfono_contacto es NULL")
+            if cliente.get('email_contacto') is None:
+                print(f"   ⚠️ email_contacto es NULL")
+            if cliente.get('nombre_contacto') is None:
+                print(f"   ⚠️ nombre_contacto es NULL")
+        else:
+            print(f"   ❌ No existe cliente con ID 84")
+        
+        # Contar clientes con datos completos
+        print("\n📈 ESTADÍSTICAS GENERALES:")
+        cur.execute("SELECT COUNT(*) as total FROM clientes")
+        total = cur.fetchone()['total']
+        print(f"   - Total clientes: {total}")
+        
+        cur.execute("SELECT COUNT(*) as total FROM clientes WHERE telefono_contacto IS NOT NULL AND telefono_contacto != ''")
+        con_telefono = cur.fetchone()['total']
+        print(f"   - Con teléfono: {con_telefono} ({con_telefono*100/total if total > 0 else 0:.1f}%)")
+        
+        cur.execute("SELECT COUNT(*) as total FROM clientes WHERE email_contacto IS NOT NULL AND email_contacto != ''")
+        con_email = cur.fetchone()['total']
+        print(f"   - Con email: {con_email} ({con_email*100/total if total > 0 else 0:.1f}%)")
+        
+        cur.execute("SELECT COUNT(*) as total FROM clientes WHERE nombre_contacto IS NOT NULL AND nombre_contacto != ''")
+        con_contacto = cur.fetchone()['total']
+        print(f"   - Con contacto: {con_contacto} ({con_contacto*100/total if total > 0 else 0:.1f}%)")
+        
+        cur.close()
+        conn.close()
+        
+        print("\n" + "=" * 80)
+        
+    except Exception as e:
+        print(f"❌ Error en diagnóstico: {str(e)}")
+        import traceback
+        traceback.print_exc()
