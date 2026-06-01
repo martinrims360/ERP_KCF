@@ -548,17 +548,127 @@ def verificar_codigo_cotizacion():
         print(f"🔥 Error verificando código: {str(e)}")
         return jsonify({"exists": False, "error": str(e)}), 500
 
-
 # ==========================================
-# GUARDAR COTIZACIÓN
+# FUNCIÓN AUXILIAR: OBTENER CLIENTE POR DOCUMENTO
 # ==========================================
 
+def obtener_cliente_por_documento(numero_documento):
+    """Buscar cliente por número de documento (RUC/DNI)"""
+    try:
+        if not numero_documento:
+            return None
+        
+        query = """
+            SELECT id, razon_social, numero_documento, telefono_contacto, 
+                   email_contacto, nombre_contacto, direccion_fiscal
+            FROM clientes 
+            WHERE numero_documento = %s AND activo = TRUE
+            LIMIT 1
+        """
+        clientes = db_query(query, (numero_documento,))
+        
+        if clientes:
+            return clientes[0]
+        return None
+    except Exception as e:
+        print(f"Error en obtener_cliente_por_documento: {e}")
+        return None
 @cotizaciones_bp.route("/api/cotizacion/guardar", methods=["POST"])
 def guardar_cotizacion():
     data = request.json
 
     try:
         cliente_id = data.get("cliente_id")
+        
+        # ==========================================
+        # 🔥 NUEVO: Crear cliente automáticamente si no existe
+        # ==========================================
+        cliente_data = data.get("cliente_data")
+        
+        # Si no hay cliente_id pero tenemos cliente_data, crear/obtener cliente
+        if (not cliente_id or cliente_id == 0) and cliente_data:
+            numero_documento = cliente_data.get('numero_documento', '').strip()
+            
+            if numero_documento:
+                # Verificar si ya existe un cliente con ese documento
+                cliente_existente = obtener_cliente_por_documento(numero_documento)
+                
+                if cliente_existente:
+                    cliente_id = cliente_existente['id']
+                    print(f"✅ Cliente existente encontrado: {cliente_existente['razon_social']} (ID: {cliente_id})")
+                else:
+                    # Crear nuevo cliente
+                    print(f"🆕 Creando nuevo cliente: {cliente_data.get('razon_social')}")
+                    
+                    # Verificar si ya existe la función insertar_cliente_completo
+                    from database import insertar_cliente_completo
+                    
+                    nuevo_cliente = {
+                        'tipo_documento': cliente_data.get('tipo_documento', 'RUC'),
+                        'numero_documento': numero_documento,
+                        'razon_social': cliente_data.get('razon_social', ''),
+                        'nombre_comercial': cliente_data.get('nombre_comercial', ''),
+                        'direccion_fiscal': cliente_data.get('direccion_fiscal', ''),
+                        'contactos': [],
+                        'puntos_entrega': []
+                    }
+                    
+                    # Agregar contacto si tiene datos
+                    if cliente_data.get('nombre_contacto') or cliente_data.get('telefono_contacto') or cliente_data.get('email_contacto'):
+                        nuevo_cliente['contactos'].append({
+                            'nombre_contacto': cliente_data.get('nombre_contacto', ''),
+                            'telefono_contacto': cliente_data.get('telefono_contacto', ''),
+                            'email_contacto': cliente_data.get('email_contacto', ''),
+                            'principal': True
+                        })
+                    
+                    # Agregar punto de entrega si tiene dirección
+                    if cliente_data.get('direccion_fiscal'):
+                        nuevo_cliente['puntos_entrega'].append({
+                            'direccion': cliente_data.get('direccion_fiscal', ''),
+                            'nombre_punto': 'Principal',
+                            'principal': True
+                        })
+                    
+                    try:
+                        resultado = insertar_cliente_completo(nuevo_cliente)
+                        if resultado and resultado.get('id'):
+                            cliente_id = resultado['id']
+                            print(f"✅ Nuevo cliente creado exitosamente (ID: {cliente_id})")
+                        else:
+                            print(f"⚠️ Error al crear cliente: {resultado}")
+                    except Exception as e:
+                        print(f"❌ Error en insertar_cliente_completo: {e}")
+                        # Fallback: Insertar cliente directamente
+                        with db_tx() as conn:
+                            cur = conn.cursor()
+                            cur.execute("""
+                                INSERT INTO clientes 
+                                (tipo_documento, numero_documento, razon_social, nombre_comercial, 
+                                 direccion_fiscal, telefono_contacto, email_contacto, nombre_contacto, activo)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, TRUE)
+                                RETURNING id
+                            """, (
+                                cliente_data.get('tipo_documento', 'RUC'),
+                                numero_documento,
+                                cliente_data.get('razon_social', ''),
+                                cliente_data.get('nombre_comercial', ''),
+                                cliente_data.get('direccion_fiscal', ''),
+                                cliente_data.get('telefono_contacto', ''),
+                                cliente_data.get('email_contacto', ''),
+                                cliente_data.get('nombre_contacto', '')
+                            ))
+                            cliente_id = cur.fetchone()[0]
+                            print(f"✅ Cliente creado con fallback (ID: {cliente_id})")
+        
+        # Si aún no tenemos cliente_id, error
+        if not cliente_id or cliente_id == 0:
+            return jsonify({
+                'success': False, 
+                'error': 'Se requiere un cliente para guardar la cotización. Complete los datos del cliente.'
+            }), 400
+        
+        # Continuar con el resto del código...
         subtotal = data.get("subtotal", 0)
         estado = data.get("estado", "En Proceso")
         igv = data.get("igv", 0)
@@ -680,6 +790,7 @@ def guardar_cotizacion():
                     "success": True,
                     "data": {
                         "id": cotizacion_id,
+                        "cliente_id": cliente_id,
                         "codigo_cotizacion": codigo_cotizacion,
                         "correlativo": correlativo,
                         "actualizado": True
@@ -814,6 +925,7 @@ def guardar_cotizacion():
                     "success": True,
                     "data": {
                         "id": nuevo_id,
+                        "cliente_id": cliente_id,
                         "numero": numero,
                         "codigo_cotizacion": codigo_cotizacion,
                         "correlativo": correlativo

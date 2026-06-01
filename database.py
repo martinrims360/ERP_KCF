@@ -1450,7 +1450,31 @@ def eliminar_cliente_db(cliente_id):
     """, (cliente_id,))
     return {'success': True}
 
-
+def obtener_cliente_por_documento(numero_documento):
+    """Buscar cliente por número de documento (RUC/DNI)"""
+    try:
+        if not numero_documento:
+            return None
+        
+        rows = db_query("""
+            SELECT 
+                id, 
+                razon_social, 
+                numero_documento, 
+                telefono_contacto, 
+                email_contacto, 
+                nombre_contacto, 
+                direccion_fiscal
+            FROM clientes 
+            WHERE numero_documento = %s AND activo = TRUE
+            LIMIT 1
+        """, (numero_documento,))
+        
+        return rows[0] if rows else None
+        
+    except Exception as e:
+        print(f"❌ Error en obtener_cliente_por_documento: {e}")
+        return None
 # =========================================
 # PROVEEDORES - NUEVAS FUNCIONES
 # =========================================
