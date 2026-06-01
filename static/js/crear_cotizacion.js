@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return numero.toFixed(3).replace(/\.?0+$/, '');
     }
 
-        // =========================
+    // =========================
     // FUNCIÓN DE DIAGNÓSTICO FRONTEND
     // =========================
     async function diagnosticarFrontend() {
@@ -1499,12 +1499,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         data-email="${c.email || ''}">
                         
                         <strong>🏢 ${c.razon_social || c.nombre_comercial || ''}</strong>
-                        <div class="meta">📄 ${c.numero_documento || 'Sin documento'}</div>
+                        <div class="meta">📄 ${c.numero_documento || ''}</div>
                         <div class="meta">
                             📞 ${c.telefono || ''} 
                             • ✉️ ${c.email || ''}
                         </div>
-                        <div class="meta">👤 ${c.nombre_contacto || 'Sin contacto'}</div>
+                        <div class="meta">👤 ${c.nombre_contacto || ''}</div>
                     </div>
                 `).join('');
 
@@ -1514,26 +1514,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 portal.querySelectorAll('.item').forEach(item => {
                     // ✅ CORRECTO - Verificar antes de asignar
                                     item.addEventListener('click', () => {
-                            const clienteIdEl = document.getElementById('cliente_id');
-                            const razonSocialEl = document.getElementById('cliente_razon_social');
-                            const clienteDocEl = document.getElementById('cliente_doc');
-                            const clienteDirEl = document.getElementById('cliente_direccion');
-                            const telefonoEl = document.getElementById('telefono_contacto');
-                            const contactoEl = document.getElementById('nombre_contacto');
-                            const emailEl = document.getElementById('email');
+                                        const clienteIdEl = document.getElementById('cliente_id');
+                                        const razonSocialEl = document.getElementById('cliente_razon_social');
+                                        const clienteDocEl = document.getElementById('cliente_doc');
+                                        const clienteDirEl = document.getElementById('cliente_direccion');
+                                        const telefonoEl = document.getElementById('telefono_contacto');
+                                        const contactoEl = document.getElementById('cliente_contacto');      // ← CORREGIDO
+                                        const emailEl = document.getElementById('email_contacto_cliente');   // ← CORREGIDO
 
-                            if (clienteIdEl) clienteIdEl.value = item.dataset.id || '';
-                            if (razonSocialEl) razonSocialEl.value = item.dataset.razon || '';
-                            if (clienteDocEl) clienteDocEl.value = item.dataset.doc || '';
-                            if (clienteDirEl) clienteDirEl.value = item.dataset.direccion || '';
-                            if (telefonoEl) telefonoEl.value = item.dataset.telefono || '';
-                            if (contactoEl) contactoEl.value = item.dataset.nombre_contacto || '';
-                            if (emailEl) emailEl.value = item.dataset.email || '';
+                                        if (clienteIdEl) clienteIdEl.value = item.dataset.id || '';
+                                        if (razonSocialEl) razonSocialEl.value = item.dataset.razon || '';
+                                        if (clienteDocEl) clienteDocEl.value = item.dataset.doc || '';
+                                        if (clienteDirEl) clienteDirEl.value = item.dataset.direccion || '';
+                                        if (telefonoEl) telefonoEl.value = item.dataset.telefono || '';
+                                        if (contactoEl) contactoEl.value = item.dataset.contacto || '';      // ← data-contacto ya existe
+                                        if (emailEl) emailEl.value = item.dataset.email || '';
 
-                            if (item.dataset.id) cargarDireccionesCliente(item.dataset.id);
-                        
-                            portalHide();
-                        });
+                                        if (item.dataset.id) cargarDireccionesCliente(item.dataset.id);
+                                        portalHide();
+                                    });
                 });
 
             } catch (err) {
