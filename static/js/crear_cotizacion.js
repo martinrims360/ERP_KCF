@@ -1494,15 +1494,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         data-razon="${c.razon_social || ''}" 
                         data-doc="${c.numero_documento || ''}" 
                         data-direccion="${c.direccion_fiscal || ''}" 
-                        data-telefono="${c.telefono || ''}" 
+                        data-telefono="${c.telefono_contacto || ''}"    <!-- ← CORREGIDO -->
                         data-contacto="${c.nombre_contacto || ''}" 
-                        data-email="${c.email || ''}">
+                        data-email="${c.email_contacto || ''}">         <!-- ← CORREGIDO -->
                         
                         <strong>🏢 ${c.razon_social || c.nombre_comercial || ''}</strong>
                         <div class="meta">📄 ${c.numero_documento || ''}</div>
                         <div class="meta">
-                            📞 ${c.telefono || ''} 
-                            • ✉️ ${c.email || ''}
+                            📞 ${c.telefono_contacto || ''} 
+                            • ✉️ ${c.email_contacto || ''}
                         </div>
                         <div class="meta">👤 ${c.nombre_contacto || ''}</div>
                     </div>
@@ -1575,8 +1575,8 @@ function setupLiveRazonSocialAutocomplete() {
                     document.getElementById('cliente_doc').value = cliente.numero_documento || '';
                     document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
                     document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
-                    document.getElementById('email_contacto_cliente').value = cliente.email || '';
-                    document.getElementById('telefono_contacto').value = cliente.telefono|| '';
+                    document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';  // ← CORREGIDO
+                    document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';    // ← CORREGIDO
 
                     // Cargar direcciones del cliente
                     if (cliente.id) {
