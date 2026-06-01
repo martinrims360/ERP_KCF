@@ -1130,27 +1130,13 @@ function mostrarNotificacionClienteGuardadoGrande(datosCliente) {
         return listaProductos;
     }
 
- // ======================
-// BUSCAR CLIENTES - PARA AUTOCOMPLETE
-// ======================
-async function buscarClientes(q) {
+ async function buscarClientes(q) {
     try {
-        console.log(`🔍 Buscando clientes: "${q}"`);
-
-        const response = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
-
-        if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-
-        const clientes = await response.json();   // ← Ahora devuelve array directamente
-
-        console.log(`✅ ${clientes.length} clientes recibidos del backend`, clientes);
-
-        return clientes;   // ← Importante: devolver el array
-
+        const res = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
+        const json = await res.json();
+        return json.data || [];  // ← retorna el array
     } catch (error) {
-        console.error("❌ Error buscando clientes:", error);
+        console.error('Error buscando clientes:', error);
         return [];
     }
 }
@@ -1492,30 +1478,28 @@ function setProductoEnFila(row, p) {
 
                 // Click en cliente
                 portal.querySelectorAll('.item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        // Asignaciones
-                        document.getElementById('cliente_id')?.value = item.dataset.id || '';
-                        document.getElementById('cliente_razon_social')?.value = item.dataset.razon || '';
-                        document.getElementById('cliente_doc')?.value = item.dataset.doc || '';
-                        document.getElementById('cliente_direccion')?.value = item.dataset.direccion || '';
+                    // ✅ CORRECTO - Verificar antes de asignar
+                        item.addEventListener('click', () => {
+                            const clienteIdEl = document.getElementById('cliente_id');
+                            const razonSocialEl = document.getElementById('cliente_razon_social');
+                            const clienteDocEl = document.getElementById('cliente_doc');
+                            const clienteDirEl = document.getElementById('cliente_direccion');
+                            const telefonoEl = document.getElementById('telefono_contacto');
+                            const contactoEl = document.getElementById('cliente_contacto');
+                            const emailEl = document.getElementById('email_contacto_cliente');
+
+                            if (clienteIdEl) clienteIdEl.value = item.dataset.id || '';
+                            if (razonSocialEl) razonSocialEl.value = item.dataset.razon || '';
+                            if (clienteDocEl) clienteDocEl.value = item.dataset.doc || '';
+                            if (clienteDirEl) clienteDirEl.value = item.dataset.direccion || '';
+                            if (telefonoEl) telefonoEl.value = item.dataset.telefono || '';
+                            if (contactoEl) contactoEl.value = item.dataset.contacto || '';
+                            if (emailEl) emailEl.value = item.dataset.email || '';
+
+                            if (item.dataset.id) cargarDireccionesCliente(item.dataset.id);
                         
-                        document.getElementById('telefono_contacto')?.value = item.dataset.telefono || '';
-                        document.getElementById('cliente_contacto')?.value = item.dataset.contacto || '';
-                        document.getElementById('email_contacto_cliente')?.value = item.dataset.email || '';
-
-                        console.log("✅ Cliente seleccionado y asignado:", {
-                            razon_social: item.dataset.razon,
-                            contacto: item.dataset.contacto,
-                            telefono: item.dataset.telefono,
-                            email: item.dataset.email
+                            portalHide();
                         });
-
-                        if (item.dataset.id) {
-                            cargarDireccionesCliente(item.dataset.id);
-                        }
-
-                        portalHide();
-                    });
                 });
 
             } catch (err) {

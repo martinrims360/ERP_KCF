@@ -1568,23 +1568,8 @@ def obtener_proveedor_por_id(proveedor_id):
         return None
 
 
-def actualizar_proveedor(
-    proveedor_id,
-    razon_social,
-    razon_comercial="",
-    ruc="",
-    direccion="",
-    telefono="",
-    contacto="",
-    email="",
-    condicion_pago="",
-    tiempo_credito="",
-    banco="",
-    numero_cuenta="",
-    cci="",
-    lugar_recojo=""
-):
-    """Actualizar proveedor"""
+def actualizar_proveedor(proveedor_id, data):
+    """Actualizar proveedor - VERSIÓN CORREGIDA que recibe un diccionario"""
     try:
         db_execute("""
             UPDATE proveedores 
@@ -1604,22 +1589,22 @@ def actualizar_proveedor(
                 fecha_actualizacion = NOW()
             WHERE id = %s AND activo = TRUE
         """, (
-            razon_social,
-            razon_comercial,
-            ruc,
-            direccion,
-            telefono,
-            contacto,
-            email,
-            condicion_pago,
-            tiempo_credito,
-            banco,
-            numero_cuenta,
-            cci,
-            lugar_recojo,
+            data.get('razon_social'),
+            data.get('razon_comercial'),
+            data.get('ruc'),
+            data.get('direccion'),
+            data.get('telefono'),
+            data.get('contacto'),
+            data.get('email'),
+            data.get('condicion_pago'),
+            data.get('tiempo_credito'),
+            data.get('banco'),
+            data.get('numero_cuenta'),
+            data.get('cci'),
+            data.get('lugar_recojo'),
             proveedor_id
         ))
-        return True
+        return {'success': True}
 
     except Exception as e:
         print(f"Error actualizando proveedor {proveedor_id}: {e}")
