@@ -922,23 +922,41 @@ setTimeout(() => {
         const res = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
         const json = await res.json();
         
-        console.log('🔍 Clientes encontrados:', json.data);
-        
         if (json.data && json.data.length > 0) {
-            json.data.forEach((cliente, idx) => {
-                console.log(`Cliente ${idx + 1}:`, {
-                    razon: cliente.razon_social,
-                    telefono: cliente.telefono_contacto,
-                    email: cliente.email_contacto,
-                    contacto: cliente.nombre_contacto
-                });
-            });
+            const cliente = json.data[0]; // Tomamos el primero
+            
+            console.log('✅ Cliente encontrado:', cliente);
+
+            // Llenar datos básicos del cliente
+            document.getElementById('razon_social').value = cliente.razon_social || '';
+            document.getElementById('direccion_fiscal').value = cliente.direccion_fiscal || '';
+            // ... otros campos
+
+            // === CARGAR CONTACTO (desde tabla clientes_contactos) ===
+            if (cliente.id) {
+                try {
+                    const resContactos = await fetch(`/api/clientes/${cliente.id}/contactos`);
+                    const jsonContactos = await resContactos.json();
+
+                    if (jsonContactos.success && jsonContactos.data.length > 0) {
+                        // Tomar el contacto principal o el primero
+                        const contacto = jsonContactos.data.find(c => c.principal === true) || jsonContactos.data[0];
+
+                        console.log('📧 Contacto principal encontrado:', contacto);
+
+                        document.getElementById('nombre_contacto').value = contacto.nombre_contacto || '';
+                        document.getElementById('correo').value = contacto.email || '';
+                        document.getElementById('telefono').value = contacto.telefono || '';
+                    } else {
+                        console.log('⚠️ No se encontraron contactos para este cliente');
+                    }
+                } catch (err) {
+                    console.error('Error cargando contactos:', err);
+                }
+            }
         }
-        
-        return json.data || [];
     } catch (error) {
         console.error('Error buscando clientes:', error);
-        return [];
     }
 }
 
