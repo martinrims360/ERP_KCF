@@ -1494,15 +1494,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         data-razon="${c.razon_social || ''}" 
                         data-doc="${c.numero_documento || ''}" 
                         data-direccion="${c.direccion_fiscal || ''}" 
-                        data-telefono="${c.telefono_contacto || ''}" 
+                        data-telefono="${c.telefono || ''}" 
                         data-contacto="${c.nombre_contacto || ''}" 
-                        data-email="${c.email_contacto || ''}">
+                        data-email="${c.email || ''}">
                         
                         <strong>🏢 ${c.razon_social || c.nombre_comercial || ''}</strong>
                         <div class="meta">📄 ${c.numero_documento || 'Sin documento'}</div>
                         <div class="meta">
-                            📞 ${c.telefono_contacto || 'Sin teléfono'} 
-                            • ✉️ ${c.email_contacto || 'Sin email'}
+                            📞 ${c.telefono || ''} 
+                            • ✉️ ${c.email || ''}
                         </div>
                         <div class="meta">👤 ${c.nombre_contacto || 'Sin contacto'}</div>
                     </div>
@@ -1519,15 +1519,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             const clienteDocEl = document.getElementById('cliente_doc');
                             const clienteDirEl = document.getElementById('cliente_direccion');
                             const telefonoEl = document.getElementById('telefono_contacto');
-                            const contactoEl = document.getElementById('cliente_contacto');
-                            const emailEl = document.getElementById('email_contacto_cliente');
+                            const contactoEl = document.getElementById('nombre_contacto');
+                            const emailEl = document.getElementById('email');
 
                             if (clienteIdEl) clienteIdEl.value = item.dataset.id || '';
                             if (razonSocialEl) razonSocialEl.value = item.dataset.razon || '';
                             if (clienteDocEl) clienteDocEl.value = item.dataset.doc || '';
                             if (clienteDirEl) clienteDirEl.value = item.dataset.direccion || '';
                             if (telefonoEl) telefonoEl.value = item.dataset.telefono || '';
-                            if (contactoEl) contactoEl.value = item.dataset.contacto || '';
+                            if (contactoEl) contactoEl.value = item.dataset.nombre_contacto || '';
                             if (emailEl) emailEl.value = item.dataset.email || '';
 
                             if (item.dataset.id) cargarDireccionesCliente(item.dataset.id);
@@ -1576,8 +1576,8 @@ function setupLiveRazonSocialAutocomplete() {
                     document.getElementById('cliente_doc').value = cliente.numero_documento || '';
                     document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
                     document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
-                    document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';
-                    document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';
+                    document.getElementById('email_contacto_cliente').value = cliente.email || '';
+                    document.getElementById('telefono_contacto').value = cliente.telefono|| '';
 
                     // Cargar direcciones del cliente
                     if (cliente.id) {
@@ -2183,8 +2183,8 @@ function setupLiveRazonSocialAutocomplete() {
                         document.getElementById('cliente_doc').value = cliente.numero_documento || '';
                         document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
                         document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
-                        document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';
-                        document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';
+                        document.getElementById('email_contacto_cliente').value = cliente.email || '';
+                        document.getElementById('telefono_contacto').value = cliente.telefono || '';
 
                         // Cargar direcciones si tiene ID
                         if (cliente.id) {
