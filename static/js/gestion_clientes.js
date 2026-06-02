@@ -605,20 +605,15 @@ window.abrirModalVer = async function(id) {
         const codigoCliente = c.codigo_cliente || '---';
         
         let html = `
-            <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                    <div class="card bg-gradient-primary text-white text-center p-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="bi bi-upc-scan" style="font-size: 2.5rem;"></i>
-                        <h6 class="text-uppercase mt-2 mb-1 opacity-75">Código de Cliente</h6>
-                        <h2 class="fw-bold mb-0">${escapeHtml(codigoCliente)}</h2>
-                    </div>
+            <div class="d-flex justify-content-between align-items-center p-3 mb-4 rounded-3" style="background-color: #f1f0f6;">
+                <div class="text-start">
+                    <span class="text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">Código</span>
+                    <h3 class="fw-bold mb-0 text-dark" style="font-size: 1.4rem;">${escapeHtml(codigoCliente)}</h3>
                 </div>
-                <div class="col-md-6">
-                    <div class="card bg-gradient-info text-white text-center p-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #0dcaf0 0%, #0d6efd 100%);">
-                        <i class="bi bi-calendar-clock-fill" style="font-size: 2.5rem;"></i>
-                        <h6 class="text-uppercase mt-2 mb-1 opacity-75">Fecha y Hora de Registro</h6>
-                        <h2 class="fw-bold mb-0" style="font-size: 1.2rem;">${fechaRegistro}</h2>
-                    </div>
+                
+                <div class="text-end">
+                    <span class="text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">Fecha y Hora de Registro</span>
+                    <h3 class="fw-bold mb-0 text-dark" style="font-size: 1.4rem;">${fechaRegistro}</h3>
                 </div>
             </div>
             

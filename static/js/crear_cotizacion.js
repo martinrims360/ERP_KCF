@@ -1610,37 +1610,152 @@ function attachClienteAutocomplete(inputId) {
     }
 }
 
-    function attachAsesorAutocomplete() {
-        const input = document.getElementById('asesor_comercial');
-        if (!input) return;
-        let timeoutId = null;
+   function attachAsesorAutocomplete() {
+    const input = document.getElementById('asesor_comercial');
+    if (!input) {
+        console.warn('❌ Input asesor_comercial no encontrado');
+        return;
+    }
 
-        input.addEventListener('input', async () => {
-            const q = input.value.trim();
-            if (timeoutId) clearTimeout(timeoutId);
-            if (q.length < 2) { portalHide(); return; }
-            
-            timeoutId = setTimeout(async () => {
-                const asesores = await buscarAsesores(q);
-                if (!asesores.length) { portalShow(input, `<div class="empty">Asesor no encontrado</div>`); return; }
+    // Crear contenedor relativo si no existe
+    let container = input.parentElement;
+    if (getComputedStyle(container).position !== 'relative') {
+        const newContainer = document.createElement('div');
+        newContainer.style.position = 'relative';
+        newContainer.style.width = '100%';
+        input.parentNode.insertBefore(newContainer, input);
+        newContainer.appendChild(input);
+        container = newContainer;
+    }
 
-                const html = asesores.map(a => `<div class="item" data-id="${a.id}" data-nombre="${a.nombre_completo}" data-email="${a.email || ''}" data-telefono="${a.telefono || ''}">
-                    <strong>👨‍💼 ${a.nombre_completo}</strong><div class="meta">${a.rol || 'Asesor'} • ${a.codigo_vendedor || ''}</div></div>`).join('');
-                portalShow(input, html);
+    // Crear dropdown específico para asesores
+    const dropdownId = 'dropdown_asesores';
+    let dropdown = document.getElementById(dropdownId);
+    
+    if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.id = dropdownId;
+        dropdown.className = 'custom-autocomplete-dropdown';
+        dropdown.style.cssText = `
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            border: 1px solid #e5e7eb;
+            margin-top: 4px;
+        `;
+        container.appendChild(dropdown);
+    }
 
-                portal.querySelectorAll('.item').forEach(el => {
+    let timeoutId = null;
+
+    input.addEventListener('input', async () => {
+        const q = input.value.trim();
+        
+        if (timeoutId) clearTimeout(timeoutId);
+        
+        if (q.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        timeoutId = setTimeout(async () => {
+            try {
+                console.log('🔍 Buscando asesores:', q);
+                const response = await fetch(`/api/usuarios/buscar?q=${encodeURIComponent(q)}`);
+                const result = await response.json();
+                
+                if (!result.success || !result.data || result.data.length === 0) {
+                    dropdown.innerHTML = `<div class="empty" style="padding: 12px; text-align: center; color: #6b7280;">No se encontraron asesores</div>`;
+                    dropdown.style.display = 'block';
+                    return;
+                }
+
+                dropdown.innerHTML = result.data.map(asesor => `
+                    <div class="item" 
+                        style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.2s ease;"
+                        onmouseover="this.style.background='#fef2f2'"
+                        onmouseout="this.style.background='white'"
+                        data-id="${asesor.id}"
+                        data-nombre="${escapeHtml(asesor.nombre_completo)}"
+                        data-email="${asesor.email || ''}"
+                        data-telefono="${asesor.telefono || ''}"
+                        data-codigo="${asesor.codigo_vendedor || ''}">
+                        <strong style="display: block; font-size: 14px; color: #111827;">👨‍💼 ${escapeHtml(asesor.nombre_completo)}</strong>
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                            📧 ${asesor.email || 'Sin email'} • 📞 ${asesor.telefono || 'Sin teléfono'}
+                        </div>
+                        <div style="font-size: 11px; color: #9ca3af;">Código: ${asesor.codigo_vendedor || 'N/A'} • Rol: ${asesor.rol || 'Asesor'}</div>
+                    </div>
+                `).join('');
+
+                dropdown.style.display = 'block';
+
+                // Asignar eventos click
+                dropdown.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('click', () => {
-                        document.getElementById("usuario_id").value = el.dataset.id;
+                        document.getElementById('usuario_id').value = el.dataset.id;
                         document.getElementById('asesor_comercial').value = el.dataset.nombre;
                         document.getElementById('email_contacto').value = el.dataset.email;
                         document.getElementById('telefono_contacto_user').value = el.dataset.telefono;
-                        portalHide();
+                        dropdown.style.display = 'none';
+                        mostrarNotificacion(`✅ Asesor: ${el.dataset.nombre}`, 'success');
                     });
                 });
-            }, 300);
-        });
-    }
 
+            } catch (error) {
+                console.error('Error buscando asesores:', error);
+                dropdown.innerHTML = `<div class="empty" style="padding: 12px; text-align: center; color: #ef4444;">Error al buscar asesores</div>`;
+                dropdown.style.display = 'block';
+            }
+        }, 300);
+    });
+
+    // Cerrar dropdown al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        if (!container.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    // Teclas de navegación
+    input.addEventListener('keydown', (e) => {
+        if (dropdown.style.display === 'block') {
+            const items = dropdown.querySelectorAll('.item');
+            let currentFocus = -1;
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentFocus = (currentFocus + 1) % items.length;
+                highlightItem(items, currentFocus);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentFocus = (currentFocus - 1 + items.length) % items.length;
+                highlightItem(items, currentFocus);
+            } else if (e.key === 'Enter' && currentFocus >= 0) {
+                e.preventDefault();
+                items[currentFocus].click();
+            } else if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+            }
+        }
+    });
+    
+    function highlightItem(items, index) {
+        items.forEach(item => item.style.background = '');
+        if (items[index]) {
+            items[index].style.background = '#fef2f2';
+            items[index].scrollIntoView({ block: 'nearest' });
+        }
+    }
+}
     // function attachContactoAutocomplete() {
     //     const input = document.getElementById('cliente_contacto');
     //     if (!input) return;
