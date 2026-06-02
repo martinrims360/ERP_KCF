@@ -1016,21 +1016,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let modoConsulta = false;
 
     const tableBody = document.getElementById('table-body');
+
+    // =========================
+    // AUTOCOMPLETE PORTAL
+    // =========================
     const portal = document.getElementById('portalSuggestions');
+    let portalActive = null;
 
     function portalHide() {
-        if (portal) {
-            portal.style.display = 'none';
-            portal.innerHTML = '';
-        }
+        portal.style.display = 'none';
+        portal.innerHTML = '';
+        portalActive = null;
     }
 
     function portalShow(inputEl, html) {
-        if (!portal) return;
         const rect = inputEl.getBoundingClientRect();
         portal.style.left = rect.left + 'px';
         portal.style.top = (rect.bottom + 4) + 'px';
-        portal.style.minWidth = Math.max(rect.width, 280) + 'px';
+        portal.style.minWidth = rect.width + 'px';
         portal.innerHTML = html;
         portal.style.display = 'block';
     }
@@ -1077,17 +1080,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return listaProductos;
     }
+    // =========================// =========================
+    async function cargarClientes(clienteId) {
+    const select = document.getElementById('punto_entrega');
 
- async function buscarClientes(q) {
+    select.innerHTML = `<option value="">Seleccione punto</option>`;
+
     try {
-        const res = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/clientes/${clienteId}`);
         const json = await res.json();
-        return json.data || [];  // ← retorna el array
-    } catch (error) {
-        console.error('Error buscando clientes:', error);
-        return [];
+
+        const clientes = json.data?.clientes_contactos || [];
+
+        clientes.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.dataset.nombre = c.nombre_contacto;
+        opt.dataset.email = c.email || '';
+        opt.dataset.telefono = c.telefono || '';
+        select.appendChild(opt);
+        });
+
+    } catch (e) {
+        console.error("Error cargando puntos", e);
     }
- }
+    }
+
+    async function buscarClientes(q) {
+    const res = await fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`);
+    const json = await res.json();
+    return json.data || [];
+    }
 
     async function buscarProductos(q) {
         try {
@@ -1407,138 +1430,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================
     // AUTOCOMPLETES
     // =========================
-  function attachClienteAutocomplete(idInput) {
-    const input = document.getElementById(idInput);
-    if (!input) {
-        console.warn(`⚠️ Input con id="${idInput}" no encontrado`);
-        return;
-    }
+        function attachClienteAutocomplete(idInput) {
+        const input = document.getElementById(idInput);
 
-    let timeoutId = null;
+        input.addEventListener('input', async () => {
+            const q = input.value.trim();
+            if (q.length < 2) return portalHide();
 
-    input.addEventListener('input', async () => {
-        const q = input.value.trim();
-        
-        if (timeoutId) clearTimeout(timeoutId);
-        if (q.length < 2) {
-            portalHide();
+            const clientes = await buscarClientes(q);
+
+            if (!clientes.length) {
+            portalShow(input, `<div class="empty">No encontrado</div>`);
             return;
-        }
-
-        timeoutId = setTimeout(async () => {
-            try {
-                const clientes = await buscarClientes(q);   // ← Asegúrate que llame a la versión mejorada
-
-                console.log(`📊 ${clientes.length} clientes recibidos`, clientes);
-
-                if (!clientes || clientes.length === 0) {
-                    portalShow(input, `<div class="empty">No se encontraron clientes</div>`);
-                    return;
-                }
-
+            }
                 const html = clientes.map(c => `
                     <div class="item" 
                         data-id="${c.id || ''}" 
                         data-razon="${c.razon_social || ''}" 
                         data-doc="${c.numero_documento || ''}" 
                         data-direccion="${c.direccion_fiscal || ''}" 
-                        data-telefono="${c.telefono_contacto || ''}"    <!-- ← CORREGIDO -->
                         data-contacto="${c.nombre_contacto || ''}" 
-                        data-email="${c.email_contacto || ''}">         <!-- ← CORREGIDO -->
-                        
                         <strong>🏢 ${c.razon_social || c.nombre_comercial || ''}</strong>
                         <div class="meta">📄 ${c.numero_documento || ''}</div>
-                        <div class="meta">
-                            📞 ${c.telefono_contacto || ''} 
-                            • ✉️ ${c.email_contacto || ''}
-                        </div>
+                        <div class="meta">📞 ${c.telefono_contacto || ''} • ✉️ ${c.email_contacto || ''}</div>
                         <div class="meta">👤 ${c.nombre_contacto || ''}</div>
                     </div>
                 `).join('');
 
                 portalShow(input, html);
 
-                // Click en cliente
-                portal.querySelectorAll('.item').forEach(item => {
-                    // ✅ CORRECTO - Verificar antes de asignar
-                                    item.addEventListener('click', () => {
-                                        const clienteIdEl = document.getElementById('cliente_id');
-                                        const razonSocialEl = document.getElementById('cliente_razon_social');
-                                        const clienteDocEl = document.getElementById('cliente_doc');
-                                        const clienteDirEl = document.getElementById('cliente_direccion');
-                                        const telefonoEl = document.getElementById('telefono_contacto');
-                                        const contactoEl = document.getElementById('cliente_contacto');      // ← CORREGIDO
-                                        const emailEl = document.getElementById('email_contacto_cliente');   // ← CORREGIDO
+                portal.querySelectorAll('.item').forEach(el => {
+                    el.addEventListener('click', async () => {
+                        const id = el.dataset.id;
+                        const cliente = clientes.find(x => x.id == id);
 
-                                        if (clienteIdEl) clienteIdEl.value = item.dataset.id || '';
-                                        if (razonSocialEl) razonSocialEl.value = item.dataset.razon || '';
-                                        if (clienteDocEl) clienteDocEl.value = item.dataset.doc || '';
-                                        if (clienteDirEl) clienteDirEl.value = item.dataset.direccion || '';
-                                        if (telefonoEl) telefonoEl.value = item.dataset.telefono || '';
-                                        if (contactoEl) contactoEl.value = item.dataset.contacto || '';      // ← data-contacto ya existe
-                                        if (emailEl) emailEl.value = item.dataset.email || '';
+                        document.getElementById('cliente_id').value = cliente.id;
+                        document.getElementById('cliente_nombre_contacto').value = cliente.nombre_contacto;
+                        document.getElementById('cliente_email_contacto').value = cliente.email_contacto;
+                        document.getElementById('cliente_telefono_contacto').value = cliente.telefono_contacto || '';
 
-                                        if (item.dataset.id) cargarDireccionesCliente(item.dataset.id);
-                                        portalHide();
-                                    });
+                        // 🔥 AQUÍ ESTÁ LA CLAVE
+                        await cargarClientes(cliente.id);
+
+                        portalHide();
+                    });
                 });
-
-            } catch (err) {
-                console.error("❌ Error en autocomplete:", err);
-                portalShow(input, `<div class="empty">Error al buscar</div>`);
-            }
-        }, 300);
-    });
- } 
- 
- // =============================================
-// AUTOCOMPLETADO AUTOMÁTICO AL ESCRIBIR EN RAZÓN SOCIAL
-// =============================================
-function setupLiveRazonSocialAutocomplete() {
-    const inputRazon = document.getElementById('cliente_razon_social');
-    if (!inputRazon) return;
-
-    let timeoutId = null;
-
-    inputRazon.addEventListener('input', async function () {
-        const q = this.value.trim();
-
-        // Si borra o escribe muy poco → limpiar campos
-        if (q.length < 2) {
-            limpiarCamposCliente();
-            return;
-        }
-
-        if (timeoutId) clearTimeout(timeoutId);
-
-        timeoutId = setTimeout(async () => {
-            try {
-                const clientes = await buscarClientes(q);
-
-                if (clientes && clientes.length > 0) {
-                    const cliente = clientes[0]; // Tomamos el primero (el más relevante)
-
-                    // === AUTOCOMPLETAR TODOS LOS CAMPOS ===
-                    document.getElementById('cliente_id').value = cliente.id || '';
-                    document.getElementById('cliente_doc').value = cliente.numero_documento || '';
-                    document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
-                    document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
-                    document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';  // ← CORREGIDO
-                    document.getElementById('telefono_contacto').value = cliente.telefono_contacto || '';    // ← CORREGIDO
-
-                    // Cargar direcciones del cliente
-                    if (cliente.id) {
-                        cargarDireccionesCliente(cliente.id);
-                    }
-
-                    console.log('✅ Autocompletado automático:', cliente.razon_social);
-                }
-            } catch (error) {
-                console.error('❌ Error en autocompletado automático:', error);
-            }
-        }, 320); // debounce
-    });
-    }
+         });
+} 
 
     // Función auxiliar para limpiar campos
     function limpiarCamposCliente() {
@@ -1650,36 +1588,36 @@ function setupLiveRazonSocialAutocomplete() {
         });
     }
 
-    function attachContactoAutocomplete() {
-        const input = document.getElementById('cliente_contacto');
-        if (!input) return;
-        let timeoutId = null;
+    // function attachContactoAutocomplete() {
+    //     const input = document.getElementById('cliente_contacto');
+    //     if (!input) return;
+    //     let timeoutId = null;
         
-        input.addEventListener('input', async () => {
-            const q = input.value.trim();
-            const clienteId = document.getElementById('cliente_id')?.value;
-            if (timeoutId) clearTimeout(timeoutId);
+    //     input.addEventListener('input', async () => {
+    //         const q = input.value.trim();
+    //         const clienteId = document.getElementById('cliente_id')?.value;
+    //         if (timeoutId) clearTimeout(timeoutId);
             
-            if (!clienteId) {
-                portalShow(input, `<div class="item" data-value="A tratar"><strong>📝 A tratar</strong><div class="meta">Contacto por definir</div></div>`);
-                return;
-            }
+    //         if (!clienteId) {
+    //             portalShow(input, `<div class="item" data-value="A tratar"><strong>📝 A tratar</strong><div class="meta">Contacto por definir</div></div>`);
+    //             return;
+    //         }
             
-            timeoutId = setTimeout(async () => {
-                const contactos = await buscarContactos(clienteId, q);
-                let html = '';
-                if (contactos.length > 0) {
-                    html = contactos.map(c => `<div class="item" data-value="${c.nombre_contacto}"><strong>👤 ${c.nombre_contacto}</strong><div class="meta">${c.cargo || 'Contacto'} • ${c.telefono || ''}</div></div>`).join('');
-                }
-                html += `<div class="item" data-value="A tratar"><strong>📝 A tratar</strong><div class="meta">Negociación</div></div>`;
-                portalShow(input, html);
+    //         timeoutId = setTimeout(async () => {
+    //             const contactos = await buscarContactos(clienteId, q);
+    //             let html = '';
+    //             if (contactos.length > 0) {
+    //                 html = contactos.map(c => `<div class="item" data-value="${c.nombre_contacto}"><strong>👤 ${c.nombre_contacto}</strong><div class="meta">${c.cargo || 'Contacto'} • ${c.telefono || ''}</div></div>`).join('');
+    //             }
+    //             html += `<div class="item" data-value="A tratar"><strong>📝 A tratar</strong><div class="meta">Negociación</div></div>`;
+    //             portalShow(input, html);
                 
-                portal.querySelectorAll('.item').forEach(el => {
-                    el.addEventListener('click', () => { input.value = el.dataset.value; portalHide(); });
-                });
-            }, 300);
-        });
-    }
+    //             portal.querySelectorAll('.item').forEach(el => {
+    //                 el.addEventListener('click', () => { input.value = el.dataset.value; portalHide(); });
+    //             });
+    //         }, 300);
+    //     });
+    // }
 
     // =========================
     // RECALCULAR CON DESCUENTO PERSONALIZABLE Y VALIDACIÓN DE STOCK
