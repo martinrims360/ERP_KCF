@@ -1431,51 +1431,57 @@ document.addEventListener('DOMContentLoaded', () => {
     // AUTOCOMPLETES
     // =========================
         function attachClienteAutocomplete(idInput) {
-        const input = document.getElementById(idInput);
+    const input = document.getElementById(idInput);
+    if (!input) return;
+    let timeoutId = null;
 
-        input.addEventListener('input', async () => {
-            const q = input.value.trim();
-            if (q.length < 2) return portalHide();
+    input.addEventListener('input', async () => {
+        const q = input.value.trim();
+        if (timeoutId) clearTimeout(timeoutId);
+        if (q.length < 2) return portalHide();
 
+        timeoutId = setTimeout(async () => {
             const clientes = await buscarClientes(q);
 
             if (!clientes.length) {
-            portalShow(input, `<div class="empty">No encontrado</div>`);
-            return;
+                portalShow(input, `<div class="empty">No encontrado</div>`);
+                return;
             }
-                const html = clientes.map(c => `
-                    <div class="item" 
-                        data-id="${c.id || ''}" 
-                        data-razon="${c.razon_social || ''}" 
-                        data-doc="${c.numero_documento || ''}" 
-                        data-direccion="${c.direccion_fiscal || ''}" 
-                        data-contacto="${c.nombre_contacto || ''}" 
-                        <strong>🏢 ${c.razon_social || c.nombre_comercial || ''}</strong>
-                        <div class="meta">📄 ${c.numero_documento || ''}</div>
-                        <div class="meta">📞 ${c.telefono_contacto || ''} • ✉️ ${c.email_contacto || ''}</div>
-                        <div class="meta">👤 ${c.nombre_contacto || ''}</div>
-                    </div>
-                `).join('');
 
-                portalShow(input, html);
+            const html = clientes.map(c => `
+                <div class="item"
+                    data-id="${c.id || ''}"
+                    data-razon="${escapeHtml(c.razon_social || '')}"
+                    data-doc="${c.numero_documento || ''}"
+                    data-direccion="${escapeHtml(c.direccion_fiscal || '')}"
+                    data-contacto="${escapeHtml(c.nombre_contacto || '')}"
+                    data-email="${c.email_contacto || ''}"
+                    data-telefono="${c.telefono_contacto || ''}">
+                    <strong>🏢 ${escapeHtml(c.razon_social || c.nombre_comercial || '')}</strong>
+                    <div class="meta">📄 ${c.numero_documento || ''}</div>
+                    <div class="meta">📞 ${c.telefono_contacto || ''} • ✉️ ${c.email_contacto || ''}</div>
+                    <div class="meta">👤 ${c.nombre_contacto || ''}</div>
+                </div>
+            `).join('');
 
-                portal.querySelectorAll('.item').forEach(el => {
-                    el.addEventListener('click', async () => {
-                        const id = el.dataset.id;
-                        const cliente = clientes.find(x => x.id == id);
+            portalShow(input, html);
 
-                        document.getElementById('cliente_id').value = cliente.id;
-                        document.getElementById('cliente_nombre_contacto').value = cliente.nombre_contacto;
-                        document.getElementById('cliente_email_contacto').value = cliente.email_contacto;
-                        document.getElementById('cliente_telefono_contacto').value = cliente.telefono_contacto || '';
+            portal.querySelectorAll('.item').forEach(el => {
+                el.addEventListener('click', async () => {
+                    document.getElementById('cliente_id').value             = el.dataset.id;
+                    document.getElementById('cliente_razon_social').value   = el.dataset.razon;
+                    document.getElementById('cliente_doc').value            = el.dataset.doc;
+                    document.getElementById('cliente_direccion').value      = el.dataset.direccion;
+                    document.getElementById('cliente_contacto').value       = el.dataset.contacto;
+                    document.getElementById('email_contacto_cliente').value = el.dataset.email;
+                    document.getElementById('telefono_contacto').value      = el.dataset.telefono;
 
-                        // 🔥 AQUÍ ESTÁ LA CLAVE
-                        await cargarClientes(cliente.id);
-
-                        portalHide();
-                    });
+                    await cargarDireccionesCliente(el.dataset.id);
+                    portalHide();
                 });
-         });
+            });
+        }, 300);
+    });
 } 
 
     // Función auxiliar para limpiar campos
@@ -1995,7 +2001,7 @@ document.addEventListener('DOMContentLoaded', () => {
     attachClienteAutocomplete('cliente_doc');
     attachClienteAutocomplete('cliente_razon_social');
     attachAsesorAutocomplete();
-    attachContactoAutocomplete();
+    //attachContactoAutocomplete();
     configurarTiempoEntrega();
     configurarDireccionEntrega();
     addItem();
@@ -2041,8 +2047,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('cliente_doc').value = cliente.numero_documento || '';
                         document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
                         document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
-                        document.getElementById('email_contacto_cliente').value = cliente.email || '';
-                        document.getElementById('telefono_contacto').value = cliente.telefono || '';
+                        document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';
+                        document.getElementById('telefono_contacto').value = cliente.telefono_contacto|| '';
 
                         // Cargar direcciones si tiene ID
                         if (cliente.id) {
@@ -2057,18 +2063,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
         });
      }
-
-        // Limpiar campos del cliente
-        function limpiarCamposCliente() {
-            ['cliente_id', 'cliente_doc', 'cliente_direccion', 'cliente_contacto', 'email_contacto_cliente', 'telefono_contacto']
-                .forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.value = '';
-                });
-        }
-
-        // =============================================
-        // INICIALIZAR
-        // =============================================
-        setupLiveRazonSocialAutocomplete();
 });
