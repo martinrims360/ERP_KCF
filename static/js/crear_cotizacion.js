@@ -1430,60 +1430,87 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================
     // AUTOCOMPLETES
     // =========================
-        function attachClienteAutocomplete(idInput) {
-    const input = document.getElementById(idInput);
-    if (!input) return;
-    let timeoutId = null;
+        // ====================== AUTOCOMPLETE CLIENTE MEJORADO ======================
+    function attachClienteAutocomplete(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) {
+            console.warn(`Input no encontrado: #${inputId}`);
+            return;
+        }
 
-    input.addEventListener('input', async () => {
-        const q = input.value.trim();
-        if (timeoutId) clearTimeout(timeoutId);
-        if (q.length < 2) return portalHide();
+        let timeoutId = null;
 
-        timeoutId = setTimeout(async () => {
-            const clientes = await buscarClientes(q);
-
-            if (!clientes.length) {
-                portalShow(input, `<div class="empty">No encontrado</div>`);
+        input.addEventListener('input', async () => {
+            const q = input.value.trim();
+            
+            if (timeoutId) clearTimeout(timeoutId);
+            if (q.length < 2) {
+                portalHide();
                 return;
             }
 
-            const html = clientes.map(c => `
-                <div class="item"
-                    data-id="${c.id || ''}"
-                    data-razon="${escapeHtml(c.razon_social || '')}"
-                    data-doc="${c.numero_documento || ''}"
-                    data-direccion="${escapeHtml(c.direccion_fiscal || '')}"
-                    data-contacto="${escapeHtml(c.nombre_contacto || '')}"
-                    data-email="${c.email_contacto || ''}"
-                    data-telefono="${c.telefono_contacto || ''}">
-                    <strong>🏢 ${escapeHtml(c.razon_social || c.nombre_comercial || '')}</strong>
-                    <div class="meta">📄 ${c.numero_documento || ''}</div>
-                    <div class="meta">📞 ${c.telefono_contacto || ''} • ✉️ ${c.email_contacto || ''}</div>
-                    <div class="meta">👤 ${c.nombre_contacto || ''}</div>
-                </div>
-            `).join('');
+            timeoutId = setTimeout(async () => {
+                try {
+                    const clientes = await buscarClientes(q);
+                    
+                    if (!clientes || clientes.length === 0) {
+                        portalShow(input, `<div class="empty">No se encontraron clientes</div>`);
+                        return;
+                    }
 
-            portalShow(input, html);
+                    const html = clientes.map(c => `
+                        <div class="item" 
+                            data-id="${c.id || ''}"
+                            data-razon="${escapeHtml(c.razon_social || '')}"
+                            data-doc="${c.numero_documento || ''}"
+                            data-direccion="${escapeHtml(c.direccion_fiscal || '')}"
+                            data-contacto="${escapeHtml(c.nombre_contacto || '')}"
+                            data-email="${c.email_contacto || ''}"
+                            data-telefono="${c.telefono_contacto || ''}">
+                            <strong>🏢 ${escapeHtml(c.razon_social || c.nombre_comercial || '')}</strong>
+                            <div class="meta">📄 ${c.numero_documento || ''}</div>
+                            <div class="meta">📞 ${c.telefono_contacto || ''} • ✉️ ${c.email_contacto || ''}</div>
+                        </div>
+                    `).join('');
 
-            portal.querySelectorAll('.item').forEach(el => {
-                el.addEventListener('click', async () => {
-                    const clienteSeleccionado = clientes.find(x => x.id == el.dataset.id);
-                    document.getElementById('cliente_id').value             = el.dataset.id;
-                    document.getElementById('cliente_razon_social').value   = el.dataset.razon;
-                    document.getElementById('cliente_doc').value            = el.dataset.doc;
-                    document.getElementById('cliente_direccion').value      = el.dataset.direccion;
-                    document.getElementById('cliente_contacto').value       = el.dataset.contacto;
-                    document.getElementById('email_contacto_cliente').value = el.dataset.email;
-                    document.getElementById('telefono_contacto').value      = el.dataset.telefono;
+                    portalShow(input, html);
 
-                    await cargarDireccionesCliente(el.dataset.id);
-                    portalHide();
-                });
-            });
-        }, 300);
-    });
-} 
+                    // Asignar evento click a cada sugerencia
+                    portal.querySelectorAll('.item').forEach(el => {
+                        el.addEventListener('click', () => {
+                            document.getElementById('cliente_id').value = el.dataset.id;
+                            document.getElementById('cliente_razon_social').value = el.dataset.razon;
+                            document.getElementById('cliente_doc').value = el.dataset.doc;
+                            document.getElementById('cliente_direccion').value = el.dataset.direccion;
+                            document.getElementById('cliente_contacto').value = el.dataset.contacto;
+                            document.getElementById('email_contacto_cliente').value = el.dataset.email;
+                            document.getElementById('telefono_contacto').value = el.dataset.telefono;
+
+                            portalHide();
+                            
+                            // Cargar direcciones del cliente
+                            if (el.dataset.id) {
+                                cargarDireccionesCliente(el.dataset.id);
+                            }
+                            
+                            mostrarNotificacion('✅ Cliente seleccionado', 'success');
+                        });
+                    });
+
+                } catch (error) {
+                    console.error('Error en autocomplete:', error);
+                    portalShow(input, `<div class="empty">Error al buscar</div>`);
+                }
+            }, 350);
+        });
+
+        // Cerrar al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !portal.contains(e.target)) {
+                portalHide();
+            }
+        });
+    }
 
     // Función auxiliar para limpiar campos
     function limpiarCamposCliente() {
@@ -2020,48 +2047,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // AUTOCOMPLETADO AUTOMÁTICO AL ESCRIBIR (Live Fill)
     // =============================================
-    // function setupLiveRazonSocialAutocomplete() {
-    //     const inputRazon = document.getElementById('cliente_razon_social');
-    //     if (!inputRazon) return;
+     function setupLiveRazonSocialAutocomplete() {
+         const inputRazon = document.getElementById('cliente_razon_social');
+         if (!inputRazon) return;
 
-    //     let timeout = null;
+        let timeout = null;
 
-    //     inputRazon.addEventListener('input', async function () {
-    //         const q = this.value.trim();
+         inputRazon.addEventListener('input', async function () {
+            const q = this.value.trim();
 
-    //         if (q.length < 2) {
-    //             limpiarCamposCliente();
-    //             return;
-    //         }
+            if (q.length < 2) {
+                limpiarCamposCliente();
+                return;
+           }
 
-    //         if (timeout) clearTimeout(timeout);
+            if (timeout) clearTimeout(timeout);
 
-    //         timeout = setTimeout(async () => {
-    //             try {
-    //                 const clientes = await buscarClientes(q);
+            timeout = setTimeout(async () => {
+                try {
+                     const clientes = await buscarClientes(q);
 
-    //                 if (clientes && clientes.length > 0) {
-    //                     const cliente = clientes[0]; // Tomamos el más relevante
+                    if (clientes && clientes.length > 0) {
+                         const cliente = clientes[0]; // Tomamos el más relevante
 
-    //                     // === AUTOCOMPLETAR CAMPOS ===
-    //                     document.getElementById('cliente_id').value = cliente.id || '';
-    //                     document.getElementById('cliente_doc').value = cliente.numero_documento || '';
-    //                     document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
-    //                     document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
-    //                     document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';
-    //                     document.getElementById('telefono_contacto').value = cliente.telefono_contacto|| '';
+                         // === AUTOCOMPLETAR CAMPOS ===
+                        document.getElementById('cliente_id').value = cliente.id || '';
+                        document.getElementById('cliente_doc').value = cliente.numero_documento || '';
+                        document.getElementById('cliente_direccion').value = cliente.direccion_fiscal || '';
+                        document.getElementById('cliente_contacto').value = cliente.nombre_contacto || '';
+                        document.getElementById('email_contacto_cliente').value = cliente.email_contacto || '';
+                        document.getElementById('telefono_contacto').value = cliente.telefono_contacto|| '';
 
-    //                     // Cargar direcciones si tiene ID
-    //                     if (cliente.id) {
-    //                         cargarDireccionesCliente(cliente.id);
-    //                     }
+                       // Cargar direcciones si tiene ID
+                        if (cliente.id) {
+                             cargarDireccionesCliente(cliente.id);
+                       }
 
-    //                     console.log('✅ Autocompletado automático:', cliente.razon_social);
-    //                 }
-    //             } catch (e) {
-    //                 console.error('Error en autocompletado live:', e);
-    //             }
-    //         }, 300);
-    //     });
-    //  }
+                       console.log('✅ Autocompletado automático:', cliente.razon_social);
+                   }
+               } catch (e) {
+                    console.error('Error en autocompletado live:', e);
+                }
+            }, 300);
+        });
+      }
 });
