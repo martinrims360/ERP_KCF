@@ -745,36 +745,87 @@
             });
         }
 
-        window.abrirModalVer = async function(id) {
-            if (!id) { mostrarNotificacion("ID no válido", 'error'); return; }
-            const modalBody = document.getElementById('modalVerBody');
-            if (!modalBody) { mostrarNotificacion("Modal no encontrado", 'error'); return; }
-            modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary"></div><p>Cargando...</p></div>`;
-            try {
-                const res = await fetch(`/api/clientes/${id}`);
-                const json = await res.json();
-                if (!json.success) throw new Error(json.error);
-                const c = json.data;
-                const fechaRegistro = c.created_at ? new Date(c.created_at).toLocaleString('es-PE') : 'No registrada';
-                let html = `<div class="fecha-registro-box"><i class="bi bi-calendar-clock-fill"></i><div><small>FECHA Y HORA DE REGISTRO</small><h5>${fechaRegistro}</h5></div></div>
-                    <div class="row"><div class="col-md-6"><div class="info-row-ver"><div class="info-label-ver">CÓDIGO</div><div><strong>${escapeHtml(c.codigo_cliente || '---')}</strong></div></div></div>
-                    <div class="col-md-6"><div class="info-row-ver"><div class="info-label-ver">TIPO DOCUMENTO</div><div>${escapeHtml(c.tipo_documento || '-')}</div></div></div></div>
-                    <div class="row"><div class="col-md-6"><div class="info-row-ver"><div class="info-label-ver">NÚMERO DOCUMENTO</div><div><strong>${escapeHtml(c.numero_documento || '-')}</strong></div></div></div>
-                    <div class="col-md-6"><div class="info-row-ver"><div class="info-label-ver">RAZÓN SOCIAL</div><div>${escapeHtml(c.razon_social || '-')}</div></div></div></div>
-                    <div class="row"><div class="col-md-6"><div class="info-row-ver"><div class="info-label-ver">NOMBRE COMERCIAL</div><div>${escapeHtml(c.nombre_comercial || '-')}</div></div></div>
-                    <div class="col-md-6"><div class="info-row-ver"><div class="info-label-ver">DIRECCIÓN FISCAL</div><div>${escapeHtml(c.direccion_fiscal || '-')}</div></div></div></div>
-                    <div class="erp-section-title mt-3"><i class="bi bi-person-badge"></i> Contactos</div>`;
-                if (c.contactos?.length) {
-                    c.contactos.forEach(contacto => { html += `<div class="contact-card-ver"><strong>${escapeHtml(contacto.nombre_contacto || 'Sin nombre')}</strong>${contacto.principal ? '<span class="badge-principal ms-2">⭐ Principal</span>' : ''}<div class="small">${contacto.cargo ? `<i class="bi bi-briefcase"></i> ${escapeHtml(contacto.cargo)}<br>` : ''}${contacto.email ? `<i class="bi bi-envelope"></i> ${escapeHtml(contacto.email)}<br>` : ''}${contacto.telefono ? `<i class="bi bi-telephone"></i> ${escapeHtml(contacto.telefono)}` : ''}</div></div>`; });
-                } else { html += `<p>No hay contactos</p>`; }
-                html += `<div class="erp-section-title mt-3"><i class="bi bi-geo-alt-fill"></i> Puntos de Entrega</div>`;
-                if (c.puntos_entrega?.length) {
-                    c.puntos_entrega.forEach(punto => { html += `<div class="punto-card-ver"><strong>${escapeHtml(punto.nombre_punto || 'Sin nombre')}</strong>${punto.principal_punto ? '<span class="badge-principal ms-2">⭐ Principal</span>' : ''}<div class="small">${punto.direccion ? `<i class="bi bi-pin-map"></i> ${escapeHtml(punto.direccion)}<br>` : ''}${punto.responsable ? `<i class="bi bi-person"></i> ${escapeHtml(punto.responsable)}<br>` : ''}${punto.telefono_punto ? `<i class="bi bi-telephone"></i> ${escapeHtml(punto.telefono_punto)}<br>` : ''}${punto.condicion_pago ? `<i class="bi bi-credit-card"></i> <strong>${escapeHtml(punto.condicion_pago)}</strong>` : ''}</div></div>`; });
-                } else { html += `<p>No hay puntos de entrega</p>`; }
-                modalBody.innerHTML = html;
-                new bootstrap.Modal(document.getElementById('modalVerCliente')).show();
-            } catch(error) { modalBody.innerHTML = `<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-triangle-fill"></i><p>Error: ${error.message}</p></div>`; mostrarNotificacion("Error cargando cliente", 'error'); }
-        };
+            window.abrirModalVer = async function(id) {
+        if (!id) { mostrarNotificacion("ID no válido", 'error'); return; }
+        const modalBody = document.getElementById('modalVerBody');
+        if (!modalBody) { mostrarNotificacion("Modal no encontrado", 'error'); return; }
+        
+        modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary"></div><p>Cargando...</p></div>`;
+        
+        try {
+            const res = await fetch(`/api/clientes/${id}`);
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error);
+            const c = json.data;
+            const fechaRegistro = c.created_at ? new Date(c.created_at).toLocaleString('es-PE') : 'No registrada';
+            
+            // 1. CAJA SUPERIOR CON FLEXBOX (Código a la izquierda, Fecha a la derecha)
+            let html = `
+                <div class="fecha-registro-box d-flex justify-content-between align-items-center p-3 mb-3">
+                    <div class="info-row-ver m-0 p-0" style="background: transparent; border: none; box-shadow: none;">
+                        <div class="info-label-ver mb-1" style="font-size: 0.75rem;">CÓDIGO</div>
+                        <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.15rem;">${escapeHtml(c.codigo_cliente || '---')}</h5>
+                    </div>
+                    
+                    <div class="text-end">
+                        <small class="text-muted fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">FECHA Y HORA DE REGISTRO</small>
+                        <h5 class="fw-bold mb-0 mt-1 text-dark" style="font-size: 1.15rem;">${fechaRegistro}</h5>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row-ver"><div class="info-label-ver">TIPO DOCUMENTO</div><div>${escapeHtml(c.tipo_documento || '-')}</div></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row-ver"><div class="info-label-ver">NÚMERO DOCUMENTO</div><div><strong>${escapeHtml(c.numero_documento || '-')}</strong></div></div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="info-row-ver"><div class="info-label-ver">RAZÓN SOCIAL</div><div>${escapeHtml(c.razon_social || '-')}</div></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row-ver"><div class="info-label-ver">NOMBRE COMERCIAL</div><div>${escapeHtml(c.nombre_comercial || '-')}</div></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row-ver"><div class="info-label-ver">DIRECCIÓN FISCAL</div><div>${escapeHtml(c.direccion_fiscal || '-')}</div></div>
+                    </div>
+                </div>
+                
+                <div class="erp-section-title mt-3"><i class="bi bi-person-badge"></i> Contactos</div>`;
+                
+            // 3. SECCIÓN DE CONTACTOS
+            if (c.contactos?.length) {
+                c.contactos.forEach(contacto => { 
+                    html += `<div class="contact-card-ver"><strong>${escapeHtml(contacto.nombre_contacto || 'Sin nombre')}</strong>${contacto.principal ? '<span class="badge-principal ms-2">⭐ Principal</span>' : ''}<div class="small">${contacto.cargo ? `<i class="bi bi-briefcase"></i> ${escapeHtml(contacto.cargo)}<br>` : ''}${contacto.email ? `<i class="bi bi-envelope"></i> ${escapeHtml(contacto.email)}<br>` : ''}${contacto.telefono ? `<i class="bi bi-telephone"></i> ${escapeHtml(contacto.telefono)}` : ''}</div></div>`; 
+                });
+            } else { 
+                html += `<p class="text-muted ps-2">No hay contactos</p>`; 
+            }
+            
+            // 4. SECCIÓN DE PUNTOS DE ENTREGA
+            html += `<div class="erp-section-title mt-3"><i class="bi bi-geo-alt-fill"></i> Puntos de Entrega</div>`;
+            if (c.puntos_entrega?.length) {
+                c.puntos_entrega.forEach(punto => { 
+                    html += `<div class="punto-card-ver"><strong>${escapeHtml(punto.nombre_punto || 'Sin nombre')}</strong>${punto.principal_punto ? '<span class="badge-principal ms-2">⭐ Principal</span>' : ''}<div class="small">${punto.direccion ? `<i class="bi bi-pin-map"></i> ${escapeHtml(punto.direccion)}<br>` : ''}${punto.responsable ? `<i class="bi bi-person"></i> ${escapeHtml(punto.responsable)}<br>` : ''}${punto.telefono_punto ? `<i class="bi bi-telephone"></i> ${escapeHtml(punto.telefono_punto)}<br>` : ''}${punto.condicion_pago ? `<i class="bi bi-credit-card"></i> <strong>${escapeHtml(punto.condicion_pago)}</strong>` : ''}</div></div>`; 
+                });
+            } else { 
+                html += `<p class="text-muted ps-2">No hay puntos de entrega</p>`; 
+            }
+            
+            modalBody.innerHTML = html;
+            new bootstrap.Modal(document.getElementById('modalVerCliente')).show();
+            
+        } catch(error) { 
+            modalBody.innerHTML = `<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-triangle-fill"></i><p>Error: ${error.message}</p></div>`; 
+            mostrarNotificacion("Error cargando cliente", 'error'); 
+        }
+    };
 
         window.abrirModalEditar = async function(id) {
             try {
