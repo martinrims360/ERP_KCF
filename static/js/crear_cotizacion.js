@@ -31,59 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return numero.toFixed(3).replace(/\.?0+$/, '');
     }
 
-    // =========================
-    // FUNCIÓN DE DIAGNÓSTICO FRONTEND
-    // =========================
-    async function diagnosticarFrontend() {
-        console.log('='.repeat(60));
-        console.log('🔬 DIAGNÓSTICO FRONTEND - CLIENTES');
-        console.log('='.repeat(60));
-        
-        try {
-            // Probar endpoint de clientes
-            console.log('\n📡 Probando endpoint /api/clientes/buscar...');
-            const response = await fetch('/api/clientes/buscar?q=ALEATORIO');
-            const data = await response.json();
-            
-            console.log(`✅ Status: ${response.status}`);
-            console.log(`✅ Success: ${data.success}`);
-            
-            if (data.success && data.data && data.data.length > 0) {
-                console.log(`📊 Clientes encontrados: ${data.data.length}`);
-                const primerCliente = data.data[0];
-                console.log('\n🔎 PRIMER CLIENTE RECIBIDO:');
-                console.log(`   - id: ${primerCliente.id}`);
-                console.log(`   - razon_social: ${primerCliente.razon_social}`);
-                console.log(`   - telefono_contacto: ${primerCliente.telefono_contacto === undefined ? 'UNDEFINED ❌' : (primerCliente.telefono_contacto || 'VACÍO ⚠️')}`);
-                console.log(`   - email_contacto: ${primerCliente.email_contacto === undefined ? 'UNDEFINED ❌' : (primerCliente.email_contacto || 'VACÍO ⚠️')}`);
-                console.log(`   - nombre_contacto: ${primerCliente.nombre_contacto === undefined ? 'UNDEFINED ❌' : (primerCliente.nombre_contacto || 'VACÍO ⚠️')}`);
-                
-                // Verificar qué campos existen en el objeto
-                console.log('\n🔍 CAMPOS DISPONIBLES:');
-                Object.keys(primerCliente).forEach(key => {
-                    console.log(`   - ${key}`);
-                });
-            } else {
-                console.log('❌ No se encontraron datos o la respuesta no es exitosa');
-            }
-            
-            // Probar endpoint de diagnóstico del servidor
-            console.log('\n📡 Probando endpoint /api/diagnostico/clientes...');
-            const diagResponse = await fetch('/api/diagnostico/clientes');
-            const diagData = await diagResponse.json();
-            console.log(`✅ Diagnóstico: ${diagData.message || diagData.error}`);
-            
-        } catch (error) {
-            console.error('❌ Error en diagnóstico:', error);
-        }
-        
-        console.log('\n' + '='.repeat(60));
-    }
-
-    // Llamar al diagnóstico automáticamente
-    setTimeout(() => {
-        diagnosticarFrontend();
-    }, 2000);
+    
         // =========================
         // GENERACIÓN DE CÓDIGOS PERSONALIZADOS
         // =========================
@@ -2065,32 +2013,6 @@ function setupLiveRazonSocialAutocomplete() {
     }
 
     // =========================
-    // DIAGNÓSTICO
-    // =========================
-    function diagnosticar() {
-        console.log('=== DIAGNÓSTICO ===');
-        console.log('Estado cotización:', estadoCotizacion);
-        console.log('Bloqueada:', cotizacionBloqueada);
-        console.log('Modo consulta:', modoConsulta);
-        console.log('Es borrador:', esBorrador);
-        console.log('Item counter:', itemCounter);
-        
-        const filas = document.querySelectorAll("#table-body tr");
-        console.log('Filas en tabla:', filas.length);
-        
-        filas.forEach((fila, idx) => {
-            const codigoInput = fila.querySelector('.codigo_producto');
-            console.log(`Fila ${idx + 1} - Input código:`, codigoInput ? '✅ Encontrado' : '❌ NO ENCONTRADO');
-            if (codigoInput) {
-                console.log(`  - Value: ${codigoInput.value}`);
-                console.log(`  - Placeholder: ${codigoInput.placeholder}`);
-            }
-        });
-        
-        mostrarNotificacion('Diagnóstico completo. Revisa la consola (F12)', 'info');
-    }
-    
-    // =========================
     // EVENTOS
     // =========================
     document.getElementById('btnGuardarBorrador')?.addEventListener('click', guardarCotizacion);
@@ -2099,7 +2021,6 @@ function setupLiveRazonSocialAutocomplete() {
     document.getElementById('btnModificar')?.addEventListener('click', showModificarModal);
     document.getElementById('btnAceptada')?.addEventListener('click', showAceptadaModal);
     document.getElementById('btnAgregarItem')?.addEventListener('click', addItem);
-    document.getElementById('btnDiagnostico')?.addEventListener('click', diagnosticar);
     document.getElementById('btnCrearCliente')?.addEventListener('click', () => {
         document.getElementById('formNuevoCliente')?.reset();
         new bootstrap.Modal(document.getElementById('modalNuevoCliente')).show();
