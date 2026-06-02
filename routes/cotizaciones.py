@@ -1218,6 +1218,42 @@ def eliminar_producto_api(id):
 
 
 # ==========================================
+# ENDPOINT: OBTENER CONTACTO DEL CLIENTE
+# ==========================================
+
+@cotizaciones_bp.route("/api/clientes/<int:cliente_id>/contacto", methods=["GET"])
+def obtener_contacto_cliente(cliente_id):
+    """Obtener nombre_contacto, email_contacto y telefono_contacto de un cliente"""
+    try:
+        query = """
+            SELECT nombre_contacto, email_contacto, telefono_contacto 
+            FROM clientes 
+            WHERE id = %s
+        """
+        cliente = db_query(query, (cliente_id,))
+        
+        if not cliente:
+            return jsonify({
+                'success': False,
+                'error': 'Cliente no encontrado'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'nombre_contacto': cliente[0].get('nombre_contacto') or '',
+                'email_contacto': cliente[0].get('email_contacto') or '',
+                'telefono_contacto': cliente[0].get('telefono_contacto') or ''
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ Error en /api/clientes/{cliente_id}/contacto: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+# ==========================================
 # GENERAR PDF
 # ==========================================
 

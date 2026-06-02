@@ -654,7 +654,7 @@ def insertar_producto(
 # =========================
 def buscar_clientes_mejorado(tipo_documento='', busqueda='', limit=100):
     """
-    Buscar clientes + contacto principal desde clientes_contactos
+    Buscar clientes - AHORA usando los campos DIRECTOS de la tabla clientes
     """
     try:
         with db_tx() as conn:
@@ -671,18 +671,11 @@ def buscar_clientes_mejorado(tipo_documento='', busqueda='', limit=100):
                     c.codigo_cliente,
                     c.activo,
                     c.fecha_creacion,
-                    
-                    -- Datos del contacto principal
-                    cc.id AS contacto_id,
-                    cc.nombre_contacto,
-                    cc.email AS email_contacto,
-                    cc.telefono AS telefono_contacto,
-                    cc.cargo,
-                    cc.principal
+                    -- 🔥 CAMBIO IMPORTANTE: Usar los campos DIRECTOS de la tabla clientes
+                    c.nombre_contacto,
+                    c.email_contacto,
+                    c.telefono_contacto
                 FROM clientes c
-                LEFT JOIN clientes_contactos cc 
-                    ON cc.cliente_id = c.id 
-                    AND cc.principal = TRUE
                 WHERE c.activo = TRUE
             """
             params = []
@@ -711,6 +704,14 @@ def buscar_clientes_mejorado(tipo_documento='', busqueda='', limit=100):
                 cliente['email_contacto'] = cliente.get('email_contacto') or ''
                 cliente['telefono_contacto'] = cliente.get('telefono_contacto') or ''
                 cliente['nombre_contacto'] = cliente.get('nombre_contacto') or ''
+            
+            # Debug
+            if clientes:
+                print(f"✅ Primer cliente encontrado:")
+                print(f"   - razon_social: {clientes[0].get('razon_social')}")
+                print(f"   - telefono_contacto: '{clientes[0].get('telefono_contacto')}'")
+                print(f"   - email_contacto: '{clientes[0].get('email_contacto')}'")
+                print(f"   - nombre_contacto: '{clientes[0].get('nombre_contacto')}'")
             
             return clientes
             
