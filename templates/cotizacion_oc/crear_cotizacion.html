@@ -802,39 +802,39 @@
             </div>
         </div>
 
-        <!-- 🔥 RESUMEN DE TOTALES - AGREGADO 🔥 -->
-        <div class="row mt-4">
-            <div class="col-md-6 offset-md-6">
-                <div class="summary-card">
-                    <h4><i class="bi bi-calculator-fill"></i> Resumen de Cotización</h4>
-                    
-                    <div class="summary-row">
-                        <span><i class="bi bi-receipt"></i> Subtotal (sin descuento):</span>
-                        <span class="fw-bold" id="summary_subtotal_venta">0.00</span>
-                    </div>
-                    
-                    <div class="summary-row text-danger" id="summary_descuento_row" style="display: flex;">
-                        <span><i class="bi bi-tag-fill"></i> Descuento aplicado:</span>
-                        <span class="fw-bold text-danger" id="summary_descuento">0.00</span>
-                    </div>
-                    
-                    <div class="summary-row">
-                        <span><i class="bi bi-percent"></i> Subtotal con descuento:</span>
-                        <span class="fw-bold" id="summary_subtotal_descuento">0.00</span>
-                    </div>
-                    
-                    <div class="summary-row">
-                        <span><i class="bi bi-building"></i> I.G.V. (18%):</span>
-                        <span class="fw-bold" id="summary_igv">0.00</span>
-                    </div>
-                    
-                    <div class="summary-row total">
-                        <span><i class="bi bi-cash-stack"></i> TOTAL A PAGAR:</span>
-                        <span class="fw-bold" id="summary_total_venta">0.00</span>
-                    </div>
-                </div>
+      <!-- RESUMEN DE TOTALES - COMPACTO A LA IZQUIERDA -->
+<div class="row mt-4">
+    <div class="col-md-5 col-lg-4">
+        <div class="summary-card" style="padding: 16px 20px;">
+            <h4 style="font-size: 16px; margin-bottom: 12px;"><i class="bi bi-calculator-fill"></i> Resumen</h4>
+            
+            <div class="summary-row" style="padding: 6px 0; font-size: 13px;">
+                <span>Subtotal:</span>
+                <span class="fw-bold" id="summary_subtotal_venta">0.00</span>
+            </div>
+            
+            <div class="summary-row text-danger" style="padding: 6px 0; font-size: 13px;" id="summary_descuento_row">
+                <span>Descuento:</span>
+                <span class="fw-bold text-danger" id="summary_descuento">0.00</span>
+            </div>
+            
+            <div class="summary-row" style="padding: 6px 0; font-size: 13px;">
+                <span>Subtotal desc.:</span>
+                <span class="fw-bold" id="summary_subtotal_descuento">0.00</span>
+            </div>
+            
+            <div class="summary-row" style="padding: 6px 0; font-size: 13px;">
+                <span>IGV (18%):</span>
+                <span class="fw-bold" id="summary_igv">0.00</span>
+            </div>
+            
+            <div class="summary-row total" style="font-size: 16px; padding: 8px 0; margin-top: 5px;">
+                <span><strong>TOTAL:</strong></span>
+                <span class="fw-bold" id="summary_total_venta">0.00</span>
             </div>
         </div>
+    </div>
+</div>
 
         <!-- NOTAS INTERNAS -->
         <div class="erp-card mt-4">
