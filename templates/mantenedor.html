@@ -137,6 +137,32 @@
             background: rgba(248, 113, 113, 0.1);
             color: #fecaca;
         }
+
+        /* Estilo para los nuevos botones directos (Mis Cotizaciones / Mis Compras) */
+        .menu-item-direct {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #e2e8f0;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            background: rgba(59,130,246,0.15);
+            border-left: 3px solid #3b82f6;
+            margin: 0.25rem 0;
+        }
+
+        .menu-item-direct:hover {
+            background: rgba(59,130,246,0.3);
+            color: white;
+            transform: translateX(2px);
+        }
+
+        .menu-item-direct i {
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 
@@ -144,7 +170,7 @@
 
 <div class="layout">
 
-    <!-- SIDEBAR MODIFICADO - SECCIÓN CLIENTES ELIMINADA -->
+    <!-- SIDEBAR MODIFICADO - SECCIÓN CLIENTES ELIMINADA PERO CON BOTONES DE MIS COTIZACIONES Y MIS COMPRAS -->
     <aside class="sidebar">
 
         <div class="logo">
@@ -158,6 +184,27 @@
                 <i class="bi bi-grid"></i>
                 Dashboard
             </a>
+
+            <!-- ============================================ -->
+            <!-- NUEVO: BOTÓN PARA MIS COTIZACIONES (VENTAS)   -->
+            <!-- ============================================ -->
+            <a href="/cotizacion" class="menu-item-direct">
+                <i class="bi bi-receipt"></i>
+                Mis Cotizaciones
+                <span class="badge-custom badge-comercial ms-auto">Ventas</span>
+            </a>
+
+            <!-- ============================================ -->
+            <!-- NUEVO: BOTÓN PARA MIS COMPRAS (COMPRAS)       -->
+            <!-- ============================================ -->
+            <a href="/compras" class="menu-item-direct">
+                <i class="bi bi-cart-check"></i>
+                Mis Compras
+                <span class="badge-custom badge-activo ms-auto">Compras</span>
+            </a>
+
+            <!-- Separador visual después de las nuevas opciones -->
+            <div class="menu-divider"></div>
 
             <!-- Listas de Precios - 1 opción funcional -->
             <div class="dropdown">
