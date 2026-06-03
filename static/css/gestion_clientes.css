@@ -338,10 +338,11 @@ BOTONES ACCIÓN TABLA
 }
 
 /* =========================================
-MODAL NUEVO CLIENTE
+MODAL NUEVO CLIENTE - VERSIÓN COMPACTA
 ========================================= */
+
 .modal-content {
-    border-radius: 24px !important;
+    border-radius: 20px !important;
     border: none;
 }
 
@@ -349,7 +350,7 @@ MODAL NUEVO CLIENTE
     background: linear-gradient(135deg, #111827, #1f2937);
     color: white;
     border-bottom: none;
-    padding: 16px 24px;
+    padding: 14px 20px;
 }
 
 .modal-header .btn-close {
@@ -358,27 +359,27 @@ MODAL NUEVO CLIENTE
 
 .modal-title {
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: 1.15rem;
+}
+
+/* Modal más pequeño */
+#modalCliente .modal-dialog.modal-xl {
+    max-width: 920px !important;
 }
 
 .modal-body {
     background: #f9fafb;
-    padding: 24px;
+    padding: 18px 20px;        /* Reducido */
 }
 
-.modal-footer {
-    border-top: none;
-    padding: 16px 24px;
-}
-
-/* Formularios en modales */
+/* Formularios más compactos */
 .form-control,
 .form-select {
-    border-radius: 14px;
+    border-radius: 12px;
     border: 1px solid #e2e8f0;
-    padding: 10px 14px;
-    font-size: 13px;
-    width: 100%;
+    padding: 8px 12px;         /* Reducido */
+    font-size: 13.5px;
+    min-height: 40px;
 }
 
 .form-control:focus,
@@ -389,15 +390,37 @@ MODAL NUEVO CLIENTE
 }
 
 textarea.form-control {
-    min-height: 90px;
+    min-height: 70px;          /* Reducido */
+    padding: 8px 12px;
 }
 
-/* Items dinámicos en modal */
+/* Secciones internas */
+.erp-section {
+    padding: 16px;
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #edf2f7;
+}
+
+.erp-section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #1f2937;
+}
+
+/* Espaciado entre filas */
+.row.g-3 {
+    row-gap: 12px !important;
+}
+
+/* Items dinámicos (Contactos y Puntos de Entrega) */
 .item-agregable {
     background: white;
-    border-radius: 20px;
-    padding: 16px;
-    margin-bottom: 16px;
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 12px;
     border: 1px solid #edf2f7;
     position: relative;
 }
@@ -410,28 +433,29 @@ textarea.form-control {
     border: none;
     color: white;
     border-radius: 30px;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     font-size: 12px;
     cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-eliminar-item:hover {
-    transform: scale(1.05);
 }
 
 .btn-agregar {
     background: #f1f5f9;
     border-radius: 40px;
-    padding: 8px 16px;
+    padding: 6px 14px;
     font-weight: 500;
     border: 1px solid #e2e8f0;
-    transition: all 0.2s;
+    font-size: 0.9rem;
 }
 
 .btn-agregar:hover {
     background: #e2e8f0;
+}
+
+/* Footer más compacto */
+.modal-footer {
+    border-top: none;
+    padding: 14px 20px;
 }
 
 /* =========================================

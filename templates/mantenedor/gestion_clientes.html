@@ -12,7 +12,7 @@
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <style>
+    <style>1
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
 
@@ -279,7 +279,7 @@
                                 <div class="col-md-3"><label class="form-label">Nombre Comercial</label>
                                     <input type="text" class="form-control" id="nombre_comercial" placeholder="Nombre comercial">
                                 </div>
-                                <div class="col-12"><label class="form-label">Dirección Fiscal</label>
+                                <div class="col-md-3"><label class="form-label">Dirección Fiscal</label>
                                     <textarea class="form-control" id="direccion_fiscal" rows="2" placeholder="Dirección completa"></textarea>
                                 </div>
                             </div>
@@ -763,7 +763,7 @@
             let html = `
                 <div class="fecha-registro-box d-flex justify-content-between align-items-center p-3 mb-3">
                     <div class="info-row-ver m-0 p-0" style="background: transparent; border: none; box-shadow: none;">
-                        <div class="info-label-ver mb-1" style="font-size: 0.75rem;">CÓDIGO</div>
+                        <div class="info-label-ver mb-1" style="font-size: 0.75rem;">CÓDIGO CLIENTE</div>
                         <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.15rem;">${escapeHtml(c.codigo_cliente || '---')}</h5>
                     </div>
                     
