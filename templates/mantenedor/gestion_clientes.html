@@ -684,52 +684,93 @@
         // CARGAR CLIENTES
         // =========================================
         async function cargarClientes(filtros = {}) {
-            const tbody = document.getElementById("tbody-clientes");
-            if (!tbody) return;
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5"><div class="spinner-border text-primary"></div><br>Cargando...</div></tr>`;
-            try {
-                let url = "/api/clientes/buscar";
-                const params = new URLSearchParams();
-                if (filtros.tipo) params.append("tipo_documento", filtros.tipo);
-                if (filtros.busqueda) params.append("busqueda", filtros.busqueda);
-                if (params.toString()) url += "?" + params.toString();
-                const res = await fetch(url);
-                const json = await res.json();
-                const clientes = json.data || [];
-                tbody.innerHTML = "";
-                if (clientes.length === 0) { tbody.innerHTML = `<td><td colspan="10" class="text-center py-5"><i class="bi bi-emoji-frown"></i><br>No hay clientes</div></table>`; return; }
-                clientes.forEach(c => {
-                    const contactos = (c.contactos?.length) ? c.contactos.map(ct => `📞 ${escapeHtml(ct.nombre_contacto || '')}`).join('<br>') : '<em>Sin contactos</em>';
-                    const puntos = (c.puntos_entrega?.length) ? c.puntos_entrega.map(p => `📦 ${escapeHtml(p.nombre_punto || '')}`).join('<br>') : '<em>Sin puntos</em>';
-                    const condicionPago = c.puntos_entrega?.[0]?.condicion_pago || '-';
-                    const codigoCliente = c.codigo_cliente || '---';
-                    tbody.innerHTML += `<tr>
+        const tbody = document.getElementById("tbody-clientes");
+        if (!tbody) return;
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center py-5">
+                    <div class="spinner-border text-primary"></div>
+                    <br>Cargando...
+                </td>
+            </tr>`;
+
+        try {
+            let url = "/api/clientes/buscar";
+            const params = new URLSearchParams();
+            if (filtros.tipo) params.append("tipo_documento", filtros.tipo);
+            if (filtros.busqueda) params.append("busqueda", filtros.busqueda);
+            if (params.toString()) url += "?" + params.toString();
+
+            const res = await fetch(url);
+            const json = await res.json();
+            const clientes = json.data || [];
+
+            tbody.innerHTML = "";
+
+            if (clientes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center py-5">
+                            <i class="bi bi-emoji-frown"></i><br>No hay clientes
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            clientes.forEach(c => {
+                const contactos = (c.contactos?.length)
+                    ? c.contactos.map(ct => `📞 ${escapeHtml(ct.nombre_contacto || '')}`).join('<br>')
+                    : '<em>Sin contactos</em>';
+
+                const puntos = (c.puntos_entrega?.length)
+                    ? c.puntos_entrega.map(p => `📦 ${escapeHtml(p.nombre_punto || '')}`).join('<br>')
+                    : '<em>Sin puntos</em>';
+
+                const condicionPago = c.puntos_entrega?.[0]?.condicion_pago || '-';
+                const codigoCliente = c.codigo_cliente || '---';
+                // ⚠️ Estabas usando "codigoMostrar" pero la variable se llama "codigoCliente"
+                const codigoMostrar = codigoCliente;
+
+                tbody.innerHTML += `
+                    <tr>
                         <td class="text-center">${c.id}</td>
-                        <td class="text-center"><span class="badge bg-secondary">${escapeHtml(codigoCliente)}</span></td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">${escapeHtml(codigoCliente)}</span>
+                        </td>
                         <td>${escapeHtml(c.nombre_comercial) || '-'}</td>
                         <td><strong>${escapeHtml(c.razon_social) || '-'}</strong></td>
-                        <td class="text-center"><span class="badge bg-info">${c.numero_documento || '-'}</span></td>
+                        <td class="text-center">
+                            <span class="badge bg-info">${c.numero_documento || '-'}</span>
+                        </td>
                         <td>${escapeHtml(c.direccion_fiscal) || '-'}</td>
                         <td class="text-center">${condicionPago}</td>
                         <td>${contactos}</td>
                         <td>${puntos}</td>
                         <td class="acciones text-center">
-                        <button class="btn-mini btn-ver" onclick="abrirModalVer(${c.id})" title="Ver Detalle">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn-mini btn-editar" onclick="abrirModalEditar(${c.id})" title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn-mini btn-eliminar" onclick="abrirModalEliminar(${c.id}, '${escapeHtml(codigoMostrar)}')" title="Eliminar">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                        </div>
-                    </td>
-                </tr>`;
+                            <button class="btn-mini btn-ver" onclick="abrirModalVer(${c.id})" title="Ver Detalle">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn-mini btn-editar" onclick="abrirModalEditar(${c.id})" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn-mini btn-eliminar" onclick="abrirModalEliminar(${c.id}, '${escapeHtml(codigoMostrar)}')" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+               });
 
-                });
-            } catch(e) { console.error(e); tbody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Error: ${e.message}</div></tr>`; }
-        }
+                } catch (e) {
+                    console.error(e);
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="text-center text-danger">
+                                Error: ${e.message}
+                            </td>
+                        </tr>`;
+                }
+            } 
 
         function inicializarFiltros() {
             const filtroTipo = document.getElementById("filtro-tipo");
