@@ -720,11 +720,11 @@
 
             clientes.forEach(c => {
                 const contactos = (c.contactos?.length)
-                    ? c.contactos.map(ct => `📞 ${escapeHtml(ct.nombre_contacto || '')}`).join('<br>')
+                    ? c.contactos.map(ct => ` ${escapeHtml(ct.nombre_contacto || '')}`).join('<br>')
                     : '<em>Sin contactos</em>';
 
                 const puntos = (c.puntos_entrega?.length)
-                    ? c.puntos_entrega.map(p => `📦 ${escapeHtml(p.nombre_punto || '')}`).join('<br>')
+                    ? c.puntos_entrega.map(p => ` ${escapeHtml(p.nombre_punto || '')}`).join('<br>')
                     : '<em>Sin puntos</em>';
 
                 const condicionPago = c.puntos_entrega?.[0]?.condicion_pago || '-';
@@ -1040,6 +1040,39 @@
                 if (document.getElementById('listaContactos')?.children.length === 0) agregarContactoNuevo();
                 if (document.getElementById('listaPuntos')?.children.length === 0) agregarPuntoNuevo();
             }, 100);
+            // ===========================
+// ESTILOS ADICIONALES
+// ===========================
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    .estado-borrador { background: #fef3c7; color: #92400e; border-left: 3px solid #f59e0b; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .estado-proceso { background: #e0e7ff; color: #3730a3; border-left: 3px solid #6366f1; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .estado-generada { background: #dbeafe; color: #1e40af; border-left: 3px solid #3b82f6; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .estado-aceptada { background: #d1fae5; color: #065f46; border-left: 3px solid #10b981; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .estado-rechazada { background: #fee2e2; color: #991b1b; border-left: 3px solid #ef4444; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .btn-mini { background: none; border: none; font-size: 1.1rem; padding: 6px 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; margin: 0 2px; }
+    .btn-mini:hover { transform: scale(1.05); }
+    .btn-ver { color: #3b82f6; }
+    .btn-ver:hover { background: rgba(59, 130, 246, 0.1); }
+    .btn-editar { color: #f59e0b; }
+    .btn-editar:hover { background: rgba(245, 158, 11, 0.1); }
+    .btn-eliminar { color: #ef4444; }
+    .btn-eliminar:hover { background: rgba(239, 68, 68, 0.1); }
+    .monto { font-weight: 700; color: #111827; }
+    .acciones { white-space: nowrap; }
+    .codigo-cell, .fecha-cell, .cliente-cell, .estado-cell, .monto, .acciones { vertical-align: middle; }
+    .fecha-hora .fecha { font-weight: 600; color: #111827; }
+    .fecha-hora .hora { font-size: 11px; color: #6b7280; }
+`;
+document.head.appendChild(style);
         });
     </script>
 </body>
