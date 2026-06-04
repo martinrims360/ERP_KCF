@@ -12,7 +12,7 @@
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <style>1
+    <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
 
@@ -713,12 +713,20 @@
                         <td class="text-center">${condicionPago}</td>
                         <td>${contactos}</td>
                         <td>${puntos}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-primary me-1" onclick="abrirModalVer(${c.id})"><i class="bi bi-eye-fill"></i> Ver</button>
-                            <button class="btn btn-sm btn-warning me-1" onclick="abrirModalEditar(${c.id})"><i class="bi bi-pencil-fill"></i> Editar</button>
-                            <button class="btn btn-sm btn-danger" onclick="abrirModalEliminar(${c.id})"><i class="bi bi-trash-fill"></i> Eliminar</button>
+                        <td class="acciones text-center">
+                        <button class="btn-mini btn-ver" onclick="abrirModalVer(${c.id})" title="Ver Detalle">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn-mini btn-editar" onclick="abrirModalEditar(${c.id})" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn-mini btn-eliminar" onclick="abrirModalEliminar(${c.id}, '${escapeHtml(codigoMostrar)}')" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
                         </div>
-                    </tr>`;
+                    </td>
+                </tr>`;
+
                 });
             } catch(e) { console.error(e); tbody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Error: ${e.message}</div></tr>`; }
         }
