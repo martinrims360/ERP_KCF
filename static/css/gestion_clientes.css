@@ -645,3 +645,53 @@ MODAL VER CLIENTE
     border-bottom: 2px solid #e2e8f0;
     color: #334155;
 }
+/* ///-----> */
+/* Estilos para los botones de acciones */
+.acciones .btn-mini {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0 3px;
+    border: none;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+}
+
+.btn-ver {
+    background-color: #0d6efd !important;     /* Azul como en la imagen */
+    color: white !important;
+}
+
+.btn-ver:hover {
+    background-color: #0b5ed7 !important;
+    transform: scale(1.1);
+}
+
+.btn-editar {
+    background-color: #ffc107 !important;     /* Amarillo/naranja como en la imagen */
+    color: #212529 !important;
+}
+
+.btn-editar:hover {
+    background-color: #ffb300 !important;
+    transform: scale(1.1);
+}
+
+.btn-eliminar {
+    background-color: #dc3545 !important;     /* Rojo como en la imagen */
+    color: white !important;
+}
+
+.btn-eliminar:hover {
+    background-color: #c82333 !important;
+    transform: scale(1.1);
+}
+
+/* Espaciado adicional si es necesario */
+.acciones {
+    white-space: nowrap;
+}
